@@ -1,0 +1,346 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://roboticxs.com/schemas/skill-manifest-v0-1.json",
+  "title": "Roboticxs Skill Manifest Schema v0.1",
+  "description": "Machine-readable manifest for Roboticxs skill packages, scope guards, action boundaries, and upgrade paths.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "skill_id",
+    "display_name",
+    "package",
+    "description",
+    "allowed_topics",
+    "blocked_topics",
+    "allowed_action_classes",
+    "confirmation_required",
+    "blocked_action_classes",
+    "scope_decisions",
+    "safe_fallback"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1"
+    },
+    "skill_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{2,63}$",
+      "description": "Stable machine identifier. Use snake_case."
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 80
+    },
+    "package": {
+      "type": "string",
+      "enum": [
+        "basic",
+        "pro",
+        "marketing",
+        "sales",
+        "finance_admin",
+        "hr",
+        "documents",
+        "all_inclusive",
+        "custom"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 500
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^v?[0-9]+\\.[0-9]+(\\.[0-9]+)?$"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "deprecated"
+      ],
+      "default": "draft"
+    },
+    "allowed_topics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 120
+      },
+      "uniqueItems": true
+    },
+    "blocked_topics": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 120
+      },
+      "uniqueItems": true
+    },
+    "allowed_action_classes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/action_class"
+      },
+      "uniqueItems": true
+    },
+    "confirmation_required": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/action_class"
+      },
+      "uniqueItems": true
+    },
+    "blocked_action_classes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/action_class"
+      },
+      "uniqueItems": true
+    },
+    "scope_decisions": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "$ref": "#/definitions/scope_decision"
+      },
+      "uniqueItems": true
+    },
+    "upgrade_paths": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "trigger",
+          "target_package",
+          "message"
+        ],
+        "properties": {
+          "trigger": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 160
+          },
+          "target_package": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 300
+          }
+        }
+      }
+    },
+    "escalation_triggers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 3,
+        "maxLength": 160
+      },
+      "uniqueItems": true
+    },
+    "safe_fallback": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 500
+    },
+    "user_disclaimer": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "examples": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "in_scope": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "out_of_scope": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "confirmation_required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "blocked": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "tool_permissions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "tool_id",
+          "permission"
+        ],
+        "properties": {
+          "tool_id": {
+            "type": "string"
+          },
+          "permission": {
+            "type": "string",
+            "enum": [
+              "none",
+              "read",
+              "draft",
+              "write_with_confirmation",
+              "blocked"
+            ]
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "memory_permissions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "can_read_user_profile": {
+          "type": "boolean",
+          "default": true
+        },
+        "can_read_business_context": {
+          "type": "boolean",
+          "default": false
+        },
+        "can_propose_memories": {
+          "type": "boolean",
+          "default": true
+        },
+        "can_write_memories_without_approval": {
+          "type": "boolean",
+          "default": false
+        },
+        "blocked_memory_tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "action_class": {
+      "type": "string",
+      "enum": [
+        "READ",
+        "SEARCH_APPROVED_CONTEXT",
+        "CLASSIFY",
+        "SUMMARIZE",
+        "DRAFT",
+        "DRAFT_NOTIFY",
+        "ROUTE",
+        "REMIND",
+        "SCHEDULE_SELF",
+        "SCHEDULE_WITH_THIRD_PARTY",
+        "SEND_NOTIFY",
+        "WRITE_EXTERNAL_RECORD",
+        "PUBLISH",
+        "PAY",
+        "REFUND",
+        "DELETE",
+        "CONFIGURE",
+        "RELEASE",
+        "LEGAL_ACCEPTANCE",
+        "EMPLOYMENT_DECISION",
+        "MEDICAL_DECISION",
+        "FINANCIAL_DECISION",
+        "TAX_DECISION",
+        "IDENTITY_CHANGE"
+      ]
+    },
+    "scope_decision": {
+      "type": "string",
+      "enum": [
+        "ANSWER",
+        "CLARIFY",
+        "REDIRECT",
+        "OFFER_UPGRADE",
+        "REFUSE_SCOPE",
+        "BLOCK"
+      ]
+    }
+  },
+  "examples": [
+    {
+      "schema_version": "0.1",
+      "skill_id": "documents_review",
+      "display_name": "Documents Review",
+      "package": "documents",
+      "description": "Review, summarize, and prepare notes from approved documents and PDFs.",
+      "version": "0.1",
+      "status": "draft",
+      "allowed_topics": [
+        "document summaries",
+        "PDF review",
+        "meeting briefings",
+        "risk notes",
+        "form prep"
+      ],
+      "blocked_topics": [
+        "legal advice",
+        "certified signature",
+        "tax advice",
+        "medical advice"
+      ],
+      "allowed_action_classes": [
+        "READ",
+        "SEARCH_APPROVED_CONTEXT",
+        "SUMMARIZE",
+        "DRAFT",
+        "DRAFT_NOTIFY"
+      ],
+      "confirmation_required": [
+        "SEND_NOTIFY",
+        "WRITE_EXTERNAL_RECORD"
+      ],
+      "blocked_action_classes": [
+        "PAY",
+        "REFUND",
+        "DELETE",
+        "CONFIGURE",
+        "LEGAL_ACCEPTANCE",
+        "TAX_DECISION",
+        "MEDICAL_DECISION"
+      ],
+      "scope_decisions": [
+        "ANSWER",
+        "CLARIFY",
+        "REDIRECT",
+        "OFFER_UPGRADE",
+        "REFUSE_SCOPE",
+        "BLOCK"
+      ],
+      "safe_fallback": "I can help review, summarize, and prepare document notes. I cannot provide legal advice or execute certified signatures."
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "schema_version": "0.1",
+  "skill_id": "basic_assistant",
+  "display_name": "Basic Assistant",
+  "package": "basic",
+  "description": "Stage 1 starter skill for meeting prep, summaries, reminders, drafting, and basic productivity help.",
+  "version": "0.1.0",
+  "status": "active",
+  "allowed_topics": [
+    "meetings",
+    "task help",
+    "drafting",
+    "summaries",
+    "reminders",
+    "basic productivity"
+  ],
+  "blocked_topics": [
+    "legal advice",
+    "medical advice",
+    "tax advice",
+    "payment execution",
+    "account deletion",
+    "credential changes"
+  ],
+  "allowed_action_classes": [
+    "READ",
+    "DRAFT_NOTIFY",
+    "CLASSIFY",
+    "SUMMARIZE",
+    "PREPARE"
+  ],
+  "confirmation_required": [
+    "SEND_NOTIFY",
+    "WRITE_EXTERNAL_RECORD",
+    "SCHEDULE_WITH_THIRD_PARTY"
+  ],
+  "blocked_action_classes": [
+    "PAY",
+    "DELETE_ACCOUNT",
+    "CHANGE_CREDENTIAL",
+    "LEGAL_ACCEPTANCE",
+    "DESTRUCTIVE_ACTION"
+  ],
+  "scope_decisions": [
+    "ANSWER",
+    "CLARIFY",
+    "REDIRECT",
+    "OFFER_UPGRADE",
+    "REFUSE_SCOPE",
+    "BLOCK"
+  ],
+  "safe_fallback": "I can help with meeting prep, summaries, reminders, and drafting. For legal, medical, tax, payment, deletion, or credential tasks, I will refuse or block the request."
+}
