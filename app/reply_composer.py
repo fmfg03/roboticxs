@@ -427,10 +427,9 @@ def compose_robot_folder_empty_reply() -> str:
 
 
 def compose_capability_catalog_reply(catalog) -> str:
-    available_now = [
-        item for item in catalog if item.status in {"AVAILABLE_READ_ONLY", "AVAILABLE_DRAFT_ONLY"}
-    ]
+    available_now = [item for item in catalog if item.status == "AVAILABLE_READ_ONLY"]
     needs_approval = [item for item in catalog if item.status == "NEEDS_APPROVAL"]
+    preparation_only = [item for item in catalog if item.status == "AVAILABLE_DRAFT_ONLY"]
     planned = [item for item in catalog if item.status == "PLANNED"]
     blocked = [item for item in catalog if item.status == "BLOCKED"]
     lines = ["Estas son las habilidades que Robbie tiene hoy:", ""]
@@ -444,8 +443,13 @@ def compose_capability_catalog_reply(catalog) -> str:
         for index, item in enumerate(needs_approval, start=1):
             lines.append(_compose_capability_catalog_line(index=index, item=item))
         lines.append("")
+    if preparation_only:
+        lines.append("Solo preparación / revisión previa")
+        for index, item in enumerate(preparation_only, start=1):
+            lines.append(_compose_capability_catalog_line(index=index, item=item))
+        lines.append("")
     if planned:
-        lines.append("Planeado")
+        lines.append("Planeado / no activo todavía")
         for index, item in enumerate(planned, start=1):
             lines.append(_compose_capability_catalog_line(index=index, item=item))
         lines.append("")
@@ -456,11 +460,7 @@ def compose_capability_catalog_reply(catalog) -> str:
         lines.append("")
     lines.extend(
         [
-            "- No ejecuto pagos.",
-            "- No acepto términos legales.",
-            "- No cambio contraseñas ni permisos.",
-            "- No borro cuentas ni datos externos.",
-            "- No hago acciones sensibles sin confirmación.",
+            "Límites globales: Robbie no ejecuta pagos, compras, envíos, reservas, cambios externos, uso de credenciales, navegador, conectores ni decisiones legales, médicas, fiscales, financieras o laborales.",
             "",
             "Agentius / workflows de negocio",
             "- Si me pides CRM, flujos de equipo, clientes o automatización de negocio, en v0 solo lo clasifico como candidato para Agentius.",
@@ -472,9 +472,9 @@ def compose_capability_catalog_reply(catalog) -> str:
 
 
 def _compose_capability_catalog_line(*, index: int, item) -> str:
-    base = f"{index}. {item.display_name} — {item.description}"
+    base = f"• {item.display_name} — {item.description}"
     if item.boundary_label and item.boundary_summary:
-        return f"{base} Límite: {item.boundary_label}. {item.boundary_summary}"
+        return f"{base}\n  Límite: {item.boundary_label}; {item.boundary_summary}"
     return base
 
 

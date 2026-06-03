@@ -24,9 +24,27 @@ async def test_capability_catalog_commands_match_exact_case_insensitive(client, 
     reply = response.json()["reply"]["text"]
     assert "Estas son las habilidades que Robbie tiene hoy:" in reply
     assert "Disponible ahora" in reply
-    assert "Planeado" in reply
+    assert "Necesita aprobación" in reply
+    assert "Solo preparación / revisión previa" in reply
+    assert "Planeado / no activo todavía" in reply
     assert "Bloqueado" in reply
     assert "Límite:" in reply
+    assert "Límites globales:" in reply
+    assert "• " in reply
+
+
+@pytest.mark.anyio
+async def test_capability_catalog_section_order_is_user_comprehension_order(client):
+    await ensure_user_and_robot(client)
+    response = await client.post("/api/telegram/webhook", json=build_text_update("qué puedes hacer"))
+    assert response.status_code == 200
+    reply = response.json()["reply"]["text"]
+    available_idx = reply.index("Disponible ahora")
+    approval_idx = reply.index("Necesita aprobación")
+    preparation_idx = reply.index("Solo preparación / revisión previa")
+    planned_idx = reply.index("Planeado / no activo todavía")
+    blocked_idx = reply.index("Bloqueado")
+    assert available_idx < approval_idx < preparation_idx < planned_idx < blocked_idx
 
 
 @pytest.mark.anyio
@@ -133,9 +151,9 @@ async def test_capability_catalog_marks_super_familiar_as_available_draft_only(c
     response = await client.post("/api/telegram/webhook", json=build_text_update("qué puedes hacer"))
     assert response.status_code == 200
     reply = response.json()["reply"]["text"]
-    assert "Disponible ahora" in reply
-    assert "Súper Familiar — Prepara una vista local de súper familiar" in reply
-    assert "Límite: Borrador / preparación. Prepara un borrador o lista para que tú lo revises. No compra, no envía y no ejecuta acciones externas." in reply
+    assert "Solo preparación / revisión previa" in reply
+    assert "• Súper Familiar — Prepara una vista local de súper familiar" in reply
+    assert "Límite: Borrador / preparación; Prepara un borrador o lista para que tú lo revises. No compra, no envía y no ejecuta acciones externas." in reply
 
 
 @pytest.mark.anyio
@@ -144,8 +162,8 @@ async def test_capability_catalog_marks_web_workflow_preflight_as_available_draf
     response = await client.post("/api/telegram/webhook", json=build_text_update("qué puedes hacer"))
     assert response.status_code == 200
     reply = response.json()["reply"]["text"]
-    assert "Web Workflow Preflight — Evalúa localmente si una tarea web puede prepararse" in reply
-    assert "Límite: Preflight / revisión previa. Revisa si una tarea web parece preparable o bloqueada. No abre sitios, no inicia sesión y no envía formularios." in reply
+    assert "• Web Workflow Preflight — Evalúa localmente si una tarea web puede prepararse" in reply
+    assert "Límite: Preflight / revisión previa; Revisa si una tarea web parece preparable o bloqueada. No abre sitios, no inicia sesión y no envía formularios." in reply
 
 
 @pytest.mark.anyio
@@ -154,10 +172,14 @@ async def test_capability_catalog_annotates_read_only_approval_planned_and_block
     response = await client.post("/api/telegram/webhook", json=build_text_update("qué puedes hacer"))
     assert response.status_code == 200
     reply = response.json()["reply"]["text"]
-    assert "Qué se me pasó — Muestra cosas que necesitan atención usando solo estado local. Límite: Solo lectura local. Solo lee información local ya registrada. No revisa servicios externos ni cambia nada por ti." in reply
-    assert "Memoria aprobada — Robbie puede proponer memorias y tú decides si se guardan. Límite: Requiere aprobación. Puede preparar o proponer información, pero requiere aprobación explícita antes de guardar o cambiar algo." in reply
-    assert "Skill activation — Futuro flujo para activar habilidades con límites claros. Límite: Planeado. Planeado para una etapa futura. No está activo como capacidad runtime hoy." in reply
-    assert "Acciones sensibles bloqueadas — Pagos, aceptación legal, credenciales y acciones destructivas están bloqueadas. Límite: Bloqueado. Bloqueado por política actual. Robbie no ejecuta esta acción." in reply
+    assert "• Qué se me pasó — Muestra cosas que necesitan atención usando solo estado local." in reply
+    assert "Límite: Solo lectura local; Solo lee información local ya registrada. No revisa servicios externos ni cambia nada por ti." in reply
+    assert "• Memoria aprobada — Robbie puede proponer memorias y tú decides si se guardan." in reply
+    assert "Límite: Requiere aprobación; Puede preparar o proponer información, pero requiere aprobación explícita antes de guardar o cambiar algo." in reply
+    assert "• Skill activation — Futuro flujo para activar habilidades con límites claros." in reply
+    assert "Límite: Planeado; Planeado para una etapa futura. No está activo como capacidad runtime hoy." in reply
+    assert "• Acciones sensibles bloqueadas — Pagos, aceptación legal, credenciales y acciones destructivas están bloqueadas." in reply
+    assert "Límite: Bloqueado; Bloqueado por política actual. Robbie no ejecuta esta acción." in reply
 
 
 @pytest.mark.anyio
@@ -174,6 +196,7 @@ async def test_capability_catalog_does_not_claim_connectors_retrieval_browser_or
     assert "CI_ONLY" not in reply
     assert "non_authority" not in reply
     assert "No revisé correo, WhatsApp, calendario, web ni sistemas externos." in reply
+    assert "Límites globales: Robbie no ejecuta pagos, compras, envíos, reservas, cambios externos, uso de credenciales, navegador, conectores" in reply
 
 
 @pytest.mark.anyio
