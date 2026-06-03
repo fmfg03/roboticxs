@@ -432,25 +432,30 @@ def compose_capability_catalog_reply(catalog) -> str:
     ]
     needs_approval = [item for item in catalog if item.status == "NEEDS_APPROVAL"]
     planned = [item for item in catalog if item.status == "PLANNED"]
+    blocked = [item for item in catalog if item.status == "BLOCKED"]
     lines = ["Estas son las habilidades que Robbie tiene hoy:", ""]
     if available_now:
         lines.append("Disponible ahora")
         for index, item in enumerate(available_now, start=1):
-            lines.append(f"{index}. {item.display_name} — {item.description}")
+            lines.append(_compose_capability_catalog_line(index=index, item=item))
         lines.append("")
     if needs_approval:
         lines.append("Necesita aprobación")
         for index, item in enumerate(needs_approval, start=1):
-            lines.append(f"{index}. {item.display_name} — {item.description}")
+            lines.append(_compose_capability_catalog_line(index=index, item=item))
         lines.append("")
     if planned:
         lines.append("Planeado")
         for index, item in enumerate(planned, start=1):
-            lines.append(f"{index}. {item.display_name} — {item.description}")
+            lines.append(_compose_capability_catalog_line(index=index, item=item))
+        lines.append("")
+    if blocked:
+        lines.append("Bloqueado")
+        for index, item in enumerate(blocked, start=1):
+            lines.append(_compose_capability_catalog_line(index=index, item=item))
         lines.append("")
     lines.extend(
         [
-            "Bloqueado",
             "- No ejecuto pagos.",
             "- No acepto términos legales.",
             "- No cambio contraseñas ni permisos.",
@@ -464,6 +469,13 @@ def compose_capability_catalog_reply(catalog) -> str:
         ]
     )
     return "\n".join(lines)
+
+
+def _compose_capability_catalog_line(*, index: int, item) -> str:
+    base = f"{index}. {item.display_name} — {item.description}"
+    if item.boundary_label and item.boundary_summary:
+        return f"{base} Límite: {item.boundary_label}. {item.boundary_summary}"
+    return base
 
 
 def compose_capability_resolution_reply(*, resolution) -> str:

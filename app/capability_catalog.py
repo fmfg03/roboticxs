@@ -19,6 +19,8 @@ class Capability:
     status: str
     package: str
     description: str
+    boundary_label: str = ""
+    boundary_summary: str = ""
     commands: tuple[str, ...] = ()
     allowed_actions: tuple[str, ...] = ()
     blocked_actions: tuple[str, ...] = ()
@@ -32,6 +34,8 @@ def load_capability_catalog() -> list[Capability]:
             status=STATUS_AVAILABLE_READ_ONLY,
             package="core",
             description="Muestra cosas que necesitan atención usando solo estado local.",
+            boundary_label="Solo lectura local",
+            boundary_summary="Solo lee información local ya registrada. No revisa servicios externos ni cambia nada por ti.",
             commands=("qué se me pasó", "what did i miss", "qué necesita mi atención"),
             allowed_actions=("READ_LOCAL_STATE", "SUMMARIZE_LOCAL_STATE"),
             blocked_actions=("CONNECTOR_ACCESS", "LIVE_RETRIEVAL", "PAYMENT_EXECUTION"),
@@ -42,6 +46,8 @@ def load_capability_catalog() -> list[Capability]:
             status=STATUS_AVAILABLE_READ_ONLY,
             package="core",
             description="Muestra lo que Robbie sabe o tiene pendiente usando memoria y estado local.",
+            boundary_label="Solo lectura local",
+            boundary_summary="Solo lee información local ya registrada. No revisa servicios externos ni cambia nada por ti.",
             commands=("mi información importante", "lo que robbie sabe", "robot folder", "what does robbie know"),
             allowed_actions=("READ_LOCAL_STATE", "GROUP_LOCAL_STATE"),
             blocked_actions=("MEMORY_MUTATION", "CONNECTOR_ACCESS", "LIVE_RETRIEVAL"),
@@ -52,6 +58,8 @@ def load_capability_catalog() -> list[Capability]:
             status=STATUS_NEEDS_APPROVAL,
             package="core",
             description="Robbie puede proponer memorias y tú decides si se guardan.",
+            boundary_label="Requiere aprobación",
+            boundary_summary="Puede preparar o proponer información, pero requiere aprobación explícita antes de guardar o cambiar algo.",
             allowed_actions=("PROPOSE_MEMORY", "APPROVE_MEMORY_IF_EXISTING_FLOW"),
             blocked_actions=("AUTO_STORE_RAW_DATA", "AUTO_APPROVE_MEMORY"),
         ),
@@ -61,6 +69,8 @@ def load_capability_catalog() -> list[Capability]:
             status=STATUS_AVAILABLE_DRAFT_ONLY,
             package="core",
             description="Robbie puede preparar una revisión o resumen usando texto explícito que ya le compartas.",
+            boundary_label="Borrador / preparación",
+            boundary_summary="Prepara un borrador o lista para que tú lo revises. No compra, no envía y no ejecuta acciones externas.",
             allowed_actions=("DRAFT_REVIEW", "SUMMARIZE_TEXT"),
             blocked_actions=("FILE_DOWNLOAD", "OCR", "PARSING", "CONNECTOR_ACCESS"),
         ),
@@ -70,6 +80,8 @@ def load_capability_catalog() -> list[Capability]:
             status=STATUS_AVAILABLE_READ_ONLY,
             package="core",
             description="Robbie puede mostrar información local registrada sobre archivos o documentos ya conocidos.",
+            boundary_label="Solo lectura local",
+            boundary_summary="Solo lee información local ya registrada. No revisa servicios externos ni cambia nada por ti.",
             allowed_actions=("READ_FILE_METADATA", "READ_DOCUMENT_METADATA"),
             blocked_actions=("FILE_DOWNLOAD", "OCR", "PARSING", "CONNECTOR_ACCESS"),
         ),
@@ -79,6 +91,8 @@ def load_capability_catalog() -> list[Capability]:
             status=STATUS_AVAILABLE_READ_ONLY,
             package="core",
             description="Robbie puede mostrar uso local estimado y estado de presupuesto.",
+            boundary_label="Solo lectura local",
+            boundary_summary="Solo lee información local ya registrada. No revisa servicios externos ni cambia nada por ti.",
             allowed_actions=("READ_LOCAL_USAGE", "READ_LOCAL_BUDGET"),
             blocked_actions=("LIVE_BILLING", "PAYMENT_EXECUTION"),
         ),
@@ -88,6 +102,8 @@ def load_capability_catalog() -> list[Capability]:
             status=STATUS_AVAILABLE_READ_ONLY,
             package="core",
             description="Robbie puede mostrar el estado y controles locales de retrieval, que sigue deshabilitado.",
+            boundary_label="Solo lectura local",
+            boundary_summary="Solo lee información local ya registrada. No revisa servicios externos ni cambia nada por ti.",
             allowed_actions=("READ_LOCAL_CONTROL_STATE",),
             blocked_actions=("LIVE_RETRIEVAL", "FILE_DOWNLOAD", "OCR", "PARSING"),
         ),
@@ -97,6 +113,8 @@ def load_capability_catalog() -> list[Capability]:
             status=STATUS_AVAILABLE_DRAFT_ONLY,
             package="core",
             description="Prepara una vista local de súper familiar con datos conocidos, faltantes y límites. No compra, no crea carrito y no paga.",
+            boundary_label="Borrador / preparación",
+            boundary_summary="Prepara un borrador o lista para que tú lo revises. No compra, no envía y no ejecuta acciones externas.",
             commands=("súper familiar", "super familiar", "preparar súper familiar", "preparar super familiar", "lista del súper familiar", "lista del super familiar", "family groceries"),
             allowed_actions=("READ_LOCAL_STATE", "PREPARE_LOCAL_GROCERY_BRIEF"),
             blocked_actions=(
@@ -114,6 +132,8 @@ def load_capability_catalog() -> list[Capability]:
             status=STATUS_AVAILABLE_DRAFT_ONLY,
             package="core",
             description="Prepara paquetes locales de aprobación para revisar qué requeriría confirmación antes de una acción futura.",
+            boundary_label="Paquete de aprobación",
+            boundary_summary="Prepara un paquete de aprobación para que tú decidas. Crear el paquete no ejecuta la acción.",
             commands=(
                 "preparar aprobación",
                 "preparar aprobacion",
@@ -145,6 +165,8 @@ def load_capability_catalog() -> list[Capability]:
                 "Evalúa localmente si una tarea web puede prepararse, qué datos faltan y qué acciones están bloqueadas. "
                 "No abre navegador, no usa Webwright y no envía formularios."
             ),
+            boundary_label="Preflight / revisión previa",
+            boundary_summary="Revisa si una tarea web parece preparable o bloqueada. No abre sitios, no inicia sesión y no envía formularios.",
             commands=(
                 "preflight web",
                 "revisar tarea web",
@@ -175,6 +197,8 @@ def load_capability_catalog() -> list[Capability]:
             status=STATUS_PLANNED,
             package="planned",
             description="Futuro flujo para activar habilidades con límites claros.",
+            boundary_label="Planeado",
+            boundary_summary="Planeado para una etapa futura. No está activo como capacidad runtime hoy.",
         ),
         Capability(
             capability_id="connectors",
@@ -182,6 +206,8 @@ def load_capability_catalog() -> list[Capability]:
             status=STATUS_PLANNED,
             package="planned",
             description="Futuro soporte para fuentes externas autorizadas.",
+            boundary_label="Planeado",
+            boundary_summary="Planeado para una etapa futura. No está activo como capacidad runtime hoy.",
             blocked_actions=("LIVE_CONNECTOR_ACCESS",),
         ),
         Capability(
@@ -190,6 +216,8 @@ def load_capability_catalog() -> list[Capability]:
             status=STATUS_BLOCKED,
             package="safety",
             description="Pagos, aceptación legal, credenciales y acciones destructivas están bloqueadas.",
+            boundary_label="Bloqueado",
+            boundary_summary="Bloqueado por política actual. Robbie no ejecuta esta acción.",
             blocked_actions=("PAYMENT_EXECUTION", "LEGAL_ACCEPTANCE", "CREDENTIAL_CHANGE", "DESTRUCTIVE_ACTION"),
         ),
     ]
