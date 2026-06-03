@@ -3,3 +3,4 @@
 *.sqlite3
 .pytest_cache/
 __pycache__/
+roboticxs_artifacts/workspace_archives/
