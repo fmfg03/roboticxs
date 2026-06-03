@@ -5,6 +5,12 @@ from app.flows.budget_flow import (
     process_budget_status,
     process_budget_warn_threshold_update,
 )
+from app.flows.attention_flow import process_attention_summary
+from app.flows.action_approval_flow import process_action_approval_packet
+from app.flows.capability_flow import process_capability_catalog, process_capability_query
+from app.flows.robot_folder_flow import process_robot_folder
+from app.flows.super_familiar_flow import process_super_familiar
+from app.flows.web_preflight_flow import process_web_preflight
 from app.flows.document_flow import process_document_forget, process_document_listing, process_document_review
 from app.flows.file_control_flow import (
     process_file_forget,
@@ -34,6 +40,13 @@ __all__ = [
     "process_budget_limit_update",
     "process_budget_policy_reset",
     "process_budget_warn_threshold_update",
+    "process_attention_summary",
+    "process_action_approval_packet",
+    "process_capability_catalog",
+    "process_capability_query",
+    "process_robot_folder",
+    "process_super_familiar",
+    "process_web_preflight",
     "process_file_forget",
     "process_file_listing",
     "process_file_retrieval_control_report",

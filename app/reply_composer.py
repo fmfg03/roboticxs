@@ -380,6 +380,251 @@ def compose_file_retrieval_control_report_reply(
     return "\n".join(lines)
 
 
+def compose_attention_summary_reply(findings: list[str]) -> str:
+    if not findings:
+        return (
+            "No encontré nada pendiente con el estado local que Robbie conoce hoy.\n\n"
+            "No revisé correo, WhatsApp, calendario, web ni archivos nuevos. "
+            "Solo usé memoria, archivos registrados, reviews, presupuesto y estados locales ya persistidos."
+        )
+
+    lines = [f"Encontré {len(findings)} cosas que necesitan atención usando solo lo que Robbie ya conoce:", ""]
+    for index, finding in enumerate(findings, start=1):
+        lines.append(f"{index}. {finding}")
+    lines.extend(
+        [
+            "",
+            "No revisé correo, WhatsApp, calendario ni web en vivo.",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def compose_robot_folder_reply(sections) -> str:
+    lines = [
+        "Mi información importante",
+        "",
+        "Esto es lo que Robbie conoce usando solo información local aprobada o pendiente:",
+        "",
+    ]
+    for section in sections:
+        lines.append(section.title)
+        for item in section.items:
+            lines.append(item)
+        lines.append("")
+    lines.append(
+        "No revisé correo, WhatsApp, calendario, web ni archivos nuevos. Solo usé información local ya registrada."
+    )
+    return "\n".join(lines)
+
+
+def compose_robot_folder_empty_reply() -> str:
+    return (
+        "Todavía no tengo información importante organizada para este robot.\n\n"
+        "Puedo ir construyéndola cuando apruebes memorias, revises documentos o registres datos importantes.\n\n"
+        "No revisé correo, WhatsApp, calendario, web ni archivos nuevos. Solo usé estado local ya persistido."
+    )
+
+
+def compose_capability_catalog_reply(catalog) -> str:
+    available_now = [
+        item for item in catalog if item.status in {"AVAILABLE_READ_ONLY", "AVAILABLE_DRAFT_ONLY"}
+    ]
+    needs_approval = [item for item in catalog if item.status == "NEEDS_APPROVAL"]
+    planned = [item for item in catalog if item.status == "PLANNED"]
+    lines = ["Estas son las habilidades que Robbie tiene hoy:", ""]
+    if available_now:
+        lines.append("Disponible ahora")
+        for index, item in enumerate(available_now, start=1):
+            lines.append(f"{index}. {item.display_name} — {item.description}")
+        lines.append("")
+    if needs_approval:
+        lines.append("Necesita aprobación")
+        for index, item in enumerate(needs_approval, start=1):
+            lines.append(f"{index}. {item.display_name} — {item.description}")
+        lines.append("")
+    if planned:
+        lines.append("Planeado")
+        for index, item in enumerate(planned, start=1):
+            lines.append(f"{index}. {item.display_name} — {item.description}")
+        lines.append("")
+    lines.extend(
+        [
+            "Bloqueado",
+            "- No ejecuto pagos.",
+            "- No acepto términos legales.",
+            "- No cambio contraseñas ni permisos.",
+            "- No borro cuentas ni datos externos.",
+            "- No hago acciones sensibles sin confirmación.",
+            "",
+            "Agentius / workflows de negocio",
+            "- Si me pides CRM, flujos de equipo, clientes o automatización de negocio, en v0 solo lo clasifico como candidato para Agentius.",
+            "",
+            "No revisé correo, WhatsApp, calendario, web ni sistemas externos. Esta respuesta usa solo el catálogo local de Robbie.",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def compose_capability_resolution_reply(*, resolution) -> str:
+    if resolution.status == "AVAILABLE_READ_ONLY":
+        if resolution.capability_id == "attention_summary":
+            return (
+                'Sí. Esa habilidad está disponible en modo lectura local. Escribe: "qué se me pasó".'
+            )
+        if resolution.capability_id == "robot_folder":
+            return (
+                'Sí. Esa habilidad está disponible en modo lectura local. Escribe: "mi información importante".'
+            )
+        return "Sí. Esa habilidad está disponible en modo lectura local dentro del runtime actual de Robbie."
+    if resolution.status == "AVAILABLE_DRAFT_ONLY":
+        if resolution.capability_id == "action_approval_packets":
+            return (
+                "Sí, puedo prepararte un paquete de aprobación.\n\n"
+                "Puedo mostrar qué se haría, qué falta y qué tendrías que confirmar después. No voy a ejecutar nada ni enviar nada."
+            )
+        if resolution.capability_id == "super_familiar":
+            return (
+                "Sí, puedo ayudarte en modo preparación.\n\n"
+                "Puedo organizar lo que ya sé localmente, mostrar lo que falta confirmar y recordarte los límites. Todavía no puedo entrar a Walmart, crear carrito, elegir horarios, pagar ni hacer pedidos."
+            )
+        return (
+            "Sí, pero solo en modo borrador o preparación.\n\n"
+            "Puedo ayudarte a preparar texto, checklist o revisión local, pero no puedo enviar, publicar, pagar, actualizar sistemas externos ni ejecutar acciones fuera del runtime local."
+        )
+    if resolution.status == "NEEDS_APPROVAL":
+        return (
+            "Sí, pero esa capacidad necesita aprobación.\n\n"
+            "Robbie puede proponerte memoria o contexto para guardar, y tú decides si se aprueba o no."
+        )
+    if resolution.status == "PLANNED":
+        if resolution.capability_id == "super_familiar":
+            return (
+                "Todavía no como automatización.\n\n"
+                "Esa capacidad está planeada como “Súper Familiar”. En esta versión puedo ayudarte a organizar información local que ya exista, pero no puedo entrar a Walmart, armar un carrito, elegir horarios, pagar ni hacer pedidos.\n\n"
+                "Cuando esa skill exista, deberá detenerse antes de checkout o pago para pedir aprobación."
+            )
+        if resolution.capability_id == "web_workflow_preflight":
+            return (
+                "Todavía no.\n\n"
+                "Esa capacidad está planeada como “Web Workflow Preflight”. En esta versión Robbie no puede abrir portales, navegar la web, enviar formularios ni ejecutar tareas de navegador."
+            )
+        return "Todavía no. Esa capacidad está planeada, pero Robbie aún no la tiene disponible en esta versión."
+    if resolution.status == "BLOCKED":
+        return (
+            "No. Esa acción está bloqueada.\n\n"
+            "Más adelante Robbie podría ayudarte a preparar una checklist o revisar información autorizada, pero no puede ejecutar pagos, aceptar términos legales, cambiar credenciales ni hacer acciones destructivas."
+        )
+    if resolution.status == "AGENTIUS_CANDIDATE":
+        return (
+            "Eso parece un workflow de negocio, no una tarea simple de robot personal.\n\n"
+            "En v0 solo puedo clasificarlo como candidato para Agentius. No voy a crear un lead, notificar a nadie ni activar una automatización."
+        )
+    return (
+        "No puedo clasificar esa petición con el catálogo local actual.\n\n"
+        'Puedo decirte qué habilidades tengo si escribes: "qué puedes hacer".'
+    )
+
+
+def compose_web_preflight_reply(*, result) -> str:
+    lines = ["Preflight web", "", f"Resultado: {result.status}", ""]
+
+    if result.status == "BLOCKED":
+        reason = result.blocked_reason or "acción bloqueada"
+        lines.extend(
+            [
+                f"La tarea incluye una acción bloqueada: {reason}.",
+                "",
+                "Puedo ayudarte a preparar una checklist o revisar qué datos necesitarías, pero no puedo ejecutar pagos, aceptar términos legales ni enviar acciones vinculantes.",
+            ]
+        )
+    elif result.status == "NOT_SUPPORTED":
+        lines.extend(
+            [
+                "Esto parece una tarea web, pero no está cubierta por el preflight local actual.",
+                "",
+                "Puedo ayudarte si describes el portal, el trámite y el resultado que quieres preparar.",
+            ]
+        )
+    else:
+        lines.extend(
+            [
+                "Lo que puedo hacer ahora",
+                "- Preparar una checklist local del trámite.",
+                "- Decirte qué datos faltan.",
+                "- Marcar acciones que requerirían aprobación.",
+            ]
+        )
+        if result.status == "REQUIRES_LOGIN":
+            lines.extend(["", "Este flujo probablemente requeriría login en una capacidad futura, pero aquí no voy a iniciar sesión ni usar credenciales."])
+        elif result.status == "REQUIRES_CONFIRMATION":
+            lines.extend(["", "El resultado final implicaría enviar o actualizar algo afuera. En una capacidad futura eso tendría que detenerse antes del envío para pedir confirmación."])
+
+    if result.missing_info and result.status in {"PREPARABLE", "NEEDS_INFO", "REQUIRES_LOGIN", "REQUIRES_CONFIRMATION"}:
+        lines.extend(["", "Falta confirmar"])
+        for item in result.missing_info:
+            lines.append(f"- {item}")
+
+    lines.extend(
+        [
+            "",
+            "Límites",
+            "- No abrí ningún sitio web.",
+            "- No usé navegador, Webwright ni Playwright.",
+            "- No hice login.",
+            "- No envié formularios.",
+            "- No pagué.",
+            "- No acepté términos legales.",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def compose_web_preflight_unknown_reply() -> str:
+    return (
+        "No puedo clasificar esta tarea web con las reglas locales actuales.\n"
+        "Puedo ayudarte si describes el portal, el trámite y qué resultado quieres preparar."
+    )
+
+
+def compose_action_approval_packet_reply(*, packet) -> str:
+    lines = [
+        "Paquete de aprobación preparado",
+        "",
+        "Tarea solicitada:",
+        packet.requested_task,
+        "",
+        "Estado:",
+        packet.summary,
+        "",
+        "Lo que puedo preparar:",
+    ]
+    for item in packet.robot_can_prepare:
+        lines.append(f"- {item}")
+
+    if packet.missing_information:
+        lines.extend(["", "Lo que falta:"])
+        for item in packet.missing_information:
+            lines.append(f"- {item}")
+
+    if packet.user_must_confirm:
+        lines.extend(["", "Tendrías que confirmar:"])
+        for item in packet.user_must_confirm:
+            lines.append(f"- {item}")
+
+    if packet.blocked_reason:
+        lines.extend(["", "Motivo de bloqueo:", f"- {packet.blocked_reason}"])
+
+    lines.extend(["", "Límites:", "- No voy a ejecutar nada ni enviar nada."])
+    for item in packet.robot_must_not_do:
+        lines.append(f"- {item}")
+    if packet.action_class in {"PAYMENT_MANUAL_PREPARATION", "PAYMENT_EXECUTION_REQUEST"}:
+        lines.append("- No puedo ejecutar pagos ni guardar datos de tarjeta/CVV.")
+
+    lines.extend(["", "Siguiente paso seguro:", packet.safe_next_step])
+    return "\n".join(lines)
+
+
 def compose_file_retrieval_enablement_request_resolved_reply(*, resolution: str) -> str:
     action = "approved" if resolution == "APPROVED_PENDING_POLICY_CHANGE" else "rejected"
     return (
@@ -392,3 +637,80 @@ def compose_file_retrieval_enablement_request_resolved_reply(*, resolution: str)
 
 def compose_file_retrieval_enablement_request_not_found_reply() -> str:
     return "I could not find a pending retrieval enablement request with that ID for this robot."
+
+
+def compose_super_familiar_reply(context) -> str:
+    lines = [
+        "Súper Familiar",
+        "",
+        "Esto puedo preparar usando solo información local que ya conozco:",
+        "",
+    ]
+    if context.family_targets:
+        lines.append("Para quién")
+        for target in context.family_targets:
+            lines.append(f"- {target} registrado en memoria aprobada.")
+        lines.append("")
+    if context.known_preferences:
+        lines.append("Lo que ya sé")
+        for preference in context.known_preferences:
+            lines.append(f"- {preference}.")
+        lines.append("")
+    if context.base_items:
+        lines.append("Lista base")
+        for item in context.base_items:
+            lines.append(f"- {item}")
+        lines.append("")
+    if context.pending_memory_count:
+        lines.append("Pendiente de aprobación")
+        lines.append(f"- Hay {context.pending_memory_count} memoria pendiente relacionada con compras familiares.")
+        lines.append("")
+    lines.append("Falta confirmar")
+    for item in context.missing_info:
+        lines.append(f"- {item}")
+    lines.extend(
+        [
+            "",
+            "Límites",
+            "- No puedo entrar a Walmart, Costco ni otra tienda todavía.",
+            "- No puedo crear carrito ni checkout.",
+            "- No puedo ejecutar pagos.",
+            "- No puedo buscar horarios de entrega en vivo.",
+            "- Cualquier pedido real requeriría aprobación final del usuario.",
+            "",
+            "No revisé Walmart, Costco, correo, WhatsApp, calendario, web ni archivos nuevos. Solo usé información local ya registrada.",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def compose_super_familiar_empty_reply(context) -> str:
+    lines = [
+        "Súper Familiar todavía no tiene suficiente información local.",
+        "",
+    ]
+    if context.pending_memory_count:
+        lines.extend(
+            [
+                "Pendiente de aprobación",
+                f"- Hay {context.pending_memory_count} memoria pendiente relacionada con compras familiares.",
+                "",
+            ]
+        )
+    lines.append("Falta confirmar")
+    for index, item in enumerate(context.missing_info, start=1):
+        lines.append(f"{index}. {item}")
+    lines.extend(
+        [
+            "",
+            "Límites",
+            "- No puedo entrar a Walmart, Costco ni otra tienda todavía.",
+            "- No puedo crear carrito ni checkout.",
+            "- No puedo ejecutar pagos.",
+            "- No puedo buscar horarios de entrega en vivo.",
+            "- Cualquier pedido real requeriría aprobación final del usuario.",
+            "",
+            "No revisé Walmart, Costco, correo, WhatsApp, calendario, web ni archivos nuevos. Solo usé información local ya registrada.",
+        ]
+    )
+    return "\n".join(lines)
