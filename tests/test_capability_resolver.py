@@ -162,7 +162,7 @@ async def test_capability_catalog_marks_web_workflow_preflight_as_available_draf
     response = await client.post("/api/telegram/webhook", json=build_text_update("qué puedes hacer"))
     assert response.status_code == 200
     reply = response.json()["reply"]["text"]
-    assert "• Web Workflow Preflight — Evalúa localmente si una tarea web puede prepararse" in reply
+    assert "• Revisión previa de tareas web — Evalúa localmente si una tarea web puede prepararse" in reply
     assert "Límite: Preflight / revisión previa; Revisa si una tarea web parece preparable o bloqueada. No abre sitios, no inicia sesión y no envía formularios." in reply
 
 
@@ -176,10 +176,27 @@ async def test_capability_catalog_annotates_read_only_approval_planned_and_block
     assert "Límite: Solo lectura local; Solo lee información local ya registrada. No revisa servicios externos ni cambia nada por ti." in reply
     assert "• Memoria aprobada — Robbie puede proponer memorias y tú decides si se guardan." in reply
     assert "Límite: Requiere aprobación; Puede preparar o proponer información, pero requiere aprobación explícita antes de guardar o cambiar algo." in reply
-    assert "• Skill activation — Futuro flujo para activar habilidades con límites claros." in reply
+    assert "• Activación de habilidades — Futuro flujo para activar habilidades con límites claros." in reply
     assert "Límite: Planeado; Planeado para una etapa futura. No está activo como capacidad runtime hoy." in reply
+    assert "• Conectores — Futuro soporte para fuentes externas autorizadas." in reply
     assert "• Acciones sensibles bloqueadas — Pagos, aceptación legal, credenciales y acciones destructivas están bloqueadas." in reply
     assert "Límite: Bloqueado; Bloqueado por política actual. Robbie no ejecuta esta acción." in reply
+
+
+@pytest.mark.anyio
+async def test_capability_catalog_uses_spanish_first_visible_names_without_changing_triggers(client):
+    await ensure_user_and_robot(client)
+    response = await client.post("/api/telegram/webhook", json=build_text_update("qué puedes hacer"))
+    assert response.status_code == 200
+    reply = response.json()["reply"]["text"]
+    assert "Paquetes de aprobación de acciones" in reply
+    assert "Revisión previa de tareas web" in reply
+    assert "Activación de habilidades" in reply
+    assert "Conectores" in reply
+    assert "Action Approval Packets" not in reply
+    assert "Web Workflow Preflight" not in reply
+    assert "Skill activation" not in reply
+    assert "Connectors" not in reply
 
 
 @pytest.mark.anyio

@@ -128,7 +128,7 @@ def load_capability_catalog() -> list[Capability]:
         ),
         Capability(
             capability_id="action_approval_packets",
-            display_name="Action Approval Packets",
+            display_name="Paquetes de aprobación de acciones",
             status=STATUS_AVAILABLE_DRAFT_ONLY,
             package="core",
             description="Prepara paquetes locales de aprobación para revisar qué requeriría confirmación antes de una acción futura.",
@@ -158,7 +158,7 @@ def load_capability_catalog() -> list[Capability]:
         ),
         Capability(
             capability_id="web_workflow_preflight",
-            display_name="Web Workflow Preflight",
+            display_name="Revisión previa de tareas web",
             status=STATUS_AVAILABLE_DRAFT_ONLY,
             package="core",
             description=(
@@ -193,7 +193,7 @@ def load_capability_catalog() -> list[Capability]:
         ),
         Capability(
             capability_id="skill_activation",
-            display_name="Skill activation",
+            display_name="Activación de habilidades",
             status=STATUS_PLANNED,
             package="planned",
             description="Futuro flujo para activar habilidades con límites claros.",
@@ -202,7 +202,7 @@ def load_capability_catalog() -> list[Capability]:
         ),
         Capability(
             capability_id="connectors",
-            display_name="Connectors",
+            display_name="Conectores",
             status=STATUS_PLANNED,
             package="planned",
             description="Futuro soporte para fuentes externas autorizadas.",
