@@ -69,7 +69,10 @@ async def test_capability_query_resolves_available_read_only(client, query, expe
     await ensure_user_and_robot(client)
     response = await client.post("/api/telegram/webhook", json=build_text_update(query))
     assert response.status_code == 200
-    assert expected in response.json()["reply"]["text"]
+    reply = response.json()["reply"]["text"]
+    assert expected.lower() in reply.lower()
+    assert "Siguiente paso:" in reply
+    assert "No revisa servicios externos" in reply
 
 
 @pytest.mark.anyio
@@ -80,6 +83,8 @@ async def test_capability_query_resolves_needs_approval_for_memory(client):
     reply = response.json()["reply"]["text"]
     assert "necesita aprobación" in reply
     assert "proponerte memoria" in reply
+    assert "Siguiente paso:" in reply
+    assert "tú confirmas antes de guardar, enviar o cambiar algo" in reply
 
 
 @pytest.mark.anyio
@@ -95,6 +100,8 @@ async def test_capability_query_resolves_available_draft_only_super_familiar(cli
     assert "no puedo entrar a Walmart" in reply
     assert "crear carrito" in reply
     assert "hacer pedidos" in reply
+    assert "Siguiente paso:" in reply
+    assert "qué datos faltan" in reply
 
 
 @pytest.mark.anyio
@@ -108,6 +115,8 @@ async def test_capability_query_resolves_action_approval_packets_as_available_dr
     reply = response.json()["reply"]["text"]
     assert "puedo prepararte un paquete de aprobación" in reply.lower()
     assert "No voy a ejecutar nada ni enviar nada." in reply
+    assert "Siguiente paso:" in reply
+    assert "tú decides antes de enviar, guardar o cambiar algo" in reply
 
 
 @pytest.mark.anyio
@@ -133,6 +142,8 @@ async def test_capability_query_blocked_for_payment(client):
     reply = response.json()["reply"]["text"]
     assert "está bloqueada" in reply
     assert "no puede ejecutar pagos" in reply
+    assert "Siguiente paso:" in reply
+    assert "para que tú lo hagas manualmente" in reply
 
 
 @pytest.mark.anyio
@@ -295,5 +306,7 @@ async def test_capability_query_unknown_fallback(client):
     )
     assert response.status_code == 200
     reply = response.json()["reply"]["text"]
-    assert "No puedo clasificar esa petición con el catálogo local actual." in reply
+    assert "No tengo esa capacidad registrada todavía." in reply
+    assert "Siguiente paso:" in reply
+    assert "reformular la tarea" in reply
     assert "qué puedes hacer" in reply

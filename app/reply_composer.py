@@ -478,54 +478,108 @@ def _compose_capability_catalog_line(*, index: int, item) -> str:
     return base
 
 
+def _capability_next_step_guidance(*, status: str, capability_id: str | None = None) -> str:
+    if capability_id == "web_workflow_preflight":
+        return (
+            "Siguiente paso: dime la tarea y te diré qué datos faltan, qué está bloqueado y qué tendrías que aprobar manualmente."
+        )
+    if capability_id == "action_approval_packets":
+        return (
+            "Siguiente paso: dime la acción que quieres revisar y puedo preparar el paquete; tú decides antes de enviar, guardar o cambiar algo."
+        )
+    if capability_id == "blocked_sensitive_actions":
+        return (
+            "Siguiente paso: puedo ayudarte a preparar una lista, resumen o checklist para que tú lo hagas manualmente, si aplica."
+        )
+
+    if status == "AVAILABLE_READ_ONLY":
+        return (
+            "Siguiente paso: dime qué quieres revisar o preparar y trabajaré solo con información local ya registrada."
+        )
+    if status == "NEEDS_APPROVAL":
+        return (
+            "Siguiente paso: puedo preparar la propuesta o paquete; tú confirmas antes de guardar, enviar o cambiar algo."
+        )
+    if status == "AVAILABLE_DRAFT_ONLY":
+        return (
+            "Siguiente paso: dime la tarea y te diré qué datos faltan, qué está bloqueado y qué podrías aprobar manualmente."
+        )
+    if status == "PLANNED":
+        return (
+            "Siguiente paso: puedo explicarte el alcance previsto o revisar qué parte sí puede prepararse hoy con capacidades actuales."
+        )
+    if status == "BLOCKED":
+        return (
+            "Siguiente paso: puedo ayudarte a preparar una lista, resumen o checklist para que tú lo hagas manualmente, si aplica."
+        )
+    return "Siguiente paso: puedo ayudarte a reformular la tarea o revisar si encaja con una capacidad disponible."
+
+
 def compose_capability_resolution_reply(*, resolution) -> str:
     if resolution.status == "AVAILABLE_READ_ONLY":
         if resolution.capability_id == "attention_summary":
             return (
-                'Sí. Esa habilidad está disponible en modo lectura local. Escribe: "qué se me pasó".'
+                'Sí. Esa habilidad está disponible en modo lectura local.\n\n'
+                "Límite: solo usa información local ya registrada. No revisa servicios externos ni cambia nada por ti.\n"
+                'Siguiente paso: si quieres usarla ahora, escribe: "qué se me pasó".'
             )
         if resolution.capability_id == "robot_folder":
             return (
-                'Sí. Esa habilidad está disponible en modo lectura local. Escribe: "mi información importante".'
+                'Sí. Esa habilidad está disponible en modo lectura local.\n\n'
+                "Límite: solo usa información local ya registrada. No revisa servicios externos ni cambia nada por ti.\n"
+                'Siguiente paso: si quieres usarla ahora, escribe: "mi información importante".'
             )
-        return "Sí. Esa habilidad está disponible en modo lectura local dentro del runtime actual de Robbie."
+        return (
+            "Sí. Esa habilidad está disponible en modo lectura local dentro del runtime actual de Robbie.\n\n"
+            "Límite: solo usa información local ya registrada. No revisa servicios externos ni cambia nada por ti.\n"
+            f"{_capability_next_step_guidance(status=resolution.status, capability_id=resolution.capability_id)}"
+        )
     if resolution.status == "AVAILABLE_DRAFT_ONLY":
         if resolution.capability_id == "action_approval_packets":
             return (
                 "Sí, puedo prepararte un paquete de aprobación.\n\n"
-                "Puedo mostrar qué se haría, qué falta y qué tendrías que confirmar después. No voy a ejecutar nada ni enviar nada."
+                "Límite: puedo mostrar qué se haría, qué falta y qué tendrías que confirmar después. No voy a ejecutar nada ni enviar nada.\n"
+                f"{_capability_next_step_guidance(status=resolution.status, capability_id=resolution.capability_id)}"
             )
         if resolution.capability_id == "super_familiar":
             return (
                 "Sí, puedo ayudarte en modo preparación.\n\n"
-                "Puedo organizar lo que ya sé localmente, mostrar lo que falta confirmar y recordarte los límites. Todavía no puedo entrar a Walmart, crear carrito, elegir horarios, pagar ni hacer pedidos."
+                "Límite: puedo organizar lo que ya sé localmente, mostrar lo que falta confirmar y recordarte los límites. Todavía no puedo entrar a Walmart, crear carrito, elegir horarios, pagar ni hacer pedidos.\n"
+                f"{_capability_next_step_guidance(status=resolution.status, capability_id=resolution.capability_id)}"
             )
         return (
             "Sí, pero solo en modo borrador o preparación.\n\n"
-            "Puedo ayudarte a preparar texto, checklist o revisión local, pero no puedo enviar, publicar, pagar, actualizar sistemas externos ni ejecutar acciones fuera del runtime local."
+            "Límite: puedo ayudarte a preparar texto, checklist o revisión local, pero no puedo enviar, publicar, pagar, actualizar sistemas externos ni ejecutar acciones fuera del runtime local.\n"
+            f"{_capability_next_step_guidance(status=resolution.status, capability_id=resolution.capability_id)}"
         )
     if resolution.status == "NEEDS_APPROVAL":
         return (
             "Sí, pero esa capacidad necesita aprobación.\n\n"
-            "Robbie puede proponerte memoria o contexto para guardar, y tú decides si se aprueba o no."
+            "Límite: Robbie puede proponerte memoria o contexto para guardar, y tú decides si se aprueba o no.\n"
+            f"{_capability_next_step_guidance(status=resolution.status, capability_id=resolution.capability_id)}"
         )
     if resolution.status == "PLANNED":
         if resolution.capability_id == "super_familiar":
             return (
                 "Todavía no como automatización.\n\n"
-                "Esa capacidad está planeada como “Súper Familiar”. En esta versión puedo ayudarte a organizar información local que ya exista, pero no puedo entrar a Walmart, armar un carrito, elegir horarios, pagar ni hacer pedidos.\n\n"
-                "Cuando esa skill exista, deberá detenerse antes de checkout o pago para pedir aprobación."
+                "Límite: esa capacidad está planeada como “Súper Familiar”. En esta versión puedo ayudarte a organizar información local que ya exista, pero no puedo entrar a Walmart, armar un carrito, elegir horarios, pagar ni hacer pedidos.\n"
+                f"{_capability_next_step_guidance(status=resolution.status, capability_id=resolution.capability_id)}"
             )
         if resolution.capability_id == "web_workflow_preflight":
             return (
                 "Todavía no.\n\n"
-                "Esa capacidad está planeada como “Web Workflow Preflight”. En esta versión Robbie no puede abrir portales, navegar la web, enviar formularios ni ejecutar tareas de navegador."
+                "Límite: esa capacidad está planeada como “Revisión previa de tareas web”. En esta versión Robbie no puede abrir portales, navegar la web, enviar formularios ni ejecutar tareas de navegador.\n"
+                f"{_capability_next_step_guidance(status=resolution.status, capability_id=resolution.capability_id)}"
             )
-        return "Todavía no. Esa capacidad está planeada, pero Robbie aún no la tiene disponible en esta versión."
+        return (
+            "Todavía no. Esa capacidad está planeada, pero Robbie aún no la tiene disponible en esta versión.\n\n"
+            f"{_capability_next_step_guidance(status=resolution.status, capability_id=resolution.capability_id)}"
+        )
     if resolution.status == "BLOCKED":
         return (
             "No. Esa acción está bloqueada.\n\n"
-            "Más adelante Robbie podría ayudarte a preparar una checklist o revisar información autorizada, pero no puede ejecutar pagos, aceptar términos legales, cambiar credenciales ni hacer acciones destructivas."
+            "Límite: Robbie no puede ejecutar pagos, aceptar términos legales, cambiar credenciales ni hacer acciones destructivas.\n"
+            f"{_capability_next_step_guidance(status=resolution.status, capability_id=resolution.capability_id)}"
         )
     if resolution.status == "AGENTIUS_CANDIDATE":
         return (
@@ -533,8 +587,10 @@ def compose_capability_resolution_reply(*, resolution) -> str:
             "En v0 solo puedo clasificarlo como candidato para Agentius. No voy a crear un lead, notificar a nadie ni activar una automatización."
         )
     return (
-        "No puedo clasificar esa petición con el catálogo local actual.\n\n"
-        'Puedo decirte qué habilidades tengo si escribes: "qué puedes hacer".'
+        "No tengo esa capacidad registrada todavía.\n\n"
+        "Límite: no voy a inventar una capacidad ni prometer que exista en roadmap.\n"
+        f'{_capability_next_step_guidance(status="UNKNOWN", capability_id=resolution.capability_id)}\n'
+        'También puedo decirte qué habilidades tengo si escribes: "qué puedes hacer".'
     )
 
 
