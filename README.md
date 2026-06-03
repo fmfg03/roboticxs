@@ -59,6 +59,13 @@ Current product value is strongest in:
 - auditability and approvals
 - local budget control
 
+Planned but not implemented:
+- Hermes as runtime substrate behind the Roboticxs control plane
+- policy-first low-latency routing refinements
+- Web Task Worker / Webwright as experimental sandbox-first infrastructure
+
+Those items are documentation and roadmap work today, not live runtime capability.
+
 ## Why the roadmap changes now
 
 Roboticxs has enough internal governance for this phase.
@@ -116,6 +123,8 @@ The next product stages are:
 
 Read these next:
 - [Project Brief](docs/ROBOTICXS_PROJECT_BRIEF.md)
+- [Hermes / Routing / Web Task Addendum](docs/ROBOTICXS_BRIEF_ADDITIONS_HERMES_ROUTING_WEB_TASK_v0_1.md)
+- [Knowledge Loop / Policy Addendum](docs/ROBOTICXS_BRIEF_ADDITIONS_KNOWLEDGE_LOOP_POLICY_v0_1.md)
 - [Implementation Status](docs/ROBOTICXS_IMPLEMENTATION_STATUS.md)
 - [Product Pivot](docs/ROBOTICXS_PRODUCT_PIVOT_2026_05_30.md)
 - [Runtime Status](docs/ROBOTICXS_RUNTIME_STATUS.md)
