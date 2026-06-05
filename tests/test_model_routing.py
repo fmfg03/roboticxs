@@ -65,6 +65,19 @@ def test_memory_control_route_classification_is_explicit():
     assert route["routing_mode"] == "economy"
 
 
+def test_pending_memory_control_route_classification_is_explicit():
+    route = estimate_route(
+        text="what memory proposals are pending",
+        task_id="t4b",
+        task_family="MEMORY_CONTROL",
+        task_class="SIMPLE_CLASSIFICATION",
+        settings=settings(),
+    )
+    reason = json.loads(route["reason"])
+    assert reason["task_family"] == "MEMORY_CONTROL"
+    assert route["routing_mode"] == "economy"
+
+
 def test_document_review_route_classification_is_explicit():
     route = estimate_route(
         text="review document: contract requires signatures and penalties",

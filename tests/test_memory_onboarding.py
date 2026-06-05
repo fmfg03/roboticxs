@@ -276,6 +276,25 @@ async def test_reject_upgrade_interest_does_not_create_memory(client, db_counts)
 
 
 @pytest.mark.anyio
+async def test_pending_upgrade_interest_is_visible_in_pending_memory_review(client):
+    await client.post(
+        "/api/telegram/webhook",
+        json=build_update("Guarda esto para Agentius después: automatizar seguimiento de clientes en CRM."),
+    )
+    response = await client.post("/api/telegram/webhook", json=build_update("what memory proposals are pending"))
+    assert response.status_code == 200
+    reply = response.json()["reply"]["text"]
+    assert "Propuestas de memoria pendientes:" in reply
+    assert "Interés local pendiente" in reply
+    assert "Interés local para revisar después con Agentius: automatizar seguimiento de clientes en CRM." in reply
+    assert "Estado: pendiente de aprobación." in reply
+    assert "Esto no crea lead, CRM, pipeline, handoff, notificación ni external writes." in reply
+    assert "Responde APPROVE para guardarla como memoria local, o REJECT para descartarla." in reply
+    assert "memoria local de tu robot" not in reply
+    assert "guardado como nota local de interés" not in reply.lower()
+
+
+@pytest.mark.anyio
 async def test_approved_upgrade_interest_is_visible_in_memory_listing(client):
     await client.post(
         "/api/telegram/webhook",
@@ -342,6 +361,30 @@ async def test_mixed_memory_listing_keeps_normal_and_upgrade_interest_local_and_
     assert "handoff" not in reply.lower()
     assert "notificación" not in reply.lower()
     assert "crm conectado" not in reply.lower()
+
+
+@pytest.mark.anyio
+async def test_approved_upgrade_interest_disappears_from_pending_memory_review_and_stays_only_active(client):
+    await client.post(
+        "/api/telegram/webhook",
+        json=build_update("Guarda esto para Agentius después: automatizar seguimiento de clientes en CRM."),
+    )
+    await client.post("/api/telegram/webhook", json=build_update("APPROVE"))
+    response = await client.post("/api/telegram/webhook", json=build_update("what memory proposals are pending"))
+    assert response.status_code == 200
+    assert response.json()["reply"]["text"] == "No tienes propuestas de memoria pendientes."
+
+
+@pytest.mark.anyio
+async def test_rejected_upgrade_interest_disappears_from_pending_memory_review_and_stays_inactive(client):
+    await client.post(
+        "/api/telegram/webhook",
+        json=build_update("Guarda esto para Agentius después: automatizar seguimiento de clientes en CRM."),
+    )
+    await client.post("/api/telegram/webhook", json=build_update("REJECT"))
+    response = await client.post("/api/telegram/webhook", json=build_update("what memory proposals are pending"))
+    assert response.status_code == 200
+    assert response.json()["reply"]["text"] == "No tienes propuestas de memoria pendientes."
 
 
 @pytest.mark.anyio

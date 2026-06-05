@@ -51,6 +51,47 @@ async def test_memory_listing_isolated_by_user_robot(client):
 
 
 @pytest.mark.anyio
+async def test_pending_memory_review_empty_state_is_safe(client):
+    response = await client.post("/api/telegram/webhook", json=build_update("what memory proposals are pending"))
+    assert response.status_code == 200
+    assert response.json()["reply"]["text"] == "No tienes propuestas de memoria pendientes."
+
+
+@pytest.mark.anyio
+async def test_pending_memory_review_lists_only_pending_proposals(client):
+    await client.post("/api/telegram/webhook", json=build_update("Remember that I prefer short direct answers."))
+    response = await client.post("/api/telegram/webhook", json=build_update("what memory proposals are pending"))
+    assert response.status_code == 200
+    reply = response.json()["reply"]["text"]
+    assert "Propuestas de memoria pendientes:" in reply
+    assert "Preferencia de trabajo pendiente" in reply
+    assert "You prefer short direct answers." in reply
+    assert "Estado: pendiente de aprobación." in reply
+    assert "APPROVE" in reply
+    assert "REJECT" in reply
+    assert "Esto es lo que recuerdo en la memoria local de tu robot:" not in reply
+
+
+@pytest.mark.anyio
+async def test_pending_memory_review_does_not_show_active_memories(client):
+    await seed_active_memory(client, "Remember that I prefer short direct answers.")
+    response = await client.post("/api/telegram/webhook", json=build_update("what memory proposals are pending"))
+    assert response.status_code == 200
+    assert response.json()["reply"]["text"] == "No tienes propuestas de memoria pendientes."
+
+
+@pytest.mark.anyio
+async def test_active_memory_listing_does_not_show_pending_proposals(client):
+    await client.post("/api/telegram/webhook", json=build_update("Remember that I prefer short direct answers."))
+    response = await client.post("/api/telegram/webhook", json=build_update("what do you remember"))
+    assert response.status_code == 200
+    reply = response.json()["reply"]["text"]
+    assert "Preferencia de trabajo pendiente" not in reply
+    assert "Estado: pendiente de aprobación." not in reply
+    assert "You prefer short direct answers." not in reply
+
+
+@pytest.mark.anyio
 async def test_forget_memory_marks_memory_forgotten(client):
     memory_id = await seed_active_memory(client, "Remember that I prefer short direct answers.")
     response = await client.post("/api/telegram/webhook", json=build_update(f"forget memory {memory_id}"))
@@ -113,3 +154,14 @@ async def test_memory_list_and_forget_turns_log_tokens(client):
     with client.app.state.db.session() as session:
         after = len(session.scalars(select(TokenUsageEvent)).all())
     assert after == before + 2
+
+
+@pytest.mark.anyio
+async def test_pending_memory_review_isolated_by_user_robot(client):
+    await client.post("/api/telegram/webhook", json=build_update("Remember that I prefer short direct answers.", user_id=111, name="UserA"))
+    response = await client.post(
+        "/api/telegram/webhook",
+        json=build_update("what memory proposals are pending", user_id=222, name="UserB"),
+    )
+    assert response.status_code == 200
+    assert response.json()["reply"]["text"] == "No tienes propuestas de memoria pendientes."

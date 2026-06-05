@@ -11,6 +11,7 @@ from app.models import MemoryItem
 
 
 LIST_COMMAND = "what do you remember"
+LIST_PENDING_PROPOSALS_COMMAND = "what memory proposals are pending"
 FORGET_PATTERN = re.compile(r"^forget memory ([a-f0-9-]+)$", re.IGNORECASE)
 
 
@@ -25,6 +26,10 @@ def now_utc() -> datetime:
 
 def is_list_memories_command(text: str) -> bool:
     return text.strip().lower() == LIST_COMMAND
+
+
+def is_list_pending_memory_proposals_command(text: str) -> bool:
+    return text.strip().lower() == LIST_PENDING_PROPOSALS_COMMAND
 
 
 def parse_forget_command(text: str) -> ForgetRequest | None:

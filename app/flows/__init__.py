@@ -28,7 +28,13 @@ from app.flows.file_control_flow import (
 )
 from app.flows.file_intake_flow import process_file_intake
 from app.flows.general_task_flow import process_general_task
-from app.flows.memory_flow import process_memory_decision, process_memory_forget, process_memory_listing, process_memory_proposal
+from app.flows.memory_flow import (
+    process_memory_decision,
+    process_memory_forget,
+    process_memory_listing,
+    process_memory_proposal,
+    process_pending_memory_review,
+)
 from app.flows.usage_flow import process_usage_spend, process_usage_tokens
 
 __all__ = [
@@ -65,6 +71,7 @@ __all__ = [
     "process_memory_forget",
     "process_memory_listing",
     "process_memory_proposal",
+    "process_pending_memory_review",
     "process_usage_spend",
     "process_usage_tokens",
 ]

@@ -2,7 +2,14 @@ from __future__ import annotations
 
 from app.flow_runtime import build_budgeted_route_estimate, build_flow_response, create_task_and_run, persist_route_and_token, persist_route_and_token_from_estimate, persist_safety_decision
 from app.memory_control import forget_active_memory, list_active_memories
-from app.memory_service import approve_proposal, create_proposed_memory, get_latest_pending_proposal, reject_proposal
+from app.memory_service import (
+    approve_proposal,
+    create_proposed_memory,
+    get_latest_pending_proposal,
+    list_pending_proposals,
+    pending_display_label_for_memory_type,
+    reject_proposal,
+)
 from app.reply_composer import (
     compose_budget_block_reply,
     compose_budget_warn_prefix,
@@ -15,6 +22,7 @@ from app.reply_composer import (
     compose_memory_proposal_reply,
     compose_memory_rejected_reply,
     compose_no_pending_memory_reply,
+    compose_pending_memory_review_reply,
     compose_upgrade_interest_approved_reply,
     compose_upgrade_interest_proposal_reply,
 )
@@ -130,6 +138,45 @@ def process_memory_listing(*, context) -> dict:
     )
     reply_text = compose_memory_list_reply(
         [{"id": memory.id, "label": memory.display_label, "content": memory.content} for memory in memories]
+    )
+    return build_flow_response(
+        context=context,
+        task_id=task.id,
+        reply_text=reply_text,
+        scope_decision="ANSWER",
+        safety_decision=safety_decision,
+        route_record=route_record,
+        token_event=token_event,
+    )
+
+
+def process_pending_memory_review(*, context) -> dict:
+    task = create_task_and_run(
+        context=context,
+        kind="GENERAL_TASK",
+        scope_decision="ANSWER",
+        task_class="SIMPLE_CLASSIFICATION",
+    )
+    safety_result = evaluate_safety("prepare pending memory review", "ANSWER")
+    safety_decision = persist_safety_decision(context=context, task_id=task.id, safety_result=safety_result)
+    proposals = list_pending_proposals(session=context.session, user_id=context.user.id, robot_id=context.robot.id)
+    route_record, token_event = persist_route_and_token(
+        context=context,
+        text=context.envelope.text,
+        task_id=task.id,
+        task_family="MEMORY_CONTROL",
+        task_class="SIMPLE_CLASSIFICATION",
+    )
+    reply_text = compose_pending_memory_review_reply(
+        [
+            {
+                "id": proposal.id,
+                "label": pending_display_label_for_memory_type(proposal.memory_type),
+                "content": proposal.proposed_content,
+                "memory_type": proposal.memory_type,
+            }
+            for proposal in proposals
+        ]
     )
     return build_flow_response(
         context=context,

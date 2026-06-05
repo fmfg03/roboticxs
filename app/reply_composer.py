@@ -54,6 +54,19 @@ def compose_no_pending_memory_reply() -> str:
     return "There is no pending memory to approve or reject right now."
 
 
+def compose_pending_memory_review_reply(proposals: list[dict[str, str]]) -> str:
+    if not proposals:
+        return "No tienes propuestas de memoria pendientes."
+    lines = ["Propuestas de memoria pendientes:", ""]
+    for proposal in proposals:
+        lines.append(f"- {proposal['id']} — {proposal['label']}: {proposal['content']}")
+        lines.append("  Estado: pendiente de aprobación.")
+        if proposal["memory_type"] == "UPGRADE_INTEREST":
+            lines.append("  Esto no crea lead, CRM, pipeline, handoff, notificación ni external writes.")
+        lines.append("  Responde APPROVE para guardarla como memoria local, o REJECT para descartarla.")
+    return "\n".join(lines)
+
+
 def compose_memory_list_reply(memories: list[dict[str, str]]) -> str:
     if not memories:
         return "No tengo memorias locales aprobadas para tu robot todavia."

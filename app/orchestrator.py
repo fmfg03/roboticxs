@@ -33,13 +33,14 @@ from app.flows import (
     process_memory_forget,
     process_memory_listing,
     process_memory_proposal,
+    process_pending_memory_review,
 )
 from app.budget_policy import (
     parse_set_budget_block_threshold_command,
     parse_set_budget_limit_command,
     parse_set_budget_warn_threshold_command,
 )
-from app.memory_control import is_list_memories_command, parse_forget_command
+from app.memory_control import is_list_memories_command, is_list_pending_memory_proposals_command, parse_forget_command
 from app.memory_extraction import detect_memory_intent, extract_proposed_memory, is_memory_approval_command
 from app.skills import get_active_skill_manifest
 
@@ -118,6 +119,9 @@ def process_telegram_message(*, session, settings, envelope) -> dict:
 
     if is_list_memories_command(envelope.text):
         return process_memory_listing(context=context)
+
+    if is_list_pending_memory_proposals_command(envelope.text):
+        return process_pending_memory_review(context=context)
 
     forget_request = parse_forget_command(envelope.text)
     if forget_request is not None:
