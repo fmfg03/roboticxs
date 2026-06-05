@@ -10,7 +10,7 @@ from app.file_retrieval_adapter import (
     is_live_file_retrieval_enabled,
 )
 from app.config import Settings
-from app.models import FileIntakeAttempt, FileRetrievalAttempt, FileRetrievalEnablementRequest
+from app.models import FileIntakeAttempt, FileRetrievalAttempt, FileRetrievalEnablementRequest, Task
 from tests.test_file_intake import build_document_update
 
 
@@ -442,6 +442,54 @@ async def test_approve_retrieval_enablement_request_marks_request_without_enabli
         assert request.status == "APPROVED_PENDING_POLICY_CHANGE"
     settings = Settings()
     assert settings.file_retrieval_enabled is False
+
+
+@pytest.mark.anyio
+async def test_approve_retrieval_enablement_request_routes_to_specific_control_path_not_fallback(client, db_counts):
+    await client.post("/api/telegram/webhook", json={
+        "update_id": 8011_9_6_1,
+        "message": {
+            "message_id": 60_9_6_1,
+            "date": 1710000000,
+            "chat": {"id": 123456, "type": "private"},
+            "from": {"id": 123456, "is_bot": False, "first_name": "Francisco", "username": "francisco"},
+            "text": "request file retrieval enablement",
+        },
+    })
+    with client.app.state.db.session() as session:
+        request = session.scalar(select(FileRetrievalEnablementRequest).order_by(desc(FileRetrievalEnablementRequest.created_at)))
+        assert request is not None
+        request_id = request.id
+    before = db_counts()
+    response = await client.post("/api/telegram/webhook", json={
+        "update_id": 8011_9_6_2,
+        "message": {
+            "message_id": 60_9_6_2,
+            "date": 1710000000,
+            "chat": {"id": 123456, "type": "private"},
+            "from": {"id": 123456, "is_bot": False, "first_name": "Francisco", "username": "francisco"},
+            "text": f"approve retrieval enablement request {request_id}",
+        },
+    })
+    assert response.status_code == 200
+    reply = response.json()["reply"]["text"]
+    assert "Retrieval enablement request approved." in reply
+    assert "Retrieval remains disabled." in reply
+    assert "I can help with meeting prep" not in reply
+    after = db_counts()
+    assert after["tasks"] == before["tasks"] + 1
+    assert after["task_runs"] == before["task_runs"] + 1
+    assert after["safety"] == before["safety"] + 1
+    assert after["routes"] == before["routes"] + 1
+    assert after["tokens"] == before["tokens"] + 1
+    assert after["file_retrieval_attempts"] == before["file_retrieval_attempts"]
+    with client.app.state.db.session() as session:
+        latest_task = session.scalar(select(Task).order_by(Task.created_at.desc()))
+        request = session.scalar(select(FileRetrievalEnablementRequest).where(FileRetrievalEnablementRequest.id == request_id))
+        assert latest_task is not None
+        assert latest_task.input_text == f"approve retrieval enablement request {request_id}"
+        assert request is not None
+        assert request.status == "APPROVED_PENDING_POLICY_CHANGE"
 
 
 @pytest.mark.anyio

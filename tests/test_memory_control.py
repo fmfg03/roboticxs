@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import select
 
 from app.memory_control import is_memory_control_help_request
-from app.models import MemoryItem, TokenUsageEvent
+from app.models import MemoryItem, ProposedMemory, Task, TokenUsageEvent
 
 
 def build_update(text: str, user_id: int = 123456, name: str = "Francisco") -> dict:
@@ -149,6 +149,24 @@ async def test_pending_memory_review_lists_only_pending_proposals(client):
     assert "APPROVE" in reply
     assert "REJECT" in reply
     assert "Esto es lo que recuerdo en la memoria local de tu robot:" not in reply
+
+
+@pytest.mark.anyio
+async def test_pending_memory_command_takes_precedence_over_memory_listing_and_help(client):
+    await seed_active_memory(client, "Remember that I prefer short direct answers.")
+    await client.post("/api/telegram/webhook", json=build_update("Remember that my timezone is Europe/Berlin."))
+    response = await client.post("/api/telegram/webhook", json=build_update("what memory proposals are pending"))
+    assert response.status_code == 200
+    reply = response.json()["reply"]["text"]
+    assert "Propuestas de memoria pendientes:" in reply
+    assert "Perfil pendiente" in reply
+    assert "Your timezone is Europe/Berlin." in reply
+    assert "Esto es lo que recuerdo en la memoria local de tu robot:" not in reply
+    assert "Puedes controlar la memoria local de Robbie" not in reply
+    with client.app.state.db.session() as session:
+        latest_task = session.scalar(select(Task).order_by(Task.created_at.desc()))
+        assert latest_task is not None
+        assert latest_task.kind == "GENERAL_TASK"
 
 
 @pytest.mark.anyio

@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import pytest
+from sqlalchemy import select
+
+from app.models import MemoryItem, ProposedMemory, Task
 
 
 def build_update(text: str) -> dict:
@@ -43,6 +46,33 @@ async def test_valid_telegram_webhook_persists_core_records(client, db_counts):
     assert after["safety"] == before["safety"] + 1
     assert after["routes"] == before["routes"] + 1
     assert after["tokens"] == before["tokens"] + 1
+
+
+@pytest.mark.anyio
+async def test_unknown_message_still_falls_through_to_general_task(client):
+    response = await client.post("/api/telegram/webhook", json=build_update("Help me prepare for my meeting tomorrow"))
+    assert response.status_code == 200
+    with client.app.state.db.session() as session:
+        latest_task = session.scalar(select(Task).order_by(Task.created_at.desc()))
+        assert latest_task is not None
+        assert latest_task.kind == "GENERAL_TASK"
+
+
+@pytest.mark.anyio
+async def test_memory_proposal_intent_stays_outside_registry_and_creates_pending_only(client):
+    response = await client.post("/api/telegram/webhook", json=build_update("Remember that I prefer short direct answers."))
+    assert response.status_code == 200
+    reply = response.json()["reply"]["text"]
+    assert "Reply APPROVE to save it or REJECT to discard it." in reply
+    with client.app.state.db.session() as session:
+        latest_task = session.scalar(select(Task).order_by(Task.created_at.desc()))
+        proposal = session.scalar(select(ProposedMemory).order_by(ProposedMemory.created_at.desc()))
+        memory = session.scalar(select(MemoryItem).order_by(MemoryItem.created_at.desc()))
+        assert latest_task is not None
+        assert latest_task.kind == "MEMORY_PROPOSAL"
+        assert proposal is not None
+        assert proposal.status == "PENDING"
+        assert memory is None
 
 
 @pytest.mark.anyio

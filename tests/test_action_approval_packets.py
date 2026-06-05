@@ -29,6 +29,17 @@ async def test_exact_approval_commands_route_to_flow(client, command):
 
 
 @pytest.mark.anyio
+async def test_exact_approval_command_creates_action_approval_task(client):
+    await ensure_user_and_robot(client)
+    response = await client.post("/api/telegram/webhook", json=build_text_update("approval packet"))
+    assert response.status_code == 200
+    with client.app.state.db.session() as session:
+        latest_task = session.scalar(select(Task).order_by(Task.created_at.desc()))
+        assert latest_task is not None
+        assert latest_task.kind == "ACTION_APPROVAL_PACKET"
+
+
+@pytest.mark.anyio
 @pytest.mark.parametrize(
     ("command", "expected_task"),
     [
@@ -43,6 +54,20 @@ async def test_trailing_task_text_is_preserved(client, command, expected_task):
     response = await client.post("/api/telegram/webhook", json=build_text_update(command))
     assert response.status_code == 200
     assert expected_task in response.json()["reply"]["text"]
+
+
+@pytest.mark.anyio
+async def test_parameterized_approval_command_creates_action_approval_task(client):
+    await ensure_user_and_robot(client)
+    response = await client.post(
+        "/api/telegram/webhook",
+        json=build_text_update("preparar aprobación para mandar correo a Juan"),
+    )
+    assert response.status_code == 200
+    with client.app.state.db.session() as session:
+        latest_task = session.scalar(select(Task).order_by(Task.created_at.desc()))
+        assert latest_task is not None
+        assert latest_task.kind == "ACTION_APPROVAL_PACKET"
 
 
 @pytest.mark.anyio
