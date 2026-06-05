@@ -29,6 +29,7 @@ from app.flows.file_control_flow import (
 from app.flows.file_intake_flow import process_file_intake
 from app.flows.general_task_flow import process_general_task
 from app.flows.memory_flow import (
+    process_memory_control_help,
     process_memory_decision,
     process_memory_forget,
     process_memory_listing,
@@ -67,6 +68,7 @@ __all__ = [
     "process_pending_file_retrieval_listing",
     "process_file_intake",
     "process_general_task",
+    "process_memory_control_help",
     "process_memory_decision",
     "process_memory_forget",
     "process_memory_listing",

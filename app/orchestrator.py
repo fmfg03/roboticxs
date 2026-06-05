@@ -29,6 +29,7 @@ from app.flows import (
     process_file_retrieval_cancel,
     process_file_retrieval_preflight,
     process_general_task,
+    process_memory_control_help,
     process_memory_decision,
     process_memory_forget,
     process_memory_listing,
@@ -40,7 +41,12 @@ from app.budget_policy import (
     parse_set_budget_limit_command,
     parse_set_budget_warn_threshold_command,
 )
-from app.memory_control import is_list_memories_command, is_list_pending_memory_proposals_command, parse_forget_command
+from app.memory_control import (
+    is_list_memories_command,
+    is_list_pending_memory_proposals_command,
+    is_memory_control_help_request,
+    parse_forget_command,
+)
 from app.memory_extraction import detect_memory_intent, extract_proposed_memory, is_memory_approval_command
 from app.skills import get_active_skill_manifest
 
@@ -119,6 +125,9 @@ def process_telegram_message(*, session, settings, envelope) -> dict:
 
     if is_list_memories_command(envelope.text):
         return process_memory_listing(context=context)
+
+    if is_memory_control_help_request(envelope.text):
+        return process_memory_control_help(context=context)
 
     if is_list_pending_memory_proposals_command(envelope.text):
         return process_pending_memory_review(context=context)

@@ -67,6 +67,22 @@ def compose_pending_memory_review_reply(proposals: list[dict[str, str]]) -> str:
     return "\n".join(lines)
 
 
+def compose_memory_control_help_reply() -> str:
+    return (
+        "Puedes controlar la memoria local de Robbie asi:\n\n"
+        "- Ver memorias activas: what do you remember\n"
+        "- Ver propuestas pendientes: what memory proposals are pending\n"
+        "- Aprobar una propuesta pendiente: APPROVE\n"
+        "- Rechazar una propuesta pendiente: REJECT\n"
+        "- Olvidar una memoria activa: forget memory <id>\n\n"
+        "Una propuesta pendiente todavia no esta guardada como memoria local activa. "
+        "Solo se guarda si respondes APPROVE. REJECT la descarta. "
+        "forget memory <id> elimina una memoria local activa.\n\n"
+        "Todo esto es local. No crea leads, no toca CRM, no abre pipeline, no hace handoff, "
+        "no notifica a nadie y no escribe en sistemas externos."
+    )
+
+
 def compose_memory_list_reply(memories: list[dict[str, str]]) -> str:
     if not memories:
         return "No tengo memorias locales aprobadas para tu robot todavia."

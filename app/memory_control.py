@@ -12,6 +12,15 @@ from app.models import MemoryItem
 
 LIST_COMMAND = "what do you remember"
 LIST_PENDING_PROPOSALS_COMMAND = "what memory proposals are pending"
+MEMORY_CONTROL_HELP_COMMANDS = {
+    "how do i control memory",
+    "memory help",
+    "what memory commands can i use",
+    "cómo controlo tu memoria",
+    "como controlo tu memoria",
+    "cómo controlo lo que recuerdas",
+    "como controlo lo que recuerdas",
+}
 FORGET_PATTERN = re.compile(r"^forget memory ([a-f0-9-]+)$", re.IGNORECASE)
 
 
@@ -30,6 +39,11 @@ def is_list_memories_command(text: str) -> bool:
 
 def is_list_pending_memory_proposals_command(text: str) -> bool:
     return text.strip().lower() == LIST_PENDING_PROPOSALS_COMMAND
+
+
+def is_memory_control_help_request(text: str) -> bool:
+    normalized = text.strip().lower().lstrip("¿").rstrip("?").strip()
+    return normalized in MEMORY_CONTROL_HELP_COMMANDS
 
 
 def parse_forget_command(text: str) -> ForgetRequest | None:

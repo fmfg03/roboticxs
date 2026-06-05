@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 from sqlalchemy import select
 
+from app.memory_control import is_memory_control_help_request
 from app.models import MemoryItem, TokenUsageEvent
 
 
@@ -48,6 +49,71 @@ async def test_memory_listing_isolated_by_user_robot(client):
     response = await client.post("/api/telegram/webhook", json=build_update("what do you remember", user_id=222, name="UserB"))
     assert response.status_code == 200
     assert "No tengo memorias locales aprobadas" in response.json()["reply"]["text"]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "how do i control memory",
+        "memory help",
+        "what memory commands can i use",
+        "cómo controlo tu memoria",
+        "como controlo tu memoria",
+        "cómo controlo lo que recuerdas",
+    ],
+)
+def test_memory_control_help_detector_matches_explicit_help_requests(text):
+    assert is_memory_control_help_request(text) is True
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "what do you remember",
+        "what memory proposals are pending",
+        "forget memory mem_123",
+        "APPROVE",
+        "REJECT",
+    ],
+)
+def test_memory_control_help_detector_does_not_match_existing_memory_commands(text):
+    assert is_memory_control_help_request(text) is False
+
+
+@pytest.mark.anyio
+async def test_memory_control_help_response_lists_commands_and_boundaries(client, db_counts):
+    before = db_counts()
+    response = await client.post("/api/telegram/webhook", json=build_update("how do i control memory"))
+    assert response.status_code == 200
+    reply = response.json()["reply"]["text"]
+    assert "what do you remember" in reply
+    assert "what memory proposals are pending" in reply
+    assert "APPROVE" in reply
+    assert "REJECT" in reply
+    assert "forget memory <id>" in reply
+    assert "propuesta pendiente" in reply
+    assert "memoria local" in reply
+    assert "Solo se guarda si respondes APPROVE" in reply
+    assert "REJECT la descarta" in reply
+    assert "elimina una memoria local activa" in reply
+    assert "No crea leads" in reply
+    assert "no toca CRM" in reply
+    assert "no abre pipeline" in reply
+    assert "no hace handoff" in reply
+    assert "no notifica a nadie" in reply
+    assert "no escribe en sistemas externos" in reply
+    after = db_counts()
+    assert after["proposals"] == before["proposals"]
+    assert after["memories"] == before["memories"]
+
+
+@pytest.mark.anyio
+async def test_memory_control_help_spanish_alias_works(client):
+    response = await client.post("/api/telegram/webhook", json=build_update("¿cómo controlo tu memoria?"))
+    assert response.status_code == 200
+    reply = response.json()["reply"]["text"]
+    assert "Puedes controlar la memoria local de Robbie" in reply
+    assert "what do you remember" in reply
 
 
 @pytest.mark.anyio

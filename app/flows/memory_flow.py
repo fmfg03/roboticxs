@@ -13,6 +13,7 @@ from app.memory_service import (
 from app.reply_composer import (
     compose_budget_block_reply,
     compose_budget_warn_prefix,
+    compose_memory_control_help_reply,
     compose_memory_approved_reply,
     compose_memory_boundary_reply,
     compose_memory_forgotten_reply,
@@ -112,6 +113,33 @@ def process_memory_proposal(*, context, proposal_payload: dict) -> dict:
         context=context,
         task_id=task.id,
         reply_text=reply_text,
+        scope_decision="ANSWER",
+        safety_decision=safety_decision,
+        route_record=route_record,
+        token_event=token_event,
+    )
+
+
+def process_memory_control_help(*, context) -> dict:
+    task = create_task_and_run(
+        context=context,
+        kind="GENERAL_TASK",
+        scope_decision="ANSWER",
+        task_class="SIMPLE_CLASSIFICATION",
+    )
+    safety_result = evaluate_safety("prepare memory control help", "ANSWER")
+    safety_decision = persist_safety_decision(context=context, task_id=task.id, safety_result=safety_result)
+    route_record, token_event = persist_route_and_token(
+        context=context,
+        text=context.envelope.text,
+        task_id=task.id,
+        task_family="MEMORY_CONTROL",
+        task_class="SIMPLE_CLASSIFICATION",
+    )
+    return build_flow_response(
+        context=context,
+        task_id=task.id,
+        reply_text=compose_memory_control_help_reply(),
         scope_decision="ANSWER",
         safety_decision=safety_decision,
         route_record=route_record,
