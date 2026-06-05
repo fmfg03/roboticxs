@@ -225,6 +225,9 @@ async def test_capability_catalog_does_not_claim_connectors_retrieval_browser_or
     assert "non_authority" not in reply
     assert "No revisé correo, WhatsApp, calendario, web ni sistemas externos." in reply
     assert "Límites globales: Robbie no ejecuta pagos, compras, envíos, reservas, cambios externos, uso de credenciales, navegador, conectores" in reply
+    assert "Agentius / workflows de negocio" not in reply
+    assert "candidato para Agentius" not in reply
+    assert "CRM" not in reply
 
 
 @pytest.mark.anyio
@@ -280,9 +283,21 @@ async def test_capability_query_agentius_candidate(client, db_counts):
     )
     assert response.status_code == 200
     reply = response.json()["reply"]["text"]
-    assert "workflow de negocio" in reply
-    assert "candidato para Agentius" in reply
-    assert "No voy a crear un lead" in reply
+    assert "automatización de negocio para Agentius" in reply
+    assert "tarea de robot personal en Roboticxs v0" in reply
+    assert "boundary-only" in reply
+    assert "no es una capacidad activa de Robbie en v0" in reply
+    assert "crear leads" in reply
+    assert "guardar la solicitud" in reply
+    assert "avisar a nadie" in reply
+    assert "hacer handoff" in reply
+    assert "conectar un CRM" in reply
+    assert "usar conectores" in reply
+    assert "abrir navegador" in reply
+    assert "mandar email o WhatsApp" in reply
+    assert "tocar sistemas externos" in reply
+    assert "reformularlo como tarea personal local" in reply
+    assert "preparar un resumen manual o una checklist" in reply
     after = db_counts()
     assert after["tasks"] == before["tasks"] + 1
     assert after["task_runs"] == before["task_runs"] + 1
@@ -295,6 +310,30 @@ async def test_capability_query_agentius_candidate(client, db_counts):
     assert after["file_intakes"] == before["file_intakes"]
     assert after["file_retrieval_attempts"] == before["file_retrieval_attempts"]
     assert after["file_retrieval_enablement_requests"] == before["file_retrieval_enablement_requests"]
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "query",
+    [
+        "¿puedes automatizar el pipeline de ventas?",
+        "¿puedes ayudarme con un workflow para clientes y CRM?",
+        "¿puedes coordinar al equipo por WhatsApp y correo?",
+    ],
+)
+async def test_capability_query_agentius_candidate_does_not_claim_execution_or_persistence(client, query):
+    await ensure_user_and_robot(client)
+    response = await client.post("/api/telegram/webhook", json=build_text_update(query))
+    assert response.status_code == 200
+    reply = response.json()["reply"]["text"]
+    assert "Agentius" in reply
+    assert "boundary-only" in reply
+    assert "no es una capacidad activa de Robbie en v0" in reply
+    assert "guardar la solicitud" in reply
+    assert "hacer handoff" in reply
+    assert "conectar un CRM" in reply
+    assert "tocar sistemas externos" in reply
+    assert "Siguiente paso:" in reply
 
 
 @pytest.mark.anyio

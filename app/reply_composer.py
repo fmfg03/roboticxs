@@ -462,9 +462,6 @@ def compose_capability_catalog_reply(catalog) -> str:
         [
             "Límites globales: Robbie no ejecuta pagos, compras, envíos, reservas, cambios externos, uso de credenciales, navegador, conectores ni decisiones legales, médicas, fiscales, financieras o laborales.",
             "",
-            "Agentius / workflows de negocio",
-            "- Si me pides CRM, flujos de equipo, clientes o automatización de negocio, en v0 solo lo clasifico como candidato para Agentius.",
-            "",
             "No revisé correo, WhatsApp, calendario, web ni sistemas externos. Esta respuesta usa solo el catálogo local de Robbie.",
         ]
     )
@@ -511,6 +508,10 @@ def _capability_next_step_guidance(*, status: str, capability_id: str | None = N
     if status == "BLOCKED":
         return (
             "Siguiente paso: puedo ayudarte a preparar una lista, resumen o checklist para que tú lo hagas manualmente, si aplica."
+        )
+    if status == "AGENTIUS_CANDIDATE":
+        return (
+            "Siguiente paso: si quieres, puedo ayudarte a reformularlo como tarea personal local, preparar un resumen manual o una checklist sin guardar, notificar ni tocar nada externo."
         )
     return "Siguiente paso: puedo ayudarte a reformular la tarea o revisar si encaja con una capacidad disponible."
 
@@ -583,8 +584,10 @@ def compose_capability_resolution_reply(*, resolution) -> str:
         )
     if resolution.status == "AGENTIUS_CANDIDATE":
         return (
-            "Eso parece un workflow de negocio, no una tarea simple de robot personal.\n\n"
-            "En v0 solo puedo clasificarlo como candidato para Agentius. No voy a crear un lead, notificar a nadie ni activar una automatización."
+            "Eso suena más a una automatización de negocio para Agentius que a una tarea de robot personal en Roboticxs v0.\n\n"
+            "Límite: aquí no voy a crear leads, guardar la solicitud, avisar a nadie, hacer handoff, conectar un CRM, usar conectores, abrir navegador, mandar email o WhatsApp, ni tocar sistemas externos.\n"
+            "Esto es solo una clasificación boundary-only; no es una capacidad activa de Robbie en v0.\n"
+            f"{_capability_next_step_guidance(status=resolution.status, capability_id=resolution.capability_id)}"
         )
     return (
         "No tengo esa capacidad registrada todavía.\n\n"
