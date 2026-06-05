@@ -36,6 +36,7 @@ Roboticxs v0 is not:
 - `what do you remember` lista memorias activas
 - `what memory proposals are pending` lista propuestas pendientes
 - `how do I control memory / cómo controlo tu memoria` solo muestra ayuda local
+- aliases aceptados para memory help: `memory help`, `what memory commands can i use`, `como controlo tu memoria`, `como controlo lo que recuerdas`
 
 ## Recent closed stages
 

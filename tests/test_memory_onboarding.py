@@ -213,6 +213,7 @@ async def test_explicit_agentius_interest_creates_pending_upgrade_interest_propo
     assert "visible para ti" in reply
     assert "la podrás borrar después" in reply
     assert "No voy a crear un lead" in reply
+    assert "abrir pipeline" in reply
     assert "avisar a nadie" in reply
     assert "hacer handoff" in reply
     assert "CRM" in reply
@@ -242,6 +243,7 @@ async def test_approve_upgrade_interest_creates_active_local_memory(client, db_c
     reply = response.json()["reply"]["text"]
     assert "Guardado como nota local de interés" in reply
     assert "no crea lead" in reply
+    assert "no abre pipeline" in reply
     assert "no avisa a nadie" in reply
     assert "no hace handoff" in reply
     assert "no toca CRM" in reply
@@ -288,7 +290,7 @@ async def test_pending_upgrade_interest_is_visible_in_pending_memory_review(clie
     assert "Interés local pendiente" in reply
     assert "Interés local para revisar después con Agentius: automatizar seguimiento de clientes en CRM." in reply
     assert "Estado: pendiente de aprobación." in reply
-    assert "Esto no crea lead, CRM, pipeline, handoff, notificación ni external writes." in reply
+    assert "Esto no crea lead, CRM, pipeline, handoff, notificación, connectors, browser, email/WhatsApp ni external writes." in reply
     assert "Responde APPROVE para guardarla como memoria local, o REJECT para descartarla." in reply
     assert "memoria local de tu robot" not in reply
     assert "guardado como nota local de interés" not in reply.lower()

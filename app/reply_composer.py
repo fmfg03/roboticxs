@@ -25,7 +25,7 @@ def compose_upgrade_interest_proposal_reply(content: str) -> str:
         "Preparé una propuesta local de interés para que tú la apruebes o rechaces.\n\n"
         f"Interés local: {content}\n\n"
         "Si la apruebas, quedará visible para ti en la memoria local del robot y la podrás borrar después.\n"
-        "No voy a crear un lead, avisar a nadie, hacer handoff, conectarlo a CRM, usar conectores, abrir navegador, mandar email o WhatsApp, ni tocar sistemas externos.\n\n"
+        "No voy a crear un lead, abrir pipeline, avisar a nadie, hacer handoff, conectarlo a CRM, usar conectores, abrir navegador, mandar email o WhatsApp, ni tocar sistemas externos.\n\n"
         "Responde APPROVE para guardarla como memoria local, o REJECT para descartarla."
     )
 
@@ -41,7 +41,7 @@ def compose_memory_approved_reply() -> str:
 def compose_upgrade_interest_approved_reply() -> str:
     return (
         "Guardado como nota local de interés. Queda solo en la memoria local del robot; "
-        "no crea lead, no avisa a nadie, no hace handoff, no toca CRM, no usa conectores, "
+        "no crea lead, no abre pipeline, no avisa a nadie, no hace handoff, no toca CRM, no usa conectores, "
         "no abre navegador, no manda email o WhatsApp y no toca sistemas externos."
     )
 
@@ -62,7 +62,7 @@ def compose_pending_memory_review_reply(proposals: list[dict[str, str]]) -> str:
         lines.append(f"- {proposal['id']} — {proposal['label']}: {proposal['content']}")
         lines.append("  Estado: pendiente de aprobación.")
         if proposal["memory_type"] == "UPGRADE_INTEREST":
-            lines.append("  Esto no crea lead, CRM, pipeline, handoff, notificación ni external writes.")
+            lines.append("  Esto no crea lead, CRM, pipeline, handoff, notificación, connectors, browser, email/WhatsApp ni external writes.")
         lines.append("  Responde APPROVE para guardarla como memoria local, o REJECT para descartarla.")
     return "\n".join(lines)
 
@@ -79,7 +79,7 @@ def compose_memory_control_help_reply() -> str:
         "Solo se guarda si respondes APPROVE. REJECT la descarta. "
         "forget memory <id> elimina una memoria local activa.\n\n"
         "Todo esto es local. No crea leads, no toca CRM, no abre pipeline, no hace handoff, "
-        "no notifica a nadie y no escribe en sistemas externos."
+        "no usa connectors, no abre browser, no manda email o WhatsApp, no notifica a nadie y no escribe en sistemas externos."
     )
 
 

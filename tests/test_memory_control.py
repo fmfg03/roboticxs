@@ -60,6 +60,7 @@ async def test_memory_listing_isolated_by_user_robot(client):
         "cómo controlo tu memoria",
         "como controlo tu memoria",
         "cómo controlo lo que recuerdas",
+        "como controlo lo que recuerdas",
     ],
 )
 def test_memory_control_help_detector_matches_explicit_help_requests(text):
@@ -100,6 +101,9 @@ async def test_memory_control_help_response_lists_commands_and_boundaries(client
     assert "no toca CRM" in reply
     assert "no abre pipeline" in reply
     assert "no hace handoff" in reply
+    assert "no usa connectors" in reply
+    assert "no abre browser" in reply
+    assert "no manda email o WhatsApp" in reply
     assert "no notifica a nadie" in reply
     assert "no escribe en sistemas externos" in reply
     after = db_counts()
@@ -114,6 +118,15 @@ async def test_memory_control_help_spanish_alias_works(client):
     reply = response.json()["reply"]["text"]
     assert "Puedes controlar la memoria local de Robbie" in reply
     assert "what do you remember" in reply
+
+
+@pytest.mark.anyio
+async def test_memory_control_help_ascii_alias_works(client):
+    response = await client.post("/api/telegram/webhook", json=build_update("como controlo lo que recuerdas"))
+    assert response.status_code == 200
+    reply = response.json()["reply"]["text"]
+    assert "Puedes controlar la memoria local de Robbie" in reply
+    assert "what memory proposals are pending" in reply
 
 
 @pytest.mark.anyio
@@ -136,6 +149,26 @@ async def test_pending_memory_review_lists_only_pending_proposals(client):
     assert "APPROVE" in reply
     assert "REJECT" in reply
     assert "Esto es lo que recuerdo en la memoria local de tu robot:" not in reply
+
+
+@pytest.mark.anyio
+async def test_pending_upgrade_interest_review_keeps_boundary_non_claims(client):
+    await client.post(
+        "/api/telegram/webhook",
+        json=build_update("Guarda esto para Agentius después: automatizar seguimiento de clientes en CRM."),
+    )
+    response = await client.post("/api/telegram/webhook", json=build_update("what memory proposals are pending"))
+    assert response.status_code == 200
+    reply = response.json()["reply"]["text"]
+    assert "no crea lead" in reply.lower()
+    assert "crm" in reply.lower()
+    assert "pipeline" in reply.lower()
+    assert "handoff" in reply.lower()
+    assert "notificación" in reply.lower()
+    assert "connectors" in reply.lower()
+    assert "browser" in reply.lower()
+    assert "email/whatsapp" in reply.lower()
+    assert "external writes" in reply.lower()
 
 
 @pytest.mark.anyio

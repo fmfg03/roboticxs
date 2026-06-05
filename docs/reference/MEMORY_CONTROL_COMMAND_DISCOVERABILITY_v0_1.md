@@ -10,7 +10,14 @@ Canonical command:
 
 - `how do i control memory`
 
-Supported explicit help requests may also include Spanish-first help phrasing such as:
+Supported explicit help requests may also include:
+
+- `memory help`
+- `what memory commands can i use`
+- `como controlo tu memoria`
+- `como controlo lo que recuerdas`
+
+Supported Spanish-first help phrasing also includes:
 
 - `cómo controlo tu memoria`
 - `cómo controlo lo que recuerdas`
