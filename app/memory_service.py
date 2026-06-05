@@ -94,5 +94,6 @@ def display_label_for_memory_type(memory_type: str) -> str:
         "BOUNDARY_MEMORY": "Boundary",
         "USER_PROFILE": "Profile",
         "BUSINESS_CONTEXT": "Business context",
+        "UPGRADE_INTEREST": "Interés local",
         "TASK_MEMORY": "Memory",
     }.get(memory_type, "Memory")

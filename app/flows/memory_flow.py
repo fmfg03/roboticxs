@@ -15,6 +15,8 @@ from app.reply_composer import (
     compose_memory_proposal_reply,
     compose_memory_rejected_reply,
     compose_no_pending_memory_reply,
+    compose_upgrade_interest_approved_reply,
+    compose_upgrade_interest_proposal_reply,
 )
 from app.safety import evaluate_safety
 
@@ -91,6 +93,8 @@ def process_memory_proposal(*, context, proposal_payload: dict) -> dict:
     )
     if proposal.memory_type == "BOUNDARY_MEMORY":
         reply_text = compose_memory_boundary_reply(proposal.proposed_content)
+    elif proposal.memory_type == "UPGRADE_INTEREST":
+        reply_text = compose_upgrade_interest_proposal_reply(proposal.proposed_content)
     else:
         reply_text = compose_memory_proposal_reply(label=proposal_payload["label"], content=proposal.proposed_content)
     if budget_posture.status == "WARN":
@@ -238,7 +242,10 @@ def process_memory_decision(*, context, command: str) -> dict:
     safety_decision = persist_safety_decision(context=context, task_id=task.id, safety_result=safety_result)
     if command == "APPROVE":
         approve_proposal(session=context.session, proposal=pending)
-        reply_text = compose_memory_approved_reply()
+        if pending.memory_type == "UPGRADE_INTEREST":
+            reply_text = compose_upgrade_interest_approved_reply()
+        else:
+            reply_text = compose_memory_approved_reply()
     else:
         reject_proposal(session=context.session, proposal=pending)
         reply_text = compose_memory_rejected_reply()

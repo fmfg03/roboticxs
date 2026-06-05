@@ -20,12 +20,30 @@ def compose_memory_proposal_reply(*, label: str, content: str) -> str:
     return f"I can remember this:\n\n{label}: {content}\n\nReply APPROVE to save it or REJECT to discard it."
 
 
+def compose_upgrade_interest_proposal_reply(content: str) -> str:
+    return (
+        "Preparé una propuesta local de interés para que tú la apruebes o rechaces.\n\n"
+        f"Interés local: {content}\n\n"
+        "Si la apruebas, quedará visible para ti en la memoria local del robot y la podrás borrar después.\n"
+        "No voy a crear un lead, avisar a nadie, hacer handoff, conectarlo a CRM, usar conectores, abrir navegador, mandar email o WhatsApp, ni tocar sistemas externos.\n\n"
+        "Responde APPROVE para guardarla como memoria local, o REJECT para descartarla."
+    )
+
+
 def compose_memory_boundary_reply(content: str) -> str:
     return f"I can save this as a robot limit:\n\nBoundary: {content}\n\nReply APPROVE to save it or REJECT to discard it."
 
 
 def compose_memory_approved_reply() -> str:
     return "Saved to your robot memory."
+
+
+def compose_upgrade_interest_approved_reply() -> str:
+    return (
+        "Guardado como nota local de interés. Queda solo en la memoria local del robot; "
+        "no crea lead, no avisa a nadie, no hace handoff, no toca CRM, no usa conectores, "
+        "no abre navegador, no manda email o WhatsApp y no toca sistemas externos."
+    )
 
 
 def compose_memory_rejected_reply() -> str:
