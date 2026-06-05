@@ -285,6 +285,7 @@ async def test_approved_upgrade_interest_is_visible_in_memory_listing(client):
     response = await client.post("/api/telegram/webhook", json=build_update("what do you remember"))
     assert response.status_code == 200
     reply = response.json()["reply"]["text"]
+    assert "memoria local de tu robot" in reply
     assert "Interés local:" in reply
     assert "Interés local para revisar después con Agentius: automatizar seguimiento de clientes en CRM." in reply
     assert "lead" not in reply.lower()
@@ -295,6 +296,7 @@ async def test_approved_upgrade_interest_is_visible_in_memory_listing(client):
     assert "enviado a agentius" not in reply.lower()
     assert "handoff" not in reply.lower()
     assert "notificación" not in reply.lower()
+    assert "crm conectado" not in reply.lower()
 
 
 @pytest.mark.anyio
@@ -306,10 +308,40 @@ async def test_approved_upgrade_interest_can_be_forgotten_with_existing_memory_f
         memory_id = memory.id
     response = await client.post("/api/telegram/webhook", json=build_update(f"forget memory {memory_id}"))
     assert response.status_code == 200
-    assert response.json()["reply"]["text"] == "Forgotten. I will no longer use that memory."
+    reply = response.json()["reply"]["text"]
+    assert reply == "Listo. Eliminé esa memoria local."
+    assert "lead" not in reply.lower()
+    assert "pipeline" not in reply.lower()
+    assert "handoff" not in reply.lower()
+    assert "notificación" not in reply.lower()
+    assert "crm" not in reply.lower()
     with client.app.state.db.session() as session:
         memory = session.scalar(select(MemoryItem).where(MemoryItem.id == memory_id))
         assert memory.status == "FORGOTTEN"
+
+
+@pytest.mark.anyio
+async def test_mixed_memory_listing_keeps_normal_and_upgrade_interest_local_and_clear(client):
+    await client.post("/api/telegram/webhook", json=build_update("Remember that I prefer short direct answers."))
+    await client.post("/api/telegram/webhook", json=build_update("APPROVE"))
+    await client.post(
+        "/api/telegram/webhook",
+        json=build_update("Guarda esto como algo que quiero revisar para Agentius después: automatizar seguimiento de clientes en CRM."),
+    )
+    await client.post("/api/telegram/webhook", json=build_update("APPROVE"))
+    response = await client.post("/api/telegram/webhook", json=build_update("what do you remember"))
+    assert response.status_code == 200
+    reply = response.json()["reply"]["text"]
+    assert "Preference:" in reply
+    assert "Interés local:" in reply
+    assert "automatizar seguimiento de clientes en CRM" in reply
+    assert "lead" not in reply.lower()
+    assert "pipeline" not in reply.lower()
+    assert "oportunidad" not in reply.lower()
+    assert "enviado" not in reply.lower()
+    assert "handoff" not in reply.lower()
+    assert "notificación" not in reply.lower()
+    assert "crm conectado" not in reply.lower()
 
 
 @pytest.mark.anyio

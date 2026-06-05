@@ -56,16 +56,16 @@ def compose_no_pending_memory_reply() -> str:
 
 def compose_memory_list_reply(memories: list[dict[str, str]]) -> str:
     if not memories:
-        return "I do not have any approved memories for your robot yet."
-    lines = ["Here is what I currently remember:", ""]
-    for index, memory in enumerate(memories, start=1):
-        lines.append(f"{index}. [{memory['id']}] {memory['label']}: {memory['content']}")
-    lines.extend(["", f"To remove one, reply: forget memory {memories[0]['id']}"])
+        return "No tengo memorias locales aprobadas para tu robot todavia."
+    lines = ["Esto es lo que recuerdo en la memoria local de tu robot:", ""]
+    for memory in memories:
+        lines.append(f"{memory['id']} - {memory['label']}: {memory['content']}")
+    lines.extend(["", f"Para borrar una memoria local, responde: forget memory {memories[0]['id']}"])
     return "\n".join(lines)
 
 
 def compose_memory_forgotten_reply() -> str:
-    return "Forgotten. I will no longer use that memory."
+    return "Listo. Eliminé esa memoria local."
 
 
 def compose_memory_not_found_reply() -> str:

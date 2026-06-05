@@ -47,7 +47,7 @@ async def test_memory_listing_isolated_by_user_robot(client):
     await seed_active_memory(client, "Remember that I prefer short direct answers.", user_id=111, name="UserA")
     response = await client.post("/api/telegram/webhook", json=build_update("what do you remember", user_id=222, name="UserB"))
     assert response.status_code == 200
-    assert "do not have any approved memories" in response.json()["reply"]["text"]
+    assert "No tengo memorias locales aprobadas" in response.json()["reply"]["text"]
 
 
 @pytest.mark.anyio
@@ -55,7 +55,7 @@ async def test_forget_memory_marks_memory_forgotten(client):
     memory_id = await seed_active_memory(client, "Remember that I prefer short direct answers.")
     response = await client.post("/api/telegram/webhook", json=build_update(f"forget memory {memory_id}"))
     assert response.status_code == 200
-    assert response.json()["reply"]["text"] == "Forgotten. I will no longer use that memory."
+    assert response.json()["reply"]["text"] == "Listo. Eliminé esa memoria local."
     with client.app.state.db.session() as session:
         memory = session.scalar(select(MemoryItem).where(MemoryItem.id == memory_id))
         assert memory.status == "FORGOTTEN"
