@@ -52,13 +52,13 @@ REQUIRED_DEFERRED_IDS = {
 }
 REQUIRED_SEQUENCE_RULES = {
     "exactly_one_stage_may_be_next_eligible",
-    "sole_next_eligible_stage_is_68P",
+    "sole_next_eligible_stage_is_69P",
     "eligibility_permits_story_drafting_only",
     "roadmap_inclusion_never_authorizes_implementation",
     "every_stage_requires_story_approval",
     "every_stage_requires_technical_spec_approval",
     "runtime_implementation_requires_separately_approved_scoped_build_tests_and_validation",
-    "stages_69P_through_76P_remain_unopened_until_68P_closes_or_explicit_maintainer_direction_changes_the_canon",
+    "stages_70P_through_76P_remain_unopened_until_69P_closes_or_explicit_maintainer_direction_changes_the_canon",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -66,8 +66,8 @@ EXPECTED_FINAL_SEQUENCE = {
     "66P": ("COMPLETED_FIXED_BASELINE", "Conversación Horizontal / Continuity Spine v0"),
     "66P2": ("COMPLETED_FIXED_BASELINE", "Memory Stack Architecture / Criterio Store Spec"),
     "67P": ("COMPLETED_FIXED_BASELINE", "Caregiver Mode Boundary Spec"),
-    "68P": ("NEXT_ELIGIBLE", "Caregiver Telegram Group Relay v0"),
-    "69P": ("SEQUENCE_ENTRY_ONLY", "Guided Routine Packets v0"),
+    "68P": ("COMPLETED_FIXED_BASELINE", "Caregiver Telegram Group Relay v0"),
+    "69P": ("NEXT_ELIGIBLE", "Guided Routine Packets v0"),
     "70P": ("SEQUENCE_ENTRY_ONLY", "Voice Notes Intelligence / VibeVoice Spike"),
     "71P": ("SEQUENCE_ENTRY_ONLY", "Voice Intake for Caregiver Routines"),
     "72P": ("SEQUENCE_ENTRY_ONLY", "Research Radar / Last30Days Skill"),
@@ -97,7 +97,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_67P",
+        "local_evidence_scope": "stages_61P_through_68P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -220,9 +220,28 @@ def test_67p_transition_and_68p_are_the_only_current_sequence_gate():
         "implementation_authorized": False,
     }
     next_eligible = [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"]
-    assert [stage["stage_id"] for stage in next_eligible] == ["68P"]
-    assert next_eligible[0]["stage_name"] == "Caregiver Telegram Group Relay v0"
-    assert next_eligible[0]["next_action"] == "Eligible for story drafting only after 67P closes."
+    assert [stage["stage_id"] for stage in next_eligible] == ["69P"]
+    assert next_eligible[0]["stage_name"] == "Guided Routine Packets v0"
+    assert next_eligible[0]["next_action"] == "Eligible for story drafting only after 68P closes."
+
+
+def test_68p_transition_and_69p_are_the_only_current_sequence_gate():
+    stages = load_stage_registry()
+    stages_by_id = {stage["stage_id"]: stage for stage in stages}
+    transition = load_json_block("stage-68p-completion-transition")
+
+    assert stages_by_id["68P"]["status"] == "COMPLETED_FIXED_BASELINE"
+    assert transition == {
+        "closeout_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_next_eligible": "69P",
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    next_eligible = [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"]
+    assert [stage["stage_id"] for stage in next_eligible] == ["69P"]
+    assert next_eligible[0]["stage_name"] == "Guided Routine Packets v0"
+    assert next_eligible[0]["next_action"] == "Eligible for story drafting only after 68P closes."
 
 
 def test_required_final_sequence_after_66p_is_encoded_exactly():
@@ -237,7 +256,7 @@ def test_required_final_sequence_after_66p_is_encoded_exactly():
 def test_future_sequence_entries_do_not_claim_local_evidence_or_authorization():
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
-    for stage_id in [f"{number}P" for number in range(68, 77)]:
+    for stage_id in [f"{number}P" for number in range(69, 77)]:
         stage = stages_by_id[stage_id]
         assert stage["status"] in {"NEXT_ELIGIBLE", "SEQUENCE_ENTRY_ONLY"}
         assert stage["authority_source"] == "explicit_maintainer_direction"
@@ -341,6 +360,29 @@ def test_67p_is_caregiver_boundary_only_and_self_referenced():
         },
         "implementation_authorized": False,
         "next_action": "Use as the caregiver boundary baseline; no caregiver runtime, relay, routine packet, medication, monitoring, or external action is authorized.",
+    }
+
+
+def test_68p_is_caregiver_relay_packet_preparation_only_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["68P"] == {
+        "stage_id": "68P",
+        "stage_name": "Caregiver Telegram Group Relay v0",
+        "status": "COMPLETED_FIXED_BASELINE",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "same_commit_as_68P_closeout",
+            "paths": [
+                "app/caregiver_relay.py",
+                "docs/reference/CAREGIVER_TELEGRAM_GROUP_RELAY_v0_1.md",
+                "tests/test_caregiver_relay.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local caregiver relay packet baseline; no Telegram sending, group management, routine execution, medication, monitoring, emergency handling, sensitive caregiver memory, or external action is authorized.",
     }
 
 

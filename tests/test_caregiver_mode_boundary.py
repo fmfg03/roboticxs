@@ -303,7 +303,7 @@ def test_no_registry_authorizes_caregiver_runtime_or_external_surfaces():
     assert all(gate["authorized_by_67P"] is False for gate in gates)
 
 
-def test_roadmap_marks_67p_completed_and_68p_next_after_closeout():
+def test_roadmap_marks_67p_and_68p_completed_and_69p_next_after_closeout():
     stages = load_json_block("canonical-stage-registry", path=ROADMAP_PATH)
     stages_by_id = {stage["stage_id"]: stage for stage in stages}
     next_eligible = [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"]
@@ -319,5 +319,7 @@ def test_roadmap_marks_67p_completed_and_68p_next_after_closeout():
             "tests/test_canonical_roadmap.py",
         ],
     }
-    assert [stage["stage_id"] for stage in next_eligible] == ["68P"]
-    assert next_eligible[0]["stage_name"] == "Caregiver Telegram Group Relay v0"
+    assert stages_by_id["68P"]["stage_name"] == "Caregiver Telegram Group Relay v0"
+    assert stages_by_id["68P"]["status"] == "COMPLETED_FIXED_BASELINE"
+    assert [stage["stage_id"] for stage in next_eligible] == ["69P"]
+    assert next_eligible[0]["stage_name"] == "Guided Routine Packets v0"
