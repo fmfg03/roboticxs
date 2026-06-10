@@ -52,15 +52,29 @@ REQUIRED_DEFERRED_IDS = {
 }
 REQUIRED_SEQUENCE_RULES = {
     "exactly_one_stage_may_be_next_eligible",
-    "sole_next_eligible_stage_is_65P",
+    "sole_next_eligible_stage_is_67P",
     "eligibility_permits_story_drafting_only",
     "roadmap_inclusion_never_authorizes_implementation",
     "every_stage_requires_story_approval",
     "every_stage_requires_technical_spec_approval",
     "runtime_implementation_requires_separately_approved_scoped_build_tests_and_validation",
-    "stages_66P_through_76P_remain_unopened_until_65P_closes_or_explicit_maintainer_direction_changes_the_canon",
+    "stages_68P_through_77P_remain_unopened_until_67P_closes_or_explicit_maintainer_direction_changes_the_canon",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
+}
+EXPECTED_FINAL_SEQUENCE = {
+    "66P": ("COMPLETED_FIXED_BASELINE", "Conversación Horizontal / Continuity Spine v0"),
+    "67P": ("NEXT_ELIGIBLE", "Memory Stack Architecture / Criterio Store Spec"),
+    "68P": ("SEQUENCE_ENTRY_ONLY", "Caregiver Mode Boundary Spec"),
+    "69P": ("SEQUENCE_ENTRY_ONLY", "Caregiver Telegram Group Relay v0"),
+    "70P": ("SEQUENCE_ENTRY_ONLY", "Guided Routine Packets v0"),
+    "71P": ("SEQUENCE_ENTRY_ONLY", "Voice Notes Intelligence / VibeVoice Spike"),
+    "72P": ("SEQUENCE_ENTRY_ONLY", "Voice Intake for Caregiver Routines"),
+    "73P": ("SEQUENCE_ENTRY_ONLY", "Research Radar / Last30Days Skill"),
+    "74P": ("SEQUENCE_ENTRY_ONLY", "Understand-Anything + codegraph Factory Skill"),
+    "75P": ("SEQUENCE_ENTRY_ONLY", "ECC Knowledge Compiler Factory Skill"),
+    "76P": ("SEQUENCE_ENTRY_ONLY", "Agent-Reach Research Parking Lot"),
+    "77P": ("SEQUENCE_ENTRY_ONLY", "VoxCPM Research Parking Lot"),
 }
 
 
@@ -83,18 +97,18 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_63P_only",
+        "local_evidence_scope": "stages_61P_through_66P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
     }
 
 
-def test_stage_registry_contains_ordered_61p_through_76p_once():
+def test_stage_registry_contains_ordered_61p_through_77p_once():
     stages = load_stage_registry()
     stage_ids = [stage["stage_id"] for stage in stages]
 
-    assert stage_ids == [f"{number}P" for number in range(61, 77)]
+    assert stage_ids == [f"{number}P" for number in range(61, 78)]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
     assert all(stage["implementation_authorized"] is False for stage in stages)
@@ -120,30 +134,80 @@ def test_local_fixed_baselines_have_existing_repo_evidence():
         assert result.returncode == 0
 
 
-def test_64p_transition_and_65p_are_the_only_current_sequence_gate():
+def test_65p_is_committed_before_66p_closure():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+    stage = stages_by_id["65P"]
+
+    assert stage["status"] == "COMPLETED_FIXED_BASELINE"
+    assert stage["stage_name"] == "Budget Awareness / Cost Authority Guard v0"
+    assert stage["local_evidence"] == {
+        "commit": "d346939",
+        "paths": [
+            "app/budget_authority.py",
+            "docs/reference/BUDGET_AUTHORITY_GUARD_v0_1.md",
+            "tests/test_budget_authority_guard.py",
+        ],
+    }
+    result = subprocess.run(
+        ["git", "cat-file", "-e", "d346939^{commit}"],
+        cwd=REPO_ROOT,
+        check=False,
+    )
+    assert result.returncode == 0
+
+
+def test_66p_local_evidence_is_additive_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+    stage = stages_by_id["66P"]
+
+    assert stage["status"] == "COMPLETED_FIXED_BASELINE"
+    assert stage["stage_name"] == "Conversación Horizontal / Continuity Spine v0"
+    assert stage["local_evidence"] == {
+        "commit": "same_commit_as_66P_closeout",
+        "paths": [
+            "app/conversation_continuity.py",
+            "docs/reference/CONVERSATION_CONTINUITY_SPINE_v0_1.md",
+            "tests/test_conversation_continuity_spine.py",
+        ],
+    }
+    for path in stage["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_66p_transition_and_67p_are_the_only_current_sequence_gate():
     stages = load_stage_registry()
     stages_by_id = {stage["stage_id"]: stage for stage in stages}
-    transition = load_json_block("stage-64p-completion-transition")
+    transition = load_json_block("stage-66p-completion-transition")
 
-    assert stages_by_id["64P"]["status"] == "CURRENT_STAGE"
+    assert stages_by_id["66P"]["status"] == "COMPLETED_FIXED_BASELINE"
     assert transition == {
-        "before_commit_status": "CURRENT_STAGE",
+        "closeout_status": "COMPLETED_FIXED_BASELINE",
         "after_commit_status": "COMPLETED_FIXED_BASELINE",
-        "after_commit_next_eligible": "65P",
+        "after_commit_next_eligible": "67P",
         "transition_requires_commit": True,
         "implementation_authorized": False,
     }
     next_eligible = [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"]
-    assert [stage["stage_id"] for stage in next_eligible] == ["65P"]
-    assert next_eligible[0]["next_action"] == "Eligible for story drafting only after 64P closes."
+    assert [stage["stage_id"] for stage in next_eligible] == ["67P"]
+    assert next_eligible[0]["stage_name"] == "Memory Stack Architecture / Criterio Store Spec"
+    assert next_eligible[0]["next_action"] == "Eligible for story drafting only after 66P closes and is committed."
+
+
+def test_required_final_sequence_after_66p_is_encoded_exactly():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    for stage_id, (status, stage_name) in EXPECTED_FINAL_SEQUENCE.items():
+        stage = stages_by_id[stage_id]
+        assert stage["status"] == status
+        assert stage["stage_name"] == stage_name
 
 
 def test_future_sequence_entries_do_not_claim_local_evidence_or_authorization():
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
-    for stage_id in [f"{number}P" for number in range(66, 77)]:
+    for stage_id in [f"{number}P" for number in range(67, 78)]:
         stage = stages_by_id[stage_id]
-        assert stage["status"] == "SEQUENCE_ENTRY_ONLY"
+        assert stage["status"] in {"NEXT_ELIGIBLE", "SEQUENCE_ENTRY_ONLY"}
         assert stage["authority_source"] == "explicit_maintainer_direction"
         assert stage["local_evidence"] is None
         assert stage["implementation_authorized"] is False
@@ -158,7 +222,7 @@ def test_ch01_is_the_non_authorizing_66p_canonical_product_spine():
         "spine_id": "CH-01",
         "stage_id": "66P",
         "stage_name": "Conversación Horizontal / Continuity Spine v0",
-        "status": "SEQUENCE_ENTRY_ONLY",
+        "status": "COMPLETED_FIXED_BASELINE",
         "rationale": "Defines continuity across conversations before later caregiver, voice, research, and advanced-skill stages.",
         "scope_signals": [
             "conversation_classification",
@@ -172,13 +236,12 @@ def test_ch01_is_the_non_authorizing_66p_canonical_product_spine():
             "zaubern_authority_checks",
         ],
         "implementation_authorized": False,
-        "required_before_build": [
-            "story_approval",
-            "technical_spec_approval",
-            "scoped_build_approval",
-            "tests",
-            "validation",
+        "baseline_paths": [
+            "app/conversation_continuity.py",
+            "docs/reference/CONVERSATION_CONTINUITY_SPINE_v0_1.md",
+            "tests/test_conversation_continuity_spine.py",
         ],
+        "next_stage": "67P",
     }
 
 

@@ -4,7 +4,7 @@
 
 This document materializes the maintainer-approved forward-looking roadmap for Roboticxs.
 
-It is the controlling roadmap for future stage sequencing after Stage 64P. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
+It is the controlling roadmap for future stage sequencing after Stage 66P. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
 
 ## Source of authority
 
@@ -13,7 +13,7 @@ The forward sequence comes from explicit maintainer direction in the maintainer-
 ```json canonical-roadmap-authority
 {
   "authority_source":"maintainer_approved_chatgpt_web_planning_thread",
-  "local_evidence_scope":"stages_61P_through_63P_only",
+  "local_evidence_scope":"stages_61P_through_66P",
   "forward_sequence_source":"explicit_maintainer_direction",
   "runtime_truth_source":"local_repo",
   "roadmap_inclusion_authorizes_implementation":false
@@ -27,8 +27,11 @@ The repository confirms these fixed baselines:
 - 61P consolidated explicit command routing without adding product behavior.
 - 62P created the canonical runtime surface audit.
 - 63P froze retrieval-control as local metadata/control-only behavior.
+- 64P materialized the canonical roadmap.
+- 65P added the Budget Awareness / Cost Authority Guard v0.
+- 66P adds the Conversation Continuity Spine v0 as a pure local continuity contract.
 
-No local implementation evidence is claimed for stages 64P–76P.
+No local implementation evidence is claimed for stages 67P–77P.
 
 ## Canonical stage registry
 
@@ -37,32 +40,33 @@ No local implementation evidence is claimed for stages 64P–76P.
   {"stage_id":"61P","stage_name":"Command Routing Consolidation v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"c079a96","paths":["docs/reference/COMMAND_ROUTING_CONSOLIDATION_v0_1.md"]},"implementation_authorized":false,"next_action":"Do not reopen except through a separately approved bug or boundary-correction stage."},
   {"stage_id":"62P","stage_name":"Runtime Surface Audit v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"93bcbff","paths":["docs/reference/RUNTIME_SURFACE_AUDIT_v0_1.md"]},"implementation_authorized":false,"next_action":"Use as the source of truth for the audited runtime surface."},
   {"stage_id":"63P","stage_name":"Retrieval Control Freeze v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"86afd53","paths":["docs/reference/RETRIEVAL_CONTROL_FREEZE_v0_1.md"]},"implementation_authorized":false,"next_action":"Keep retrieval-control frozen unless a separately approved stage reopens it."},
-  {"stage_id":"64P","stage_name":"Roadmap Canon Materialization v0","status":"CURRENT_STAGE","authority_source":"maintainer_approved_chatgpt_web_planning_thread","local_evidence":null,"implementation_authorized":false,"next_action":"Complete this docs-and-tests stage, then apply the documented post-commit transition."},
-  {"stage_id":"65P","stage_name":"Budget Awareness / Cost Authority Guard v0","status":"NEXT_ELIGIBLE","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Eligible for story drafting only after 64P closes."},
-  {"stage_id":"66P","stage_name":"Conversación Horizontal / Continuity Spine v0","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until 65P closes or explicit maintainer direction changes the canon; requires its own story, spec, build approval, tests, and validation."},
-  {"stage_id":"67P","stage_name":"Caregiver Mode Boundary Spec","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
-  {"stage_id":"68P","stage_name":"Caregiver Telegram Group Relay v0","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
-  {"stage_id":"69P","stage_name":"Guided Routine Packets v0","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
-  {"stage_id":"70P","stage_name":"Voice Notes Intelligence / VibeVoice Spike","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
-  {"stage_id":"71P","stage_name":"Voice Intake for Caregiver Routines","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
-  {"stage_id":"72P","stage_name":"Research Radar / Last30Days Skill","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
-  {"stage_id":"73P","stage_name":"Understand-Anything + codegraph Factory Skill","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
-  {"stage_id":"74P","stage_name":"ECC Knowledge Compiler Factory Skill","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
-  {"stage_id":"75P","stage_name":"Agent-Reach Research Parking Lot","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain a research parking-lot sequence entry without runtime authorization."},
-  {"stage_id":"76P","stage_name":"VoxCPM Research Parking Lot","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain a research parking-lot sequence entry without runtime authorization."}
+  {"stage_id":"64P","stage_name":"Roadmap Canon Materialization v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"2b3c295","paths":["docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Do not reopen except through a separately approved roadmap-canon correction."},
+  {"stage_id":"65P","stage_name":"Budget Awareness / Cost Authority Guard v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"d346939","paths":["app/budget_authority.py","docs/reference/BUDGET_AUTHORITY_GUARD_v0_1.md","tests/test_budget_authority_guard.py"]},"implementation_authorized":false,"next_action":"Use as the source of truth for budget authority gating."},
+  {"stage_id":"66P","stage_name":"Conversación Horizontal / Continuity Spine v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_66P_closeout","paths":["app/conversation_continuity.py","docs/reference/CONVERSATION_CONTINUITY_SPINE_v0_1.md","tests/test_conversation_continuity_spine.py"]},"implementation_authorized":false,"next_action":"Use as the local continuity-spine baseline and do not reopen except through a separately approved correction stage."},
+  {"stage_id":"67P","stage_name":"Memory Stack Architecture / Criterio Store Spec","status":"NEXT_ELIGIBLE","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Eligible for story drafting only after 66P closes and is committed."},
+  {"stage_id":"68P","stage_name":"Caregiver Mode Boundary Spec","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
+  {"stage_id":"69P","stage_name":"Caregiver Telegram Group Relay v0","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
+  {"stage_id":"70P","stage_name":"Guided Routine Packets v0","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
+  {"stage_id":"71P","stage_name":"Voice Notes Intelligence / VibeVoice Spike","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
+  {"stage_id":"72P","stage_name":"Voice Intake for Caregiver Routines","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
+  {"stage_id":"73P","stage_name":"Research Radar / Last30Days Skill","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
+  {"stage_id":"74P","stage_name":"Understand-Anything + codegraph Factory Skill","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
+  {"stage_id":"75P","stage_name":"ECC Knowledge Compiler Factory Skill","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
+  {"stage_id":"76P","stage_name":"Agent-Reach Research Parking Lot","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain a research parking-lot sequence entry without runtime authorization."},
+  {"stage_id":"77P","stage_name":"VoxCPM Research Parking Lot","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain a research parking-lot sequence entry without runtime authorization."}
 ]
 ```
 
 ## Canonical product-spine stage
 
-CH-01 is materialized as Stage 66P, a foundational product-spine sequence entry. It is not a generic candidate and is not implemented or authorized by 64P.
+CH-01 is materialized as Stage 66P, a foundational product-spine baseline. It is additive and does not authorize storage, connectors, retrieval, browser/email/WhatsApp behavior, CRM, lead-gen, handoff, external writes, caregiver behavior, voice behavior, or Research Radar.
 
 ```json canonical-product-spine-stage
 {
   "spine_id":"CH-01",
   "stage_id":"66P",
   "stage_name":"Conversación Horizontal / Continuity Spine v0",
-  "status":"SEQUENCE_ENTRY_ONLY",
+  "status":"COMPLETED_FIXED_BASELINE",
   "rationale":"Defines continuity across conversations before later caregiver, voice, research, and advanced-skill stages.",
   "scope_signals":[
     "conversation_classification",
@@ -76,44 +80,43 @@ CH-01 is materialized as Stage 66P, a foundational product-spine sequence entry.
     "zaubern_authority_checks"
   ],
   "implementation_authorized":false,
-  "required_before_build":[
-    "story_approval",
-    "technical_spec_approval",
-    "scoped_build_approval",
-    "tests",
-    "validation"
-  ]
+  "baseline_paths":[
+    "app/conversation_continuity.py",
+    "docs/reference/CONVERSATION_CONTINUITY_SPINE_v0_1.md",
+    "tests/test_conversation_continuity_spine.py"
+  ],
+  "next_stage":"67P"
 }
 ```
 
-## Stage 64P completion transition
+## Stage 66P completion transition
 
-The stage registry records the pre-commit state. After the approved 64P commit, Stage 64P becomes a completed fixed baseline and Stage 65P remains the sole next eligible stage.
+The stage registry records the 66P closeout sequence state. Stage 67P is the sole next eligible stage after 66P.
 
-```json stage-64p-completion-transition
+```json stage-66p-completion-transition
 {
-  "before_commit_status":"CURRENT_STAGE",
+  "closeout_status":"COMPLETED_FIXED_BASELINE",
   "after_commit_status":"COMPLETED_FIXED_BASELINE",
-  "after_commit_next_eligible":"65P",
+  "after_commit_next_eligible":"67P",
   "transition_requires_commit":true,
   "implementation_authorized":false
 }
 ```
 
-The commit does not authorize 65P implementation. It permits 65P story drafting only.
+The commit does not authorize 67P implementation. It permits 67P story drafting only.
 
 ## Sequencing and authorization rules
 
 ```json roadmap-sequencing-rules
 [
   "exactly_one_stage_may_be_next_eligible",
-  "sole_next_eligible_stage_is_65P",
+  "sole_next_eligible_stage_is_67P",
   "eligibility_permits_story_drafting_only",
   "roadmap_inclusion_never_authorizes_implementation",
   "every_stage_requires_story_approval",
   "every_stage_requires_technical_spec_approval",
   "runtime_implementation_requires_separately_approved_scoped_build_tests_and_validation",
-  "stages_66P_through_76P_remain_unopened_until_65P_closes_or_explicit_maintainer_direction_changes_the_canon",
+  "stages_68P_through_77P_remain_unopened_until_67P_closes_or_explicit_maintainer_direction_changes_the_canon",
   "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
   "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence"
 ]
