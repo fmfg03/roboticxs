@@ -18,6 +18,22 @@ This command is documentation only in v5.
 
 The report artifact should not be created in v5 unless separately approved.
 
+## Context-Budget Smoke Test
+
+For a real local factory-session smoke test of the global context-budget workflow, use `python3` in this environment:
+
+```bash
+python3 /root/tools/context-budget/context_budget.py status --session-id current --project roboticxs
+python3 /root/tools/context-budget/context_budget.py gate --session-id current --project roboticxs
+```
+
+Notes:
+
+- `--session-id current` lets the global tool resolve the latest local transcript when no explicit transcript path is available.
+- The reported token values are transcript-derived local estimates only, not provider billing truth.
+- The current global tool writes its gate receipt to `/root/artifacts/context_budget/` by default. Treat that as a global workflow artifact location, not as Roboticxs runtime or product authority state.
+- If the session is `GREEN` or `YELLOW`, no governed handoff is required. If the decision becomes `HANDOFF_REQUIRED` or `BLOCK`, use the governed handoff artifacts defined by the global skill before continuing.
+
 ## Recommended Report Path
 
 Recommended future path:
