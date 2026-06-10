@@ -280,5 +280,6 @@ def test_roadmap_keeps_66p2_completed_after_67p_closeout():
         ],
     }
     assert stages_by_id["68P"]["status"] == "COMPLETED_FIXED_BASELINE"
-    assert [stage["stage_id"] for stage in next_eligible] == ["69P"]
-    assert next_eligible[0]["stage_name"] == "Guided Routine Packets v0"
+    assert stages_by_id["69P"]["status"] == "COMPLETED_FIXED_BASELINE"
+    assert [stage["stage_id"] for stage in next_eligible] == ["70P"]
+    assert next_eligible[0]["stage_name"] == "Voice Notes Intelligence / VibeVoice Spike"

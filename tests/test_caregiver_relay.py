@@ -243,7 +243,7 @@ def test_docs_contain_no_automatic_send_and_non_claims():
         assert required in text
 
 
-def test_roadmap_marks_68p_completed_and_69p_next_after_closeout():
+def test_roadmap_marks_68p_and_69p_completed_and_70p_next_after_closeout():
     text = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"68P","stage_name":"Caregiver Telegram Group Relay v0","status":"COMPLETED_FIXED_BASELINE"' in text
@@ -251,5 +251,6 @@ def test_roadmap_marks_68p_completed_and_69p_next_after_closeout():
     assert '"app/caregiver_relay.py"' in text
     assert '"docs/reference/CAREGIVER_TELEGRAM_GROUP_RELAY_v0_1.md"' in text
     assert '"tests/test_caregiver_relay.py"' in text
-    assert '"stage_id":"69P","stage_name":"Guided Routine Packets v0","status":"NEXT_ELIGIBLE"' in text
-    assert '"after_commit_next_eligible":"69P"' in text
+    assert '"stage_id":"69P","stage_name":"Guided Routine Packets v0","status":"COMPLETED_FIXED_BASELINE"' in text
+    assert '"stage_id":"70P","stage_name":"Voice Notes Intelligence / VibeVoice Spike","status":"NEXT_ELIGIBLE"' in text
+    assert '"after_commit_next_eligible":"70P"' in text
