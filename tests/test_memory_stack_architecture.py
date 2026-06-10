@@ -262,7 +262,7 @@ def test_no_registry_authorizes_external_or_runtime_expansion():
         assert forbidden in text
 
 
-def test_roadmap_marks_66p2_completed_and_67p_next_after_closeout():
+def test_roadmap_keeps_66p2_completed_after_67p_closeout():
     stages = load_json_block("canonical-stage-registry", path=ROADMAP_PATH)
     stages_by_id = {stage["stage_id"]: stage for stage in stages}
     next_eligible = [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"]
@@ -279,5 +279,5 @@ def test_roadmap_marks_66p2_completed_and_67p_next_after_closeout():
             "tests/test_canonical_roadmap.py",
         ],
     }
-    assert [stage["stage_id"] for stage in next_eligible] == ["67P"]
-    assert next_eligible[0]["stage_name"] == "Caregiver Mode Boundary Spec"
+    assert [stage["stage_id"] for stage in next_eligible] == ["68P"]
+    assert next_eligible[0]["stage_name"] == "Caregiver Telegram Group Relay v0"

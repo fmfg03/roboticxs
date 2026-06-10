@@ -4,7 +4,7 @@
 
 This document materializes the maintainer-approved forward-looking roadmap for Roboticxs.
 
-It is the controlling roadmap for future stage sequencing after Stage 66P. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
+It is the controlling roadmap for future stage sequencing after Stage 67P. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
 
 ## Source of authority
 
@@ -13,7 +13,7 @@ The forward sequence comes from explicit maintainer direction in the maintainer-
 ```json canonical-roadmap-authority
 {
   "authority_source":"maintainer_approved_chatgpt_web_planning_thread",
-  "local_evidence_scope":"stages_61P_through_66P",
+  "local_evidence_scope":"stages_61P_through_67P",
   "forward_sequence_source":"explicit_maintainer_direction",
   "runtime_truth_source":"local_repo",
   "roadmap_inclusion_authorizes_implementation":false
@@ -30,8 +30,10 @@ The repository confirms these fixed baselines:
 - 64P materialized the canonical roadmap.
 - 65P added the Budget Awareness / Cost Authority Guard v0.
 - 66P adds the Conversation Continuity Spine v0 as a pure local continuity contract.
+- 66P2 defines the Memory Stack Architecture / Criterio Store Spec.
+- 67P defines the Caregiver Mode Boundary Spec without runtime caregiver behavior.
 
-No local implementation evidence is claimed for stages 67P–76P.
+No local implementation evidence is claimed for stages 68P–76P.
 
 ## Canonical stage registry
 
@@ -44,8 +46,8 @@ No local implementation evidence is claimed for stages 67P–76P.
   {"stage_id":"65P","stage_name":"Budget Awareness / Cost Authority Guard v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"d346939","paths":["app/budget_authority.py","docs/reference/BUDGET_AUTHORITY_GUARD_v0_1.md","tests/test_budget_authority_guard.py"]},"implementation_authorized":false,"next_action":"Use as the source of truth for budget authority gating."},
   {"stage_id":"66P","stage_name":"Conversación Horizontal / Continuity Spine v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_66P_closeout","paths":["app/conversation_continuity.py","docs/reference/CONVERSATION_CONTINUITY_SPINE_v0_1.md","tests/test_conversation_continuity_spine.py"]},"implementation_authorized":false,"next_action":"Use as the local continuity-spine baseline and do not reopen except through a separately approved correction stage."},
   {"stage_id":"66P2","stage_name":"Memory Stack Architecture / Criterio Store Spec","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_66P2_closeout","paths":["docs/reference/MEMORY_STACK_ARCHITECTURE_CRITERIO_STORE_v0_1.md","tests/test_memory_stack_architecture.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the memory architecture boundary for continuity and criterio; no storage implementation is authorized."},
-  {"stage_id":"67P","stage_name":"Caregiver Mode Boundary Spec","status":"NEXT_ELIGIBLE","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Eligible for story drafting only after 66P2 closes."},
-  {"stage_id":"68P","stage_name":"Caregiver Telegram Group Relay v0","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
+  {"stage_id":"67P","stage_name":"Caregiver Mode Boundary Spec","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_67P_closeout","paths":["docs/reference/CAREGIVER_MODE_BOUNDARY_SPEC_v0_1.md","tests/test_caregiver_mode_boundary.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the caregiver boundary baseline; no caregiver runtime, relay, routine packet, medication, monitoring, or external action is authorized."},
+  {"stage_id":"68P","stage_name":"Caregiver Telegram Group Relay v0","status":"NEXT_ELIGIBLE","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Eligible for story drafting only after 67P closes."},
   {"stage_id":"69P","stage_name":"Guided Routine Packets v0","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
   {"stage_id":"70P","stage_name":"Voice Notes Intelligence / VibeVoice Spike","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
   {"stage_id":"71P","stage_name":"Voice Intake for Caregiver Routines","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
@@ -144,18 +146,34 @@ The stage registry records the 66P2 closeout sequence state. Stage 67P is the so
 
 The 66P2 closeout does not authorize memory storage implementation, Mirix, retrieval, connectors, or caregiver behavior. It permits 67P story drafting only.
 
+## Stage 67P completion transition
+
+The stage registry records the 67P closeout sequence state. Stage 68P is the sole next eligible stage after 67P.
+
+```json stage-67p-completion-transition
+{
+  "closeout_status":"COMPLETED_FIXED_BASELINE",
+  "after_commit_status":"COMPLETED_FIXED_BASELINE",
+  "after_commit_next_eligible":"68P",
+  "transition_requires_commit":true,
+  "implementation_authorized":false
+}
+```
+
+The 67P closeout does not authorize caregiver runtime behavior, Telegram relay, Guided Routine Packets, medication reminders, monitoring, external messages, or sensitive caregiver memory storage. It permits 68P story drafting only.
+
 ## Sequencing and authorization rules
 
 ```json roadmap-sequencing-rules
 [
   "exactly_one_stage_may_be_next_eligible",
-  "sole_next_eligible_stage_is_67P",
+  "sole_next_eligible_stage_is_68P",
   "eligibility_permits_story_drafting_only",
   "roadmap_inclusion_never_authorizes_implementation",
   "every_stage_requires_story_approval",
   "every_stage_requires_technical_spec_approval",
   "runtime_implementation_requires_separately_approved_scoped_build_tests_and_validation",
-  "stages_68P_through_76P_remain_unopened_until_67P_closes_or_explicit_maintainer_direction_changes_the_canon",
+  "stages_69P_through_76P_remain_unopened_until_68P_closes_or_explicit_maintainer_direction_changes_the_canon",
   "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
   "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence"
 ]
