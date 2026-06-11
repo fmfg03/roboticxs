@@ -4,7 +4,7 @@
 
 This document materializes the maintainer-approved forward-looking roadmap for Roboticxs.
 
-It is the controlling roadmap for future stage sequencing after Stage 72P. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
+It is the controlling roadmap for future stage sequencing after Stage 73P. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
 
 ## Source of authority
 
@@ -13,7 +13,7 @@ The forward sequence comes from explicit maintainer direction in the maintainer-
 ```json canonical-roadmap-authority
 {
   "authority_source":"maintainer_approved_chatgpt_web_planning_thread",
-  "local_evidence_scope":"stages_61P_through_72P",
+  "local_evidence_scope":"stages_61P_through_73P",
   "forward_sequence_source":"explicit_maintainer_direction",
   "runtime_truth_source":"local_repo",
   "roadmap_inclusion_authorizes_implementation":false
@@ -37,8 +37,9 @@ The repository confirms these fixed baselines:
 - 70P defines the Voice Notes Intelligence / VibeVoice Spike v0 boundary without voice runtime.
 - 71P adds Voice Intake for Caregiver Routines v0 as local transcript-stub processing only.
 - 72P adds Research Radar / Last30Days Skill v0 as local request-scoped research packet preparation only.
+- 73P adds Understand-Anything + codegraph Factory Skill v0 as local repo-understanding packet preparation only.
 
-No local implementation evidence is claimed for stages 73P–76P.
+No local implementation evidence is claimed for stages 74P–76P.
 
 ## Canonical stage registry
 
@@ -57,8 +58,8 @@ No local implementation evidence is claimed for stages 73P–76P.
   {"stage_id":"70P","stage_name":"Voice Notes Intelligence / VibeVoice Spike","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_70P_closeout","paths":["docs/reference/VOICE_NOTES_INTELLIGENCE_VIBEVOICE_SPIKE_v0_1.md","tests/test_voice_notes_intelligence_spike.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the voice-note intelligence boundary; no voice runtime, ASR inference, TTS, cloned voice, audio storage, durable transcript storage, background listening, caregiver voice runtime, or external send is authorized."},
   {"stage_id":"71P","stage_name":"Voice Intake for Caregiver Routines","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_71P_closeout","paths":["app/voice_caregiver_intake.py","docs/reference/VOICE_INTAKE_FOR_CAREGIVER_ROUTINES_v0_1.md","tests/test_voice_caregiver_intake.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local transcript-stub caregiver voice intake baseline; no audio processing, ASR, Telegram voice handling, TTS, voice clone, speaker authentication, durable transcript storage, routine execution, medication decision, emergency triage, surveillance, or external send is authorized."},
   {"stage_id":"72P","stage_name":"Research Radar / Last30Days Skill","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_72P_closeout","paths":["app/research_radar.py","docs/reference/RESEARCH_RADAR_LAST30DAYS_SKILL_v0_1.md","tests/test_research_radar.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local request-scoped research packet baseline; no live search, scraping, connector activation, browser automation, external API calls, background monitoring, scheduled alerts, memory writes, raw content storage, external actions, CRM, lead-gen, handoff, or 73P behavior is authorized."},
-  {"stage_id":"73P","stage_name":"Understand-Anything + codegraph Factory Skill","status":"NEXT_ELIGIBLE","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Eligible for bounded Understand-Anything + codegraph Factory Skill story drafting only after 72P closes."},
-  {"stage_id":"74P","stage_name":"ECC Knowledge Compiler Factory Skill","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
+  {"stage_id":"73P","stage_name":"Understand-Anything + codegraph Factory Skill","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_73P_closeout","paths":["app/repo_understanding.py","docs/reference/REPO_UNDERSTANDING_FACTORY_SKILL_v0_1.md","tests/test_repo_understanding.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local repo-understanding packet baseline; no code execution, dependency install, repo clone, MCP server, external tool activation, network access, persistent index, raw source archive, security certification, correctness claim, or 74P behavior is authorized."},
+  {"stage_id":"74P","stage_name":"ECC Knowledge Compiler Factory Skill","status":"NEXT_ELIGIBLE","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Eligible for bounded ECC Knowledge Compiler Factory Skill story drafting only after 73P closes."},
   {"stage_id":"75P","stage_name":"Agent-Reach Research Parking Lot","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain a research parking-lot sequence entry without runtime authorization."},
   {"stage_id":"76P","stage_name":"VoxCPM Research Parking Lot","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain a research parking-lot sequence entry without runtime authorization."}
 ]
@@ -247,18 +248,34 @@ The stage registry records the 72P closeout sequence state. Stage 73P is the sol
 
 The 72P closeout authorizes local request-scoped research packet preparation only. It does not authorize live web search, scraping, Reddit/X/YouTube/Hacker News/Polymarket clients, ScrapeCreators, yt-dlp, browser automation, connector retrieval, external API calls, background jobs, scheduled monitoring, push alerts, persistent watchlists, durable source storage, raw content archives, user-profile enrichment from public data, cross-thread retrieval, memory writes, publishing, CRM, lead-gen, handoff, external writes, or 73P Understand-Anything/codegraph behavior. It permits 73P bounded Understand-Anything + codegraph Factory Skill story drafting only.
 
+## Stage 73P completion transition
+
+The stage registry records the 73P closeout sequence state. Stage 74P is the sole next eligible stage after 73P.
+
+```json stage-73p-completion-transition
+{
+  "closeout_status":"COMPLETED_FIXED_BASELINE",
+  "after_commit_status":"COMPLETED_FIXED_BASELINE",
+  "after_commit_next_eligible":"74P",
+  "transition_requires_commit":true,
+  "implementation_authorized":false
+}
+```
+
+The 73P closeout authorizes local repo-understanding packet preparation only. It does not authorize Understand Anything installation, codegraph installation, dependency install, code vendoring, repository clone, MCP server activation, tree-sitter runtime, SQLite index, graph database, dashboard, multi-agent pipeline, arbitrary code execution, shell execution, build/test execution, network access, external API calls, persistent repo index, raw source archive, security certification, correctness proof, connector retrieval, browser/email/WhatsApp, CRM, lead-gen, handoff, external writes, or 74P ECC behavior. It permits 74P bounded ECC Knowledge Compiler Factory Skill story drafting only.
+
 ## Sequencing and authorization rules
 
 ```json roadmap-sequencing-rules
 [
   "exactly_one_stage_may_be_next_eligible",
-  "sole_next_eligible_stage_is_73P",
+  "sole_next_eligible_stage_is_74P",
   "eligibility_permits_story_drafting_only",
   "roadmap_inclusion_never_authorizes_implementation",
   "every_stage_requires_story_approval",
   "every_stage_requires_technical_spec_approval",
   "runtime_implementation_requires_separately_approved_scoped_build_tests_and_validation",
-  "stages_74P_through_76P_remain_unopened_until_73P_closes_or_explicit_maintainer_direction_changes_the_canon",
+  "stages_75P_through_76P_remain_unopened_until_74P_closes_or_explicit_maintainer_direction_changes_the_canon",
   "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
   "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence"
 ]
@@ -314,6 +331,7 @@ Sequence changes require explicit maintainer approval and an update to this cano
 - no caregiver runtime beyond local 68P relay packet and 69P guided routine packet preparation
 - no voice runtime implementation
 - no live Research Radar execution beyond local 72P packet preparation
+- no repo-understanding execution beyond local 73P packet preparation
 - no external skills
 - no CRM
 - no lead-gen
