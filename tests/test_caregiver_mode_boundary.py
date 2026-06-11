@@ -325,5 +325,5 @@ def test_roadmap_marks_67p_through_69p_completed_and_70p_next_after_closeout():
     assert stages_by_id["69P"]["status"] == "COMPLETED_FIXED_BASELINE"
     assert stages_by_id["70P"]["stage_name"] == "Voice Notes Intelligence / VibeVoice Spike"
     assert stages_by_id["70P"]["status"] == "COMPLETED_FIXED_BASELINE"
-    assert [stage["stage_id"] for stage in next_eligible] == ["72P"]
-    assert next_eligible[0]["stage_name"] == "Research Radar / Last30Days Skill"
+    assert [stage["stage_id"] for stage in next_eligible] == ["73P"]
+    assert next_eligible[0]["stage_name"] == "Understand-Anything + codegraph Factory Skill"

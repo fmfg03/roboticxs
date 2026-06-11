@@ -255,5 +255,6 @@ def test_roadmap_marks_68p_and_69p_completed_and_70p_next_after_closeout():
     assert '"stage_id":"70P","stage_name":"Voice Notes Intelligence / VibeVoice Spike","status":"COMPLETED_FIXED_BASELINE"' in text
     assert '"commit":"same_commit_as_70P_closeout"' in text
     assert '"stage_id":"71P","stage_name":"Voice Intake for Caregiver Routines","status":"COMPLETED_FIXED_BASELINE"' in text
-    assert '"stage_id":"72P","stage_name":"Research Radar / Last30Days Skill","status":"NEXT_ELIGIBLE"' in text
-    assert '"after_commit_next_eligible":"72P"' in text
+    assert '"stage_id":"72P","stage_name":"Research Radar / Last30Days Skill","status":"COMPLETED_FIXED_BASELINE"' in text
+    assert '"stage_id":"73P","stage_name":"Understand-Anything + codegraph Factory Skill","status":"NEXT_ELIGIBLE"' in text
+    assert '"after_commit_next_eligible":"73P"' in text

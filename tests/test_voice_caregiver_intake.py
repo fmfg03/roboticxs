@@ -393,5 +393,6 @@ def test_roadmap_marks_71p_completed_and_72p_next_after_closeout():
     assert '"app/voice_caregiver_intake.py"' in text
     assert '"docs/reference/VOICE_INTAKE_FOR_CAREGIVER_ROUTINES_v0_1.md"' in text
     assert '"tests/test_voice_caregiver_intake.py"' in text
-    assert '"stage_id":"72P","stage_name":"Research Radar / Last30Days Skill","status":"NEXT_ELIGIBLE"' in text
-    assert '"after_commit_next_eligible":"72P"' in text
+    assert '"stage_id":"72P","stage_name":"Research Radar / Last30Days Skill","status":"COMPLETED_FIXED_BASELINE"' in text
+    assert '"stage_id":"73P","stage_name":"Understand-Anything + codegraph Factory Skill","status":"NEXT_ELIGIBLE"' in text
+    assert '"after_commit_next_eligible":"73P"' in text
