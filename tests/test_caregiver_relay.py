@@ -252,5 +252,7 @@ def test_roadmap_marks_68p_and_69p_completed_and_70p_next_after_closeout():
     assert '"docs/reference/CAREGIVER_TELEGRAM_GROUP_RELAY_v0_1.md"' in text
     assert '"tests/test_caregiver_relay.py"' in text
     assert '"stage_id":"69P","stage_name":"Guided Routine Packets v0","status":"COMPLETED_FIXED_BASELINE"' in text
-    assert '"stage_id":"70P","stage_name":"Voice Notes Intelligence / VibeVoice Spike","status":"NEXT_ELIGIBLE"' in text
-    assert '"after_commit_next_eligible":"70P"' in text
+    assert '"stage_id":"70P","stage_name":"Voice Notes Intelligence / VibeVoice Spike","status":"COMPLETED_FIXED_BASELINE"' in text
+    assert '"commit":"same_commit_as_70P_closeout"' in text
+    assert '"stage_id":"71P","stage_name":"Voice Intake for Caregiver Routines","status":"NEXT_ELIGIBLE"' in text
+    assert '"after_commit_next_eligible":"71P"' in text
