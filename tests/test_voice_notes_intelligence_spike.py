@@ -321,8 +321,9 @@ def test_roadmap_marks_70p_completed_and_71p_next_after_closeout():
         "implementation_authorized": False,
         "next_action": "Use as the voice-note intelligence boundary; no voice runtime, ASR inference, TTS, cloned voice, audio storage, durable transcript storage, background listening, caregiver voice runtime, or external send is authorized.",
     }
-    assert [stage["stage_id"] for stage in next_eligible] == ["71P"]
-    assert next_eligible[0]["stage_name"] == "Voice Intake for Caregiver Routines"
+    assert stages_by_id["71P"]["status"] == "COMPLETED_FIXED_BASELINE"
+    assert [stage["stage_id"] for stage in next_eligible] == ["72P"]
+    assert next_eligible[0]["stage_name"] == "Research Radar / Last30Days Skill"
     assert transition == {
         "closeout_status": "COMPLETED_FIXED_BASELINE",
         "after_commit_status": "COMPLETED_FIXED_BASELINE",

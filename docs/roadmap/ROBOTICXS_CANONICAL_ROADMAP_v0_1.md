@@ -4,7 +4,7 @@
 
 This document materializes the maintainer-approved forward-looking roadmap for Roboticxs.
 
-It is the controlling roadmap for future stage sequencing after Stage 70P. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
+It is the controlling roadmap for future stage sequencing after Stage 71P. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
 
 ## Source of authority
 
@@ -13,7 +13,7 @@ The forward sequence comes from explicit maintainer direction in the maintainer-
 ```json canonical-roadmap-authority
 {
   "authority_source":"maintainer_approved_chatgpt_web_planning_thread",
-  "local_evidence_scope":"stages_61P_through_70P",
+  "local_evidence_scope":"stages_61P_through_71P",
   "forward_sequence_source":"explicit_maintainer_direction",
   "runtime_truth_source":"local_repo",
   "roadmap_inclusion_authorizes_implementation":false
@@ -35,8 +35,9 @@ The repository confirms these fixed baselines:
 - 68P adds the Caregiver Telegram Group Relay v0 as local packet preparation only.
 - 69P adds Guided Routine Packets v0 as local routine packet preparation only.
 - 70P defines the Voice Notes Intelligence / VibeVoice Spike v0 boundary without voice runtime.
+- 71P adds Voice Intake for Caregiver Routines v0 as local transcript-stub processing only.
 
-No local implementation evidence is claimed for stages 71P–76P.
+No local implementation evidence is claimed for stages 72P–76P.
 
 ## Canonical stage registry
 
@@ -53,8 +54,8 @@ No local implementation evidence is claimed for stages 71P–76P.
   {"stage_id":"68P","stage_name":"Caregiver Telegram Group Relay v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_68P_closeout","paths":["app/caregiver_relay.py","docs/reference/CAREGIVER_TELEGRAM_GROUP_RELAY_v0_1.md","tests/test_caregiver_relay.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local caregiver relay packet baseline; no Telegram sending, group management, routine execution, medication, monitoring, emergency handling, sensitive caregiver memory, or external action is authorized."},
   {"stage_id":"69P","stage_name":"Guided Routine Packets v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_69P_closeout","paths":["app/guided_routines.py","docs/reference/GUIDED_ROUTINE_PACKETS_v0_1.md","tests/test_guided_routines.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local guided routine packet baseline; no scheduler, reminders, Telegram sending, routine execution, medication decision, ingestion verification, monitoring, emergency handling, durable routine memory, voice behavior, or external action is authorized."},
   {"stage_id":"70P","stage_name":"Voice Notes Intelligence / VibeVoice Spike","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_70P_closeout","paths":["docs/reference/VOICE_NOTES_INTELLIGENCE_VIBEVOICE_SPIKE_v0_1.md","tests/test_voice_notes_intelligence_spike.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the voice-note intelligence boundary; no voice runtime, ASR inference, TTS, cloned voice, audio storage, durable transcript storage, background listening, caregiver voice runtime, or external send is authorized."},
-  {"stage_id":"71P","stage_name":"Voice Intake for Caregiver Routines","status":"NEXT_ELIGIBLE","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Eligible for bounded caregiver voice intake story drafting only after 70P closes."},
-  {"stage_id":"72P","stage_name":"Research Radar / Last30Days Skill","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
+  {"stage_id":"71P","stage_name":"Voice Intake for Caregiver Routines","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_71P_closeout","paths":["app/voice_caregiver_intake.py","docs/reference/VOICE_INTAKE_FOR_CAREGIVER_ROUTINES_v0_1.md","tests/test_voice_caregiver_intake.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local transcript-stub caregiver voice intake baseline; no audio processing, ASR, Telegram voice handling, TTS, voice clone, speaker authentication, durable transcript storage, routine execution, medication decision, emergency triage, surveillance, or external send is authorized."},
+  {"stage_id":"72P","stage_name":"Research Radar / Last30Days Skill","status":"NEXT_ELIGIBLE","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Eligible for bounded Research Radar / Last30Days Skill story drafting only after 71P closes."},
   {"stage_id":"73P","stage_name":"Understand-Anything + codegraph Factory Skill","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
   {"stage_id":"74P","stage_name":"ECC Knowledge Compiler Factory Skill","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain unopened until prior sequence gates close or explicit maintainer direction changes the canon."},
   {"stage_id":"75P","stage_name":"Agent-Reach Research Parking Lot","status":"SEQUENCE_ENTRY_ONLY","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Remain a research parking-lot sequence entry without runtime authorization."},
@@ -213,18 +214,34 @@ The stage registry records the 70P closeout sequence state. Stage 71P is the sol
 
 The 70P closeout authorizes a source-backed voice-note intelligence architecture boundary only. It does not authorize audio upload handling, Telegram voice attachment processing, ASR inference, VibeVoice or Whisper dependency installation, model download, model weights, external audio API calls, TTS, cloned voice, speaker identification, voice authentication, continuous listening, background transcription, raw audio storage, durable transcript storage, caregiver voice runtime, medication decisions, emergency triage, external sends, connectors, retrieval, browser/email/WhatsApp, CRM, lead-gen, handoff, or external writes. It permits 71P bounded caregiver voice intake story drafting only.
 
+## Stage 71P completion transition
+
+The stage registry records the 71P closeout sequence state. Stage 72P is the sole next eligible stage after 71P.
+
+```json stage-71p-completion-transition
+{
+  "closeout_status":"COMPLETED_FIXED_BASELINE",
+  "after_commit_status":"COMPLETED_FIXED_BASELINE",
+  "after_commit_next_eligible":"72P",
+  "transition_requires_commit":true,
+  "implementation_authorized":false
+}
+```
+
+The 71P closeout authorizes local transcript-stub caregiver voice intake only. It does not authorize audio upload handling, Telegram voice attachment processing, ASR inference, VibeVoice or Whisper dependency installation, model download, model weights, external transcription APIs, TTS, cloned voice, speaker identification, voice authentication, continuous listening, background transcription, raw audio storage, durable transcript storage, caregiver voice runtime execution, medication decisions, emergency triage, surveillance, external sends, connectors, retrieval, browser/email/WhatsApp, CRM, lead-gen, handoff, external writes, or 72P Research Radar behavior. It permits 72P bounded Research Radar / Last30Days Skill story drafting only.
+
 ## Sequencing and authorization rules
 
 ```json roadmap-sequencing-rules
 [
   "exactly_one_stage_may_be_next_eligible",
-  "sole_next_eligible_stage_is_71P",
+  "sole_next_eligible_stage_is_72P",
   "eligibility_permits_story_drafting_only",
   "roadmap_inclusion_never_authorizes_implementation",
   "every_stage_requires_story_approval",
   "every_stage_requires_technical_spec_approval",
   "runtime_implementation_requires_separately_approved_scoped_build_tests_and_validation",
-  "stages_72P_through_76P_remain_unopened_until_71P_closes_or_explicit_maintainer_direction_changes_the_canon",
+  "stages_73P_through_76P_remain_unopened_until_72P_closes_or_explicit_maintainer_direction_changes_the_canon",
   "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
   "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence"
 ]

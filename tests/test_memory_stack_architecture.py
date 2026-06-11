@@ -283,5 +283,5 @@ def test_roadmap_keeps_66p2_completed_after_67p_closeout():
     assert stages_by_id["69P"]["status"] == "COMPLETED_FIXED_BASELINE"
     assert stages_by_id["70P"]["stage_name"] == "Voice Notes Intelligence / VibeVoice Spike"
     assert stages_by_id["70P"]["status"] == "COMPLETED_FIXED_BASELINE"
-    assert [stage["stage_id"] for stage in next_eligible] == ["71P"]
-    assert next_eligible[0]["stage_name"] == "Voice Intake for Caregiver Routines"
+    assert [stage["stage_id"] for stage in next_eligible] == ["72P"]
+    assert next_eligible[0]["stage_name"] == "Research Radar / Last30Days Skill"
