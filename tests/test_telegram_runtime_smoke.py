@@ -181,6 +181,6 @@ def test_roadmap_marks_81p_complete_and_later_83p_without_inventing_84p():
     assert '"docs/reference/TELEGRAM_RUNTIME_SMOKE_MANUAL_WIRING_v0_1.md"' in text
     assert '"tests/test_telegram_runtime_smoke.py"' in text
     assert '"stage_id":"82P","stage_name":"Memory Proposal Loop over Telegram v0","status":"COMPLETED_FIXED_BASELINE"' in text
-    assert '"stage_id":"83P","stage_name":"Active Memory Recall over Telegram v0","status":"IMPLEMENTED_PENDING_REVIEW"' in text
+    assert '"stage_id":"83P","stage_name":"Active Memory Recall over Telegram v0","status":"CLOSED_COMMITTED"' in text
     assert '"stage_id":"84P"' not in text
     assert '"status":"NEXT_ELIGIBLE"' not in text

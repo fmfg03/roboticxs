@@ -9,6 +9,7 @@ import subprocess
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ROADMAP_PATH = REPO_ROOT / "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md"
 ALLOWED_STAGE_STATUSES = {
+    "CLOSED_COMMITTED",
     "COMPLETED_FIXED_BASELINE",
     "IMPLEMENTED_PENDING_REVIEW",
     "CURRENT_STAGE",
@@ -58,7 +59,7 @@ REQUIRED_SEQUENCE_RULES = {
     "every_stage_requires_story_approval",
     "every_stage_requires_technical_spec_approval",
     "runtime_implementation_requires_separately_approved_scoped_build_tests_and_validation",
-    "stage_83P_requires_review_before_commit_closeout",
+    "stage_83P_is_closed_committed_after_metadata_reconciliation",
     "do_not_invent_84P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
@@ -82,7 +83,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "80P": ("COMPLETED_FIXED_BASELINE", "Telegram Conversation Loop v0"),
     "81P": ("COMPLETED_FIXED_BASELINE", "Telegram Runtime Smoke / Manual Bot Wiring v0"),
     "82P": ("COMPLETED_FIXED_BASELINE", "Memory Proposal Loop over Telegram v0"),
-    "83P": ("IMPLEMENTED_PENDING_REVIEW", "Active Memory Recall over Telegram v0"),
+    "83P": ("CLOSED_COMMITTED", "Active Memory Recall over Telegram v0"),
 }
 
 
@@ -105,7 +106,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_83P_pending_review",
+        "local_evidence_scope": "stages_61P_through_83P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -280,9 +281,9 @@ def test_required_final_sequence_after_66p_is_encoded_exactly():
 def test_no_future_sequence_entries_claim_local_evidence_or_authorization():
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
-    assert stages_by_id["83P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
-    assert stages_by_id["83P"]["authority_source"] == "local_repo_working_tree"
-    assert stages_by_id["83P"]["local_evidence"]["commit"] is None
+    assert stages_by_id["83P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["83P"]["authority_source"] == "local_repo_evidence"
+    assert stages_by_id["83P"]["local_evidence"]["commit"] == "ef9faeb5ed427e2fe4cc04720a50a0a5eadf4d22"
     assert "84P" not in stages_by_id
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
@@ -892,16 +893,17 @@ def test_82p_transition_keeps_no_next_eligible_after_82p_closeout():
     assert [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
-def test_83p_is_active_memory_recall_pending_review_and_self_referenced():
+def test_83p_is_active_memory_recall_closed_committed_and_self_referenced():
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
     assert stages_by_id["83P"] == {
         "stage_id": "83P",
         "stage_name": "Active Memory Recall over Telegram v0",
-        "status": "IMPLEMENTED_PENDING_REVIEW",
-        "authority_source": "local_repo_working_tree",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "local_repo_evidence",
         "local_evidence": {
-            "commit": None,
+            "commit": "ef9faeb5ed427e2fe4cc04720a50a0a5eadf4d22",
+            "commit_message": "feat: add active memory recall over telegram",
             "paths": [
                 "app/telegram_runtime.py",
                 "app/memory_control.py",
@@ -912,7 +914,7 @@ def test_83p_is_active_memory_recall_pending_review_and_self_referenced():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Review the 83P working-tree implementation. Do not stage or commit without explicit maintainer approval. Do not infer 84P or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local active memory recall over Telegram baseline. Do not infer 84P implementation, 85P, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["83P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -920,13 +922,14 @@ def test_83p_is_active_memory_recall_pending_review_and_self_referenced():
 
 def test_83p_transition_does_not_authorize_84p_or_next_eligible():
     stages = load_stage_registry()
-    transition = load_json_block("stage-83p-implementation-review-transition")
+    transition = load_json_block("stage-83p-closeout-transition")
 
     assert transition == {
-        "current_status": "IMPLEMENTED_PENDING_REVIEW",
-        "after_explicit_commit_status": "CLOSED_COMMITTED",
+        "closeout_status": "CLOSED_COMMITTED",
+        "commit": "ef9faeb5ed427e2fe4cc04720a50a0a5eadf4d22",
+        "commit_message": "feat: add active memory recall over telegram",
         "after_commit_next_eligible": None,
-        "transition_requires_commit": True,
+        "transition_requires_commit": False,
         "implementation_authorized": False,
     }
     assert [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"] == []

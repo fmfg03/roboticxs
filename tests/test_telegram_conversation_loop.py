@@ -214,6 +214,6 @@ def test_roadmap_marks_80p_complete_and_later_stages_without_inventing_84p():
     assert '"tests/test_telegram_conversation_loop.py"' in text
     assert '"stage_id":"81P","stage_name":"Telegram Runtime Smoke / Manual Bot Wiring v0","status":"COMPLETED_FIXED_BASELINE"' in text
     assert '"stage_id":"82P","stage_name":"Memory Proposal Loop over Telegram v0","status":"COMPLETED_FIXED_BASELINE"' in text
-    assert '"stage_id":"83P","stage_name":"Active Memory Recall over Telegram v0","status":"IMPLEMENTED_PENDING_REVIEW"' in text
+    assert '"stage_id":"83P","stage_name":"Active Memory Recall over Telegram v0","status":"CLOSED_COMMITTED"' in text
     assert '"stage_id":"84P"' not in text
     assert '"status":"NEXT_ELIGIBLE"' not in text

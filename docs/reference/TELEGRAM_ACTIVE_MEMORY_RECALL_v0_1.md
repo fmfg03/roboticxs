@@ -2,9 +2,13 @@
 
 ## Status
 
-Stage 83P is implemented in the working tree and pending review.
+Stage 83P is closed committed.
 
-It is not closed committed. It does not authorize staging or commit.
+Commit: `ef9faeb5ed427e2fe4cc04720a50a0a5eadf4d22`
+
+Commit message: `feat: add active memory recall over telegram`
+
+This metadata reconciliation does not authorize 84P, 85P, `NEXT_ELIGIBLE`, staging, commit, or new runtime behavior.
 
 ## Decision
 

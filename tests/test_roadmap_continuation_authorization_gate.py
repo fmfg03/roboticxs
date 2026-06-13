@@ -203,7 +203,7 @@ def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
         in roadmap_text
     )
     assert (
-        '"stage_id":"83P","stage_name":"Active Memory Recall over Telegram v0","status":"IMPLEMENTED_PENDING_REVIEW"'
+        '"stage_id":"83P","stage_name":"Active Memory Recall over Telegram v0","status":"CLOSED_COMMITTED"'
         in roadmap_text
     )
     assert '"stage_id":"84P"' not in roadmap_text
