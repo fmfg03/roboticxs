@@ -149,7 +149,7 @@ async def test_runtime_webhook_route_uses_conversation_loop(client, db_counts):
     assert db_counts() == before
 
 
-def test_telegram_conversation_module_has_no_network_file_memory_or_external_paths():
+def test_telegram_conversation_module_has_no_network_file_or_external_paths():
     text = RUNTIME_PATH.read_text()
 
     for forbidden in [
@@ -159,13 +159,12 @@ def test_telegram_conversation_module_has_no_network_file_memory_or_external_pat
         "socket",
         "subprocess",
         "download",
-        "MemoryItem",
-        "ProposedMemory",
-        "memory_service",
         "file_retrieval",
         "scheduler",
     ]:
         assert forbidden not in text
+    assert "import connector" not in text
+    assert "connectors." not in text
 
 
 def test_required_conversation_loop_document_exists_with_decision_text():
@@ -207,12 +206,13 @@ def test_required_conversation_loop_document_exists_with_decision_text():
         assert required in text
 
 
-def test_roadmap_marks_80p_complete_and_later_81p_without_inventing_82p():
+def test_roadmap_marks_80p_complete_and_later_stages_without_inventing_83p():
     text = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"80P","stage_name":"Telegram Conversation Loop v0","status":"COMPLETED_FIXED_BASELINE"' in text
     assert '"docs/reference/TELEGRAM_CONVERSATION_LOOP_v0_1.md"' in text
     assert '"tests/test_telegram_conversation_loop.py"' in text
     assert '"stage_id":"81P","stage_name":"Telegram Runtime Smoke / Manual Bot Wiring v0","status":"COMPLETED_FIXED_BASELINE"' in text
-    assert '"stage_id":"82P"' not in text
+    assert '"stage_id":"82P","stage_name":"Memory Proposal Loop over Telegram v0","status":"COMPLETED_FIXED_BASELINE"' in text
+    assert '"stage_id":"83P"' not in text
     assert '"status":"NEXT_ELIGIBLE"' not in text

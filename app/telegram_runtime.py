@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import re
 
 from app.config import Settings
 from app.hermes_runtime import (
@@ -8,6 +9,13 @@ from app.hermes_runtime import (
     HermesRuntimeResponse,
     dispatch_hermes_runtime_request,
 )
+from app.memory_service import (
+    approve_proposal,
+    create_proposed_memory,
+    get_proposal_by_id,
+    reject_proposal,
+)
+from app.models import Robot, Task, TaskRun, User
 
 
 TELEGRAM_RUNTIME_CHANNEL = "telegram"
@@ -19,6 +27,25 @@ TELEGRAM_EMPTY_TEXT_REPLY = "No recibí texto para procesar."
 TELEGRAM_UNSUPPORTED_REPLY = "Por ahora solo puedo procesar mensajes de texto."
 TELEGRAM_MALFORMED_REPLY = "No pude procesar ese mensaje por ahora."
 TELEGRAM_RUNTIME_WEBHOOK_PATH = "/api/telegram/runtime/webhook"
+TELEGRAM_MEMORY_APPROVE_PATTERN = re.compile(
+    r"^(?:aprobar|approve)\s+(?:memoria|memory)\s+([0-9a-f-]{36})$",
+    re.IGNORECASE,
+)
+TELEGRAM_MEMORY_REJECT_PATTERN = re.compile(
+    r"^(?:rechazar|reject)\s+(?:memoria|memory)\s+([0-9a-f-]{36})$",
+    re.IGNORECASE,
+)
+TELEGRAM_MEMORY_INTENT_PREFIXES = (
+    "recuerda que ",
+    "acuérdate que ",
+    "acuerdate que ",
+    "guarda que ",
+    "quiero que recuerdes que ",
+    "remember that ",
+    "save that ",
+    "please remember that ",
+    "i want you to remember that ",
+)
 
 
 class TelegramRuntimeError(ValueError):
@@ -229,6 +256,7 @@ def run_telegram_conversation_loop(
     *,
     update: dict,
     settings: Settings,
+    session=None,
     dispatch=dispatch_hermes_runtime_request,
 ) -> TelegramConversationLoopResult:
     trace = {
@@ -266,6 +294,16 @@ def run_telegram_conversation_loop(
         )
 
     hermes_request = build_hermes_request_from_telegram(message)
+    if session is not None:
+        memory_result = _handle_telegram_memory_proposal_loop(
+            session=session,
+            message=message,
+            config=config,
+            trace=trace,
+        )
+        if memory_result is not None:
+            return memory_result
+
     try:
         hermes_response = dispatch(hermes_request)
     except Exception as exc:  # pragma: no cover - exercised through tests with an injected dispatcher.
@@ -355,6 +393,190 @@ def build_telegram_conversation_webhook_response(result: TelegramConversationLoo
         }
 
     return body
+
+
+def _handle_telegram_memory_proposal_loop(
+    *,
+    session,
+    message: TelegramRuntimeMessage,
+    config: TelegramBotRuntimeConfig,
+    trace: dict[str, str],
+) -> TelegramConversationLoopResult | None:
+    approval_match = TELEGRAM_MEMORY_APPROVE_PATTERN.match(message.text.strip())
+    rejection_match = TELEGRAM_MEMORY_REJECT_PATTERN.match(message.text.strip())
+    proposal_payload = _extract_telegram_memory_proposal(message.text)
+
+    if approval_match is None and rejection_match is None and proposal_payload is None:
+        return None
+
+    user, robot = _resolve_runtime_user_and_robot(session=session, message=message)
+    if approval_match is not None or rejection_match is not None:
+        proposal_id = (approval_match or rejection_match).group(1)
+        proposal = get_proposal_by_id(
+            session=session,
+            user_id=user.id,
+            robot_id=robot.id,
+            proposal_id=proposal_id,
+        )
+        if proposal is None:
+            reply_text = "No encontré una propuesta de memoria pendiente con ese ID."
+            status = "invalid_id"
+            ok = False
+        elif proposal.status != "PENDING":
+            reply_text = "Esa propuesta de memoria ya fue finalizada."
+            status = "already_finalized"
+            ok = False
+        elif approval_match is not None:
+            approve_proposal(session=session, proposal=proposal)
+            reply_text = "Listo. Guardé esa memoria local."
+            status = "approved"
+            ok = True
+        else:
+            reject_proposal(session=session, proposal=proposal)
+            reply_text = "Listo. No guardaré esa memoria."
+            status = "rejected"
+            ok = True
+
+        return _build_memory_loop_result(
+            message=message,
+            config=config,
+            trace={**trace, "stage": "82P", "memory_proposal_loop": status},
+            reply_text=reply_text,
+            ok=ok,
+            error_code=None if ok else f"memory_proposal_{status}",
+        )
+
+    task = Task(
+        user_id=user.id,
+        robot_id=robot.id,
+        kind="TELEGRAM_MEMORY_PROPOSAL",
+        input_text=message.text,
+        scope_decision="ANSWER",
+        task_class="EXTRACTION",
+    )
+    session.add(task)
+    session.flush()
+    session.add(TaskRun(task_id=task.id, status="completed"))
+    proposal = create_proposed_memory(
+        session=session,
+        user_id=user.id,
+        robot_id=robot.id,
+        task_id=task.id,
+        memory_type=proposal_payload["memory_type"],
+        proposed_content=proposal_payload["content"],
+        source_text=message.text,
+        importance=proposal_payload["importance"],
+    )
+    reply_text = _compose_telegram_memory_proposal_reply(content=proposal.proposed_content, proposal_id=proposal.id)
+    return _build_memory_loop_result(
+        message=message,
+        config=config,
+        trace={**trace, "stage": "82P", "memory_proposal_loop": "proposal_created"},
+        reply_text=reply_text,
+        ok=True,
+    )
+
+
+def _build_memory_loop_result(
+    *,
+    message: TelegramRuntimeMessage,
+    config: TelegramBotRuntimeConfig,
+    trace: dict[str, str],
+    reply_text: str,
+    ok: bool,
+    error_code: str | None = None,
+) -> TelegramConversationLoopResult:
+    hermes_request = build_hermes_request_from_telegram(message)
+    hermes_response = HermesRuntimeResponse(
+        status="ok" if ok else "safe_fallback",
+        text=reply_text,
+        task_id=None,
+        safety_decision=None,
+        metadata={
+            "telegram_memory_proposal_loop": "active",
+            "active_memory_requires_explicit_approval": "true",
+            "external_source_scan": "false",
+        },
+    )
+    return TelegramConversationLoopResult(
+        ok=ok,
+        message=message,
+        hermes_request=hermes_request,
+        hermes_response=hermes_response,
+        prepared_send=prepare_telegram_text_send(chat_id=message.chat_id, text=reply_text, config=config),
+        trace=trace,
+        error_code=error_code,
+    )
+
+
+def _resolve_runtime_user_and_robot(*, session, message: TelegramRuntimeMessage) -> tuple[User, Robot]:
+    user = session.query(User).filter(User.telegram_user_id == message.user_id).one_or_none()
+    if user is None:
+        user = User(
+            telegram_user_id=message.user_id,
+            first_name=message.first_name or "Telegram",
+            username=message.username,
+        )
+        session.add(user)
+        session.flush()
+
+    robot = session.query(Robot).filter(Robot.user_id == user.id, Robot.active.is_(True)).one_or_none()
+    if robot is None:
+        robot = Robot(user_id=user.id, name=f"{user.first_name}'s Robot")
+        session.add(robot)
+        session.flush()
+    return user, robot
+
+
+def _extract_telegram_memory_proposal(text: str) -> dict[str, str] | None:
+    stripped = text.strip()
+    normalized = stripped.lower()
+    for prefix in TELEGRAM_MEMORY_INTENT_PREFIXES:
+        if normalized.startswith(prefix):
+            raw_content = stripped[len(prefix) :].strip()
+            if not raw_content:
+                return None
+            return _classify_telegram_memory_content(raw_content)
+    return None
+
+
+def _classify_telegram_memory_content(raw_content: str) -> dict[str, str]:
+    content = raw_content.strip().rstrip(".")
+    lowered = content.lower()
+    spanish_preference_prefixes = ("prefiero ", "me gusta ")
+    english_preference_prefixes = ("i prefer ",)
+
+    for prefix in spanish_preference_prefixes:
+        if lowered.startswith(prefix):
+            detail = content[len(prefix) :].strip()
+            return {
+                "memory_type": "WORK_PREFERENCE",
+                "content": f"Prefieres {detail}.",
+                "importance": "high",
+            }
+    for prefix in english_preference_prefixes:
+        if lowered.startswith(prefix):
+            detail = content[len(prefix) :].strip()
+            return {
+                "memory_type": "WORK_PREFERENCE",
+                "content": f"You prefer {detail}.",
+                "importance": "high",
+            }
+    return {
+        "memory_type": "TASK_MEMORY",
+        "content": f"{content}.",
+        "importance": "normal",
+    }
+
+
+def _compose_telegram_memory_proposal_reply(*, content: str, proposal_id: str) -> str:
+    return (
+        "Puedo recordar esto:\n\n"
+        f"\"{content}\"\n\n"
+        "Responde:\n"
+        f"APROBAR memoria {proposal_id}\n"
+        f"RECHAZAR memoria {proposal_id}"
+    )
 
 
 def _extract_chat_id(update: object) -> int | None:

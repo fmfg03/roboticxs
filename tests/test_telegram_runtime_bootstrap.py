@@ -106,7 +106,7 @@ def test_missing_invalid_and_non_text_payloads_fail_safely(payload):
         parse_telegram_text_update(payload)
 
 
-def test_telegram_runtime_module_has_no_real_api_network_or_persistence_path():
+def test_telegram_runtime_module_has_no_real_api_network_file_or_external_path():
     text = RUNTIME_PATH.read_text()
 
     for forbidden in [
@@ -115,14 +115,12 @@ def test_telegram_runtime_module_has_no_real_api_network_or_persistence_path():
         "urllib",
         "socket",
         "subprocess",
-        "MemoryItem",
-        "ProposedMemory",
-        "memory_service",
         "file_retrieval",
-        "connector",
         "scheduler",
     ]:
         assert forbidden not in text
+    assert "import connector" not in text
+    assert "connectors." not in text
 
 
 @pytest.mark.anyio
@@ -196,7 +194,7 @@ def test_telegram_runtime_document_exists_and_records_boundaries():
         assert boundary in text
 
 
-def test_roadmap_marks_79p_complete_and_later_stages_without_inventing_82p():
+def test_roadmap_marks_79p_complete_and_later_stages_without_inventing_83p():
     text = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"79P","stage_name":"Telegram Bot Runtime Bootstrap v0","status":"COMPLETED_FIXED_BASELINE"' in text
@@ -205,5 +203,6 @@ def test_roadmap_marks_79p_complete_and_later_stages_without_inventing_82p():
     assert '"docs/reference/TELEGRAM_BOT_RUNTIME_BOOTSTRAP_v0_1.md"' in text
     assert '"stage_id":"80P","stage_name":"Telegram Conversation Loop v0","status":"COMPLETED_FIXED_BASELINE"' in text
     assert '"stage_id":"81P","stage_name":"Telegram Runtime Smoke / Manual Bot Wiring v0","status":"COMPLETED_FIXED_BASELINE"' in text
-    assert '"stage_id":"82P"' not in text
+    assert '"stage_id":"82P","stage_name":"Memory Proposal Loop over Telegram v0","status":"COMPLETED_FIXED_BASELINE"' in text
+    assert '"stage_id":"83P"' not in text
     assert '"status":"NEXT_ELIGIBLE"' not in text

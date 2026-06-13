@@ -36,7 +36,8 @@ def create_app() -> FastAPI:
 
     @app.post("/api/telegram/runtime/webhook")
     async def telegram_runtime_webhook(update: dict) -> dict:
-        result = run_telegram_conversation_loop(update=update, settings=app.state.settings)
+        with app.state.db.session() as session:
+            result = run_telegram_conversation_loop(update=update, settings=app.state.settings, session=session)
         return build_telegram_conversation_webhook_response(result)
 
     return app

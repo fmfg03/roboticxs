@@ -198,7 +198,11 @@ def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
         '"stage_id":"81P","stage_name":"Telegram Runtime Smoke / Manual Bot Wiring v0","status":"COMPLETED_FIXED_BASELINE"'
         in roadmap_text
     )
-    assert '"stage_id":"82P"' not in roadmap_text
+    assert (
+        '"stage_id":"82P","stage_name":"Memory Proposal Loop over Telegram v0","status":"COMPLETED_FIXED_BASELINE"'
+        in roadmap_text
+    )
+    assert '"stage_id":"83P"' not in roadmap_text
     assert '"status":"NEXT_ELIGIBLE"' not in roadmap_text
     assert '"after_commit_next_eligible":null' in roadmap_text
     assert "No next implementation stage is authorized until a maintainer explicitly chooses one." in roadmap_text

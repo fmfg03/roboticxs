@@ -77,6 +77,18 @@ def list_pending_proposals(*, session: Session, user_id: str, robot_id: str) -> 
     ).all()
 
 
+def get_proposal_by_id(*, session: Session, user_id: str, robot_id: str, proposal_id: str) -> ProposedMemory | None:
+    return session.scalar(
+        select(ProposedMemory)
+        .where(
+            ProposedMemory.id == proposal_id,
+            ProposedMemory.user_id == user_id,
+            ProposedMemory.robot_id == robot_id,
+        )
+        .limit(1)
+    )
+
+
 def approve_proposal(*, session: Session, proposal: ProposedMemory) -> MemoryItem:
     proposal.status = "APPROVED"
     proposal.decided_at = now_utc()

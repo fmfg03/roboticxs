@@ -4,7 +4,7 @@
 
 This document materializes the maintainer-approved forward-looking roadmap for Roboticxs.
 
-It is the controlling roadmap for future stage sequencing after Stage 81P. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
+It is the controlling roadmap for future stage sequencing after Stage 82P. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
 
 ## Source of authority
 
@@ -13,7 +13,7 @@ The forward sequence comes from explicit maintainer direction in the maintainer-
 ```json canonical-roadmap-authority
 {
   "authority_source":"maintainer_approved_chatgpt_web_planning_thread",
-  "local_evidence_scope":"stages_61P_through_81P",
+  "local_evidence_scope":"stages_61P_through_82P",
   "forward_sequence_source":"explicit_maintainer_direction",
   "runtime_truth_source":"local_repo",
   "roadmap_inclusion_authorizes_implementation":false
@@ -46,8 +46,9 @@ The repository confirms these fixed baselines:
 - 79P adds the Telegram Bot Runtime Bootstrap v0 as a minimal Telegram text channel foundation that adapts into the Hermes runtime foundation.
 - 80P adds the Telegram Conversation Loop v0 as a minimal deterministic local Telegram text conversation loop.
 - 81P adds the Telegram Runtime Smoke / Manual Bot Wiring v0 as a safe manual readiness and wiring path.
+- 82P adds the Memory Proposal Loop over Telegram v0 as explicit user-approved memory proposal handling.
 
-No local implementation evidence is claimed for any stage after 81P.
+No local implementation evidence is claimed for any stage after 82P.
 
 ## Canonical stage registry
 
@@ -74,7 +75,8 @@ No local implementation evidence is claimed for any stage after 81P.
   {"stage_id":"78P","stage_name":"Hermes Runtime Foundation Bootstrap v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_78P_closeout","paths":["app/hermes_runtime.py","docs/reference/HERMES_RUNTIME_FOUNDATION_BOOTSTRAP_v0_1.md","docs/reference/HERMES_UPSTREAM_TRACKING_v0_1.md","tests/test_hermes_runtime_foundation.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Hermes-compatible runtime foundation baseline; no Telegram, caregiver routines, document intake, connectors, retrieval, memory writes, ProposedMemory writes, scheduler, background jobs, shell execution, Hermes dependency install, upstream install script execution, auto-update, staging, commit, or 79P behavior is authorized."},
   {"stage_id":"79P","stage_name":"Telegram Bot Runtime Bootstrap v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_79P_closeout","paths":["app/telegram_runtime.py","app/config.py","app/main.py","docs/reference/TELEGRAM_BOT_RUNTIME_BOOTSTRAP_v0_1.md","tests/test_telegram_runtime_bootstrap.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Telegram text-channel runtime bootstrap baseline; no caregiver routines, guided routines, document/PDF intake, file downloads, voice, payments, Telegram group relay, proactive/background messages, memory writes, ProposedMemory writes, retrieval, connectors, scheduler, WhatsApp, production deployment, staging, commit, or 80P behavior is authorized."},
   {"stage_id":"80P","stage_name":"Telegram Conversation Loop v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_80P_closeout","paths":["app/telegram_runtime.py","app/main.py","docs/reference/TELEGRAM_CONVERSATION_LOOP_v0_1.md","tests/test_telegram_conversation_loop.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic Telegram text conversation loop baseline; no real Telegram API delivery, long-term memory, user profile memory, ProposedMemory creation, caregiver behavior, document/file handling, voice, retrieval, connectors, proactive/background messaging, scheduler, deployment, staging, commit, or 81P behavior is authorized."},
-  {"stage_id":"81P","stage_name":"Telegram Runtime Smoke / Manual Bot Wiring v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_81P_closeout","paths":["app/config.py","app/telegram_runtime.py","docs/reference/TELEGRAM_RUNTIME_SMOKE_MANUAL_WIRING_v0_1.md","tests/test_telegram_runtime_smoke.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local manual Telegram runtime smoke baseline; no production deployment, automatic webhook registration, real Telegram API calls in tests, committed secrets, caregiver routines, document/file handling, voice, memory writes, ProposedMemory writes, retrieval, connectors, proactive/background messaging, scheduler, staging, commit, or 82P behavior is authorized."}
+  {"stage_id":"81P","stage_name":"Telegram Runtime Smoke / Manual Bot Wiring v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_81P_closeout","paths":["app/config.py","app/telegram_runtime.py","docs/reference/TELEGRAM_RUNTIME_SMOKE_MANUAL_WIRING_v0_1.md","tests/test_telegram_runtime_smoke.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local manual Telegram runtime smoke baseline; no production deployment, automatic webhook registration, real Telegram API calls in tests, committed secrets, caregiver routines, document/file handling, voice, memory writes, ProposedMemory writes, retrieval, connectors, proactive/background messaging, scheduler, staging, commit, or 82P behavior is authorized."},
+  {"stage_id":"82P","stage_name":"Memory Proposal Loop over Telegram v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_82P_closeout","paths":["app/telegram_runtime.py","app/main.py","app/memory_service.py","docs/reference/TELEGRAM_MEMORY_PROPOSAL_LOOP_v0_1.md","tests/test_telegram_memory_proposal_loop.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Telegram memory proposal loop baseline; no automatic memory activation, normal-conversation memory extraction, Context Scan, external source scanning, retrieval, connectors, caregiver routines, document/file handling, voice, proactive/background behavior, scheduler, staging, commit, or 83P behavior is authorized."}
 ]
 ```
 
@@ -405,18 +407,34 @@ The stage registry records the 81P closeout sequence state. No local next eligib
 
 81P adds a safe manual Telegram runtime smoke path that documents required environment variables, evaluates local readiness with redacted diagnostics, and provides manual webhook and smoke checklists. It does not authorize production deployment, automatic webhook registration, real Telegram API calls in tests, committed Telegram secrets, caregiver behavior, document/file handling, voice handling, memory writes, `ProposedMemory` writes, retrieval, connectors, proactive/background messaging, scheduler, staging, commit authority, or any 82P behavior.
 
+## Stage 82P completion transition
+
+The stage registry records the 82P closeout sequence state. No local next eligible implementation stage is authorized after 82P.
+
+```json stage-82p-completion-transition
+{
+  "closeout_status":"COMPLETED_FIXED_BASELINE",
+  "after_commit_status":"COMPLETED_FIXED_BASELINE",
+  "after_commit_next_eligible":null,
+  "transition_requires_commit":true,
+  "implementation_authorized":false
+}
+```
+
+82P adds a Telegram memory proposal loop that creates inert proposed-memory candidates only from explicit user memory intent, shows deterministic approval/rejection instructions, and creates active memory only after explicit approval. It does not authorize automatic memory activation, normal-conversation memory extraction, Context Scan, external source scanning, retrieval, connectors, caregiver behavior, document/file handling, voice handling, proactive/background behavior, scheduler, staging, commit authority, or any 83P behavior.
+
 ## Sequencing and authorization rules
 
 ```json roadmap-sequencing-rules
 [
-  "no_stage_is_next_eligible_after_81P_without_explicit_maintainer_direction",
+  "no_stage_is_next_eligible_after_82P_without_explicit_maintainer_direction",
   "eligibility_permits_story_drafting_only",
   "roadmap_inclusion_never_authorizes_implementation",
   "every_stage_requires_story_approval",
   "every_stage_requires_technical_spec_approval",
   "runtime_implementation_requires_separately_approved_scoped_build_tests_and_validation",
-  "stage_81P_is_completed_after_approved_docs_tests_closeout",
-  "do_not_invent_82P_without_explicit_maintainer_direction_in_repo_evidence",
+  "stage_82P_is_completed_after_approved_docs_tests_closeout",
+  "do_not_invent_83P_without_explicit_maintainer_direction_in_repo_evidence",
   "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
   "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence"
 ]

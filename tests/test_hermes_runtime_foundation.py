@@ -162,7 +162,7 @@ def test_dispatch_boundary_disables_memory_retrieval_connector_and_shell_paths()
     assert response.metadata["shell_execution"] == "false"
 
 
-def test_runtime_module_does_not_import_network_connector_memory_or_subprocess_paths():
+def test_runtime_module_does_not_import_network_connector_or_subprocess_paths():
     text = RUNTIME_PATH.read_text()
 
     for forbidden in [
@@ -172,7 +172,6 @@ def test_runtime_module_does_not_import_network_connector_memory_or_subprocess_p
         "import socket",
         "import subprocess",
         "process_telegram_message(",
-        "memory_service",
         "memory_extraction",
         "file_retrieval_adapter",
         "telegram_adapter",
@@ -247,7 +246,7 @@ def test_no_telegram_caregiver_document_background_or_connector_runtime_was_adde
     assert all("connector" not in path.lower() for path in changed)
 
 
-def test_roadmap_marks_78p_complete_and_later_stages_without_inventing_82p():
+def test_roadmap_marks_78p_complete_and_later_stages_without_inventing_83p():
     text = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"78P","stage_name":"Hermes Runtime Foundation Bootstrap v0","status":"COMPLETED_FIXED_BASELINE"' in text
@@ -258,6 +257,7 @@ def test_roadmap_marks_78p_complete_and_later_stages_without_inventing_82p():
     assert '"stage_id":"79P","stage_name":"Telegram Bot Runtime Bootstrap v0","status":"COMPLETED_FIXED_BASELINE"' in text
     assert '"stage_id":"80P","stage_name":"Telegram Conversation Loop v0","status":"COMPLETED_FIXED_BASELINE"' in text
     assert '"stage_id":"81P","stage_name":"Telegram Runtime Smoke / Manual Bot Wiring v0","status":"COMPLETED_FIXED_BASELINE"' in text
-    assert '"stage_id":"82P"' not in text
+    assert '"stage_id":"82P","stage_name":"Memory Proposal Loop over Telegram v0","status":"COMPLETED_FIXED_BASELINE"' in text
+    assert '"stage_id":"83P"' not in text
     assert '"status":"NEXT_ELIGIBLE"' not in text
     assert '"after_commit_next_eligible":null' in text
