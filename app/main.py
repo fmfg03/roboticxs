@@ -8,7 +8,10 @@ from app.orchestrator import process_telegram_message
 from app.schemas import HealthResponse, TelegramWebhookResponse
 from app.skills import seed_skill_manifest
 from app.telegram_adapter import normalize_telegram_update
-from app.telegram_runtime import TelegramRuntimeError, handle_telegram_runtime_update
+from app.telegram_runtime import (
+    build_telegram_conversation_webhook_response,
+    run_telegram_conversation_loop,
+)
 
 
 def create_app() -> FastAPI:
@@ -33,35 +36,8 @@ def create_app() -> FastAPI:
 
     @app.post("/api/telegram/runtime/webhook")
     async def telegram_runtime_webhook(update: dict) -> dict:
-        try:
-            result = handle_telegram_runtime_update(update=update, settings=app.state.settings)
-        except TelegramRuntimeError as exc:
-            return {"ok": False, "error": str(exc), "unsupported": True}
-
-        return {
-            "ok": result.ok,
-            "chat_id": result.message.chat_id,
-            "user_id": result.message.user_id,
-            "message_id": result.message.message_id,
-            "hermes_request": {
-                "user_id": result.hermes_request.user_id,
-                "channel": result.hermes_request.channel,
-                "text": result.hermes_request.text,
-                "metadata": result.hermes_request.metadata,
-            },
-            "prepared_send": {
-                "method": result.prepared_send.method,
-                "payload": result.prepared_send.payload,
-                "token_configured": result.prepared_send.token_configured,
-            },
-            "hermes_response": {
-                "status": result.hermes_response.status,
-                "text": result.hermes_response.text,
-                "task_id": result.hermes_response.task_id,
-                "safety_decision": result.hermes_response.safety_decision,
-                "metadata": result.hermes_response.metadata,
-            },
-        }
+        result = run_telegram_conversation_loop(update=update, settings=app.state.settings)
+        return build_telegram_conversation_webhook_response(result)
 
     return app
 

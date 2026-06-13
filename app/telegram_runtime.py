@@ -11,6 +11,13 @@ from app.hermes_runtime import (
 
 
 TELEGRAM_RUNTIME_CHANNEL = "telegram"
+TELEGRAM_CONVERSATION_REPLY = (
+    "Hermes runtime foundation is available. Telegram/channel integration is active. "
+    "Full skills are not implemented yet."
+)
+TELEGRAM_EMPTY_TEXT_REPLY = "No recibí texto para procesar."
+TELEGRAM_UNSUPPORTED_REPLY = "Por ahora solo puedo procesar mensajes de texto."
+TELEGRAM_MALFORMED_REPLY = "No pude procesar ese mensaje por ahora."
 
 
 class TelegramRuntimeError(ValueError):
@@ -48,6 +55,19 @@ class TelegramRuntimeResult:
     hermes_response: HermesRuntimeResponse
     prepared_send: TelegramPreparedSend
     unsupported_reason: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class TelegramConversationLoopResult:
+    ok: bool
+    prepared_send: TelegramPreparedSend | None
+    trace: dict[str, str]
+    message: TelegramRuntimeMessage | None = None
+    hermes_request: HermesRuntimeRequest | None = None
+    hermes_response: HermesRuntimeResponse | None = None
+    error_code: str | None = None
+    unsupported: bool = False
+    ignored: bool = False
 
 
 def get_telegram_bot_runtime_config(settings: Settings) -> TelegramBotRuntimeConfig:
@@ -150,3 +170,156 @@ def handle_telegram_runtime_update(
         hermes_response=hermes_response,
         prepared_send=prepared_send,
     )
+
+
+def run_telegram_conversation_loop(
+    *,
+    update: dict,
+    settings: Settings,
+    dispatch=dispatch_hermes_runtime_request,
+) -> TelegramConversationLoopResult:
+    trace = {
+        "stage": "80P",
+        "loop": "telegram_conversation_loop",
+        "persistence": "deferred",
+        "external_telegram_api_call": "false",
+    }
+    config = get_telegram_bot_runtime_config(settings)
+
+    try:
+        message = parse_telegram_text_update(update)
+    except TelegramRuntimeError as exc:
+        chat_id = _extract_chat_id(update)
+        error_code = _classify_parse_error(str(exc))
+        if chat_id is None:
+            return TelegramConversationLoopResult(
+                ok=False,
+                prepared_send=None,
+                trace={**trace, "error_code": error_code},
+                error_code=error_code,
+                ignored=True,
+            )
+
+        reply_text = TELEGRAM_UNSUPPORTED_REPLY if error_code == "unsupported_non_text" else TELEGRAM_EMPTY_TEXT_REPLY
+        if error_code == "malformed_payload":
+            reply_text = TELEGRAM_MALFORMED_REPLY
+        return TelegramConversationLoopResult(
+            ok=False,
+            prepared_send=prepare_telegram_text_send(chat_id=chat_id, text=reply_text, config=config),
+            trace={**trace, "error_code": error_code},
+            error_code=error_code,
+            unsupported=error_code == "unsupported_non_text",
+            ignored=False,
+        )
+
+    hermes_request = build_hermes_request_from_telegram(message)
+    try:
+        hermes_response = dispatch(hermes_request)
+    except Exception as exc:  # pragma: no cover - exercised through tests with an injected dispatcher.
+        return TelegramConversationLoopResult(
+            ok=False,
+            message=message,
+            hermes_request=hermes_request,
+            prepared_send=prepare_telegram_text_send(
+                chat_id=message.chat_id,
+                text=TELEGRAM_MALFORMED_REPLY,
+                config=config,
+            ),
+            trace={
+                **trace,
+                "error_code": "runtime_dispatch_error",
+                "error_type": type(exc).__name__,
+            },
+            error_code="runtime_dispatch_error",
+        )
+
+    active_response = HermesRuntimeResponse(
+        status=hermes_response.status,
+        text=TELEGRAM_CONVERSATION_REPLY if hermes_response.status == "ok" else TELEGRAM_MALFORMED_REPLY,
+        task_id=hermes_response.task_id,
+        safety_decision=hermes_response.safety_decision,
+        metadata={
+            **hermes_response.metadata,
+            "telegram_conversation_loop": "active",
+            "persistence": "deferred",
+        },
+    )
+    return TelegramConversationLoopResult(
+        ok=active_response.status == "ok",
+        message=message,
+        hermes_request=hermes_request,
+        hermes_response=active_response,
+        prepared_send=prepare_telegram_text_send(
+            chat_id=message.chat_id,
+            text=active_response.text,
+            config=config,
+        ),
+        trace={**trace, "dispatch": "hermes_runtime_foundation"},
+    )
+
+
+def build_telegram_conversation_webhook_response(result: TelegramConversationLoopResult) -> dict:
+    body: dict[str, object] = {
+        "ok": result.ok,
+        "trace": result.trace,
+        "unsupported": result.unsupported,
+        "ignored": result.ignored,
+    }
+    if result.error_code is not None:
+        body["error_code"] = result.error_code
+
+    if result.message is not None:
+        body.update(
+            {
+                "chat_id": result.message.chat_id,
+                "user_id": result.message.user_id,
+                "message_id": result.message.message_id,
+            }
+        )
+
+    if result.hermes_request is not None:
+        body["hermes_request"] = {
+            "user_id": result.hermes_request.user_id,
+            "channel": result.hermes_request.channel,
+            "text": result.hermes_request.text,
+            "metadata": result.hermes_request.metadata,
+        }
+
+    if result.prepared_send is not None:
+        body["prepared_send"] = {
+            "method": result.prepared_send.method,
+            "payload": result.prepared_send.payload,
+            "token_configured": result.prepared_send.token_configured,
+        }
+
+    if result.hermes_response is not None:
+        body["hermes_response"] = {
+            "status": result.hermes_response.status,
+            "text": result.hermes_response.text,
+            "task_id": result.hermes_response.task_id,
+            "safety_decision": result.hermes_response.safety_decision,
+            "metadata": result.hermes_response.metadata,
+        }
+
+    return body
+
+
+def _extract_chat_id(update: object) -> int | None:
+    if not isinstance(update, dict):
+        return None
+    message = update.get("message")
+    if not isinstance(message, dict):
+        return None
+    chat = message.get("chat")
+    if not isinstance(chat, dict):
+        return None
+    chat_id = chat.get("id")
+    return chat_id if isinstance(chat_id, int) else None
+
+
+def _classify_parse_error(message: str) -> str:
+    if "document/file" in message or "voice/audio" in message:
+        return "unsupported_non_text"
+    if "non-empty Telegram text" in message:
+        return "empty_text"
+    return "malformed_payload"

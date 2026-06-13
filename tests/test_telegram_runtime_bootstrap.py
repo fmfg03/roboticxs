@@ -141,6 +141,7 @@ async def test_runtime_webhook_returns_prepared_send_without_persistence(client,
     assert body["prepared_send"]["payload"]["chat_id"] == 123456
     assert body["prepared_send"]["token_configured"] is False
     assert body["hermes_response"]["status"] == "ok"
+    assert body["trace"]["loop"] == "telegram_conversation_loop"
 
     after = db_counts()
     assert after == before
@@ -157,7 +158,8 @@ async def test_runtime_webhook_rejects_unsupported_payload_without_crashing(clie
     body = response.json()
     assert body["ok"] is False
     assert body["unsupported"] is True
-    assert "document/file payloads are not supported" in body["error"]
+    assert body["error_code"] == "unsupported_non_text"
+    assert body["prepared_send"]["payload"]["text"] == "Por ahora solo puedo procesar mensajes de texto."
 
 
 def test_telegram_runtime_document_exists_and_records_boundaries():
@@ -194,12 +196,13 @@ def test_telegram_runtime_document_exists_and_records_boundaries():
         assert boundary in text
 
 
-def test_roadmap_marks_79p_complete_without_inventing_80p():
+def test_roadmap_marks_79p_complete_and_later_80p_without_inventing_81p():
     text = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"79P","stage_name":"Telegram Bot Runtime Bootstrap v0","status":"COMPLETED_FIXED_BASELINE"' in text
     assert '"app/telegram_runtime.py"' in text
     assert '"tests/test_telegram_runtime_bootstrap.py"' in text
     assert '"docs/reference/TELEGRAM_BOT_RUNTIME_BOOTSTRAP_v0_1.md"' in text
-    assert '"stage_id":"80P"' not in text
+    assert '"stage_id":"80P","stage_name":"Telegram Conversation Loop v0","status":"COMPLETED_FIXED_BASELINE"' in text
+    assert '"stage_id":"81P"' not in text
     assert '"status":"NEXT_ELIGIBLE"' not in text

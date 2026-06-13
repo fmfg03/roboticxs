@@ -4,7 +4,7 @@
 
 This document materializes the maintainer-approved forward-looking roadmap for Roboticxs.
 
-It is the controlling roadmap for future stage sequencing after Stage 79P. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
+It is the controlling roadmap for future stage sequencing after Stage 80P. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
 
 ## Source of authority
 
@@ -13,7 +13,7 @@ The forward sequence comes from explicit maintainer direction in the maintainer-
 ```json canonical-roadmap-authority
 {
   "authority_source":"maintainer_approved_chatgpt_web_planning_thread",
-  "local_evidence_scope":"stages_61P_through_79P",
+  "local_evidence_scope":"stages_61P_through_80P",
   "forward_sequence_source":"explicit_maintainer_direction",
   "runtime_truth_source":"local_repo",
   "roadmap_inclusion_authorizes_implementation":false
@@ -44,8 +44,9 @@ The repository confirms these fixed baselines:
 - 77P adds a roadmap continuation authorization gate without selecting the next implementation stage.
 - 78P adds the Hermes Runtime Foundation Bootstrap v0 as a minimal local Hermes-compatible runtime foundation with upstream tracking.
 - 79P adds the Telegram Bot Runtime Bootstrap v0 as a minimal Telegram text channel foundation that adapts into the Hermes runtime foundation.
+- 80P adds the Telegram Conversation Loop v0 as a minimal deterministic local Telegram text conversation loop.
 
-No local implementation evidence is claimed for any stage after 79P.
+No local implementation evidence is claimed for any stage after 80P.
 
 ## Canonical stage registry
 
@@ -70,7 +71,8 @@ No local implementation evidence is claimed for any stage after 79P.
   {"stage_id":"76P","stage_name":"VoxCPM Research Parking Lot","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_76P_closeout","paths":["docs/research/VOXCPM_RESEARCH_PARKING_LOT_v0_1.md","tests/test_voxcpm_research_parking_lot.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local VoxCPM research parking-lot baseline; no dependency, model download, inference, audio generation, voice cloning, audio storage, Telegram voice handling, connector, MCP config, user-facing command, or product support claim is authorized."},
   {"stage_id":"77P","stage_name":"Roadmap Continuation Authorization Gate v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_77P_closeout","paths":["docs/reference/ROADMAP_CONTINUATION_AUTHORIZATION_GATE_v0_1.md","tests/test_roadmap_continuation_authorization_gate.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local roadmap continuation authorization gate; no next implementation stage, 78P, runtime change, product feature, staging, or commit is authorized without explicit maintainer approval."},
   {"stage_id":"78P","stage_name":"Hermes Runtime Foundation Bootstrap v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_78P_closeout","paths":["app/hermes_runtime.py","docs/reference/HERMES_RUNTIME_FOUNDATION_BOOTSTRAP_v0_1.md","docs/reference/HERMES_UPSTREAM_TRACKING_v0_1.md","tests/test_hermes_runtime_foundation.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Hermes-compatible runtime foundation baseline; no Telegram, caregiver routines, document intake, connectors, retrieval, memory writes, ProposedMemory writes, scheduler, background jobs, shell execution, Hermes dependency install, upstream install script execution, auto-update, staging, commit, or 79P behavior is authorized."},
-  {"stage_id":"79P","stage_name":"Telegram Bot Runtime Bootstrap v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_79P_closeout","paths":["app/telegram_runtime.py","app/config.py","app/main.py","docs/reference/TELEGRAM_BOT_RUNTIME_BOOTSTRAP_v0_1.md","tests/test_telegram_runtime_bootstrap.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Telegram text-channel runtime bootstrap baseline; no caregiver routines, guided routines, document/PDF intake, file downloads, voice, payments, Telegram group relay, proactive/background messages, memory writes, ProposedMemory writes, retrieval, connectors, scheduler, WhatsApp, production deployment, staging, commit, or 80P behavior is authorized."}
+  {"stage_id":"79P","stage_name":"Telegram Bot Runtime Bootstrap v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_79P_closeout","paths":["app/telegram_runtime.py","app/config.py","app/main.py","docs/reference/TELEGRAM_BOT_RUNTIME_BOOTSTRAP_v0_1.md","tests/test_telegram_runtime_bootstrap.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Telegram text-channel runtime bootstrap baseline; no caregiver routines, guided routines, document/PDF intake, file downloads, voice, payments, Telegram group relay, proactive/background messages, memory writes, ProposedMemory writes, retrieval, connectors, scheduler, WhatsApp, production deployment, staging, commit, or 80P behavior is authorized."},
+  {"stage_id":"80P","stage_name":"Telegram Conversation Loop v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_80P_closeout","paths":["app/telegram_runtime.py","app/main.py","docs/reference/TELEGRAM_CONVERSATION_LOOP_v0_1.md","tests/test_telegram_conversation_loop.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic Telegram text conversation loop baseline; no real Telegram API delivery, long-term memory, user profile memory, ProposedMemory creation, caregiver behavior, document/file handling, voice, retrieval, connectors, proactive/background messaging, scheduler, deployment, staging, commit, or 81P behavior is authorized."}
 ]
 ```
 
@@ -369,18 +371,34 @@ The stage registry records the 79P closeout sequence state. No local next eligib
 
 79P adds a minimal Telegram text-channel runtime bootstrap that parses local Telegram webhook payloads, adapts them into the Hermes runtime foundation, and prepares a local `sendMessage` payload without calling Telegram. It does not authorize caregiver routines, guided routines, document/PDF intake, file downloads, voice, payments, Telegram group relay, proactive/background messages, memory writes, `ProposedMemory` writes, retrieval, connectors, scheduler/background jobs, WhatsApp, production deployment, full Telegram command UX, staging, commit authority, or any 80P behavior.
 
+## Stage 80P completion transition
+
+The stage registry records the 80P closeout sequence state. No local next eligible implementation stage is authorized after 80P.
+
+```json stage-80p-completion-transition
+{
+  "closeout_status":"COMPLETED_FIXED_BASELINE",
+  "after_commit_status":"COMPLETED_FIXED_BASELINE",
+  "after_commit_next_eligible":null,
+  "transition_requires_commit":true,
+  "implementation_authorized":false
+}
+```
+
+80P adds a minimal local Telegram text conversation loop that parses a Telegram update, dispatches through the Hermes runtime foundation, and returns a deterministic safe local webhook response. It does not authorize real outbound Telegram API delivery, long-term conversation memory, user profile memory, `ProposedMemory` creation, caregiver behavior, document/file handling, voice handling, retrieval, connectors, proactive/background messaging, scheduler, production deployment, staging, commit authority, or any 81P behavior.
+
 ## Sequencing and authorization rules
 
 ```json roadmap-sequencing-rules
 [
-  "no_stage_is_next_eligible_after_79P_without_explicit_maintainer_direction",
+  "no_stage_is_next_eligible_after_80P_without_explicit_maintainer_direction",
   "eligibility_permits_story_drafting_only",
   "roadmap_inclusion_never_authorizes_implementation",
   "every_stage_requires_story_approval",
   "every_stage_requires_technical_spec_approval",
   "runtime_implementation_requires_separately_approved_scoped_build_tests_and_validation",
-  "stage_79P_is_completed_after_approved_docs_tests_closeout",
-  "do_not_invent_80P_without_explicit_maintainer_direction_in_repo_evidence",
+  "stage_80P_is_completed_after_approved_docs_tests_closeout",
+  "do_not_invent_81P_without_explicit_maintainer_direction_in_repo_evidence",
   "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
   "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence"
 ]

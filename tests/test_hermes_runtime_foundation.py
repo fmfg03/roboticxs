@@ -247,7 +247,7 @@ def test_no_telegram_caregiver_document_background_or_connector_runtime_was_adde
     assert all("connector" not in path.lower() for path in changed)
 
 
-def test_roadmap_marks_78p_complete_and_later_79p_without_inventing_80p():
+def test_roadmap_marks_78p_complete_and_later_stages_without_inventing_81p():
     text = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"78P","stage_name":"Hermes Runtime Foundation Bootstrap v0","status":"COMPLETED_FIXED_BASELINE"' in text
@@ -256,6 +256,7 @@ def test_roadmap_marks_78p_complete_and_later_79p_without_inventing_80p():
     assert '"app/hermes_runtime.py"' in text
     assert '"tests/test_hermes_runtime_foundation.py"' in text
     assert '"stage_id":"79P","stage_name":"Telegram Bot Runtime Bootstrap v0","status":"COMPLETED_FIXED_BASELINE"' in text
-    assert '"stage_id":"80P"' not in text
+    assert '"stage_id":"80P","stage_name":"Telegram Conversation Loop v0","status":"COMPLETED_FIXED_BASELINE"' in text
+    assert '"stage_id":"81P"' not in text
     assert '"status":"NEXT_ELIGIBLE"' not in text
     assert '"after_commit_next_eligible":null' in text
