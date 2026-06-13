@@ -10,6 +10,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 ROADMAP_PATH = REPO_ROOT / "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md"
 ALLOWED_STAGE_STATUSES = {
     "COMPLETED_FIXED_BASELINE",
+    "IMPLEMENTED_PENDING_REVIEW",
     "CURRENT_STAGE",
     "NEXT_ELIGIBLE",
     "SEQUENCE_ENTRY_ONLY",
@@ -51,14 +52,14 @@ REQUIRED_DEFERRED_IDS = {
     "voxcpm",
 }
 REQUIRED_SEQUENCE_RULES = {
-    "no_stage_is_next_eligible_after_82P_without_explicit_maintainer_direction",
+    "no_stage_is_next_eligible_after_83P_without_explicit_maintainer_direction",
     "eligibility_permits_story_drafting_only",
     "roadmap_inclusion_never_authorizes_implementation",
     "every_stage_requires_story_approval",
     "every_stage_requires_technical_spec_approval",
     "runtime_implementation_requires_separately_approved_scoped_build_tests_and_validation",
-    "stage_82P_is_completed_after_approved_docs_tests_closeout",
-    "do_not_invent_83P_without_explicit_maintainer_direction_in_repo_evidence",
+    "stage_83P_requires_review_before_commit_closeout",
+    "do_not_invent_84P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -81,6 +82,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "80P": ("COMPLETED_FIXED_BASELINE", "Telegram Conversation Loop v0"),
     "81P": ("COMPLETED_FIXED_BASELINE", "Telegram Runtime Smoke / Manual Bot Wiring v0"),
     "82P": ("COMPLETED_FIXED_BASELINE", "Memory Proposal Loop over Telegram v0"),
+    "83P": ("IMPLEMENTED_PENDING_REVIEW", "Active Memory Recall over Telegram v0"),
 }
 
 
@@ -103,19 +105,19 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_82P",
+        "local_evidence_scope": "stages_61P_through_83P_pending_review",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
     }
 
 
-def test_stage_registry_contains_ordered_61p_through_66p2_and_82p_once():
+def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stages = load_stage_registry()
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 83)
+        f"{number}P" for number in range(67, 84)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -278,7 +280,10 @@ def test_required_final_sequence_after_66p_is_encoded_exactly():
 def test_no_future_sequence_entries_claim_local_evidence_or_authorization():
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
-    assert "83P" not in stages_by_id
+    assert stages_by_id["83P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert stages_by_id["83P"]["authority_source"] == "local_repo_working_tree"
+    assert stages_by_id["83P"]["local_evidence"]["commit"] is None
+    assert "84P" not in stages_by_id
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
@@ -873,7 +878,7 @@ def test_82p_is_telegram_memory_proposal_loop_only_and_self_referenced():
     }
 
 
-def test_82p_transition_does_not_invent_83p():
+def test_82p_transition_keeps_no_next_eligible_after_82p_closeout():
     stages = load_stage_registry()
     transition = load_json_block("stage-82p-completion-transition")
 
@@ -885,7 +890,47 @@ def test_82p_transition_does_not_invent_83p():
         "implementation_authorized": False,
     }
     assert [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"] == []
-    assert "83P" not in {stage["stage_id"] for stage in stages}
+
+
+def test_83p_is_active_memory_recall_pending_review_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["83P"] == {
+        "stage_id": "83P",
+        "stage_name": "Active Memory Recall over Telegram v0",
+        "status": "IMPLEMENTED_PENDING_REVIEW",
+        "authority_source": "local_repo_working_tree",
+        "local_evidence": {
+            "commit": None,
+            "paths": [
+                "app/telegram_runtime.py",
+                "app/memory_control.py",
+                "docs/reference/TELEGRAM_ACTIVE_MEMORY_RECALL_v0_1.md",
+                "tests/test_telegram_memory_proposal_loop.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Review the 83P working-tree implementation. Do not stage or commit without explicit maintainer approval. Do not infer 84P or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["83P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_83p_transition_does_not_authorize_84p_or_next_eligible():
+    stages = load_stage_registry()
+    transition = load_json_block("stage-83p-implementation-review-transition")
+
+    assert transition == {
+        "current_status": "IMPLEMENTED_PENDING_REVIEW",
+        "after_explicit_commit_status": "CLOSED_COMMITTED",
+        "after_commit_next_eligible": None,
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    assert [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"] == []
+    assert "84P" not in {stage["stage_id"] for stage in stages}
 
 
 def test_sequencing_rules_preserve_story_spec_build_and_validation_gates():

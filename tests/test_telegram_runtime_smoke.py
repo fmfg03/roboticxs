@@ -174,12 +174,13 @@ def test_runtime_smoke_boundaries_do_not_add_forbidden_product_behavior():
     assert "connectors." not in runtime_text
 
 
-def test_roadmap_marks_81p_complete_and_later_82p_without_inventing_83p():
+def test_roadmap_marks_81p_complete_and_later_83p_without_inventing_84p():
     text = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"81P","stage_name":"Telegram Runtime Smoke / Manual Bot Wiring v0","status":"COMPLETED_FIXED_BASELINE"' in text
     assert '"docs/reference/TELEGRAM_RUNTIME_SMOKE_MANUAL_WIRING_v0_1.md"' in text
     assert '"tests/test_telegram_runtime_smoke.py"' in text
     assert '"stage_id":"82P","stage_name":"Memory Proposal Loop over Telegram v0","status":"COMPLETED_FIXED_BASELINE"' in text
-    assert '"stage_id":"83P"' not in text
+    assert '"stage_id":"83P","stage_name":"Active Memory Recall over Telegram v0","status":"IMPLEMENTED_PENDING_REVIEW"' in text
+    assert '"stage_id":"84P"' not in text
     assert '"status":"NEXT_ELIGIBLE"' not in text

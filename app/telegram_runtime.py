@@ -15,6 +15,7 @@ from app.memory_service import (
     get_proposal_by_id,
     reject_proposal,
 )
+from app.memory_control import list_active_memories
 from app.models import Robot, Task, TaskRun, User
 
 
@@ -46,6 +47,22 @@ TELEGRAM_MEMORY_INTENT_PREFIXES = (
     "please remember that ",
     "i want you to remember that ",
 )
+TELEGRAM_MEMORY_RECALL_PHRASES_ES = {
+    "qué recuerdas de mí",
+    "que recuerdas de mi",
+    "qué sabes de mí",
+    "que sabes de mi",
+    "muéstrame mis memorias",
+    "muestrame mis memorias",
+    "lista mis memorias",
+}
+TELEGRAM_MEMORY_RECALL_PHRASES_EN = {
+    "what do you remember about me",
+    "what do you remember",
+    "what do you know about me",
+    "show my memories",
+    "list my memories",
+}
 
 
 class TelegramRuntimeError(ValueError):
@@ -405,8 +422,9 @@ def _handle_telegram_memory_proposal_loop(
     approval_match = TELEGRAM_MEMORY_APPROVE_PATTERN.match(message.text.strip())
     rejection_match = TELEGRAM_MEMORY_REJECT_PATTERN.match(message.text.strip())
     proposal_payload = _extract_telegram_memory_proposal(message.text)
+    recall_language = _detect_telegram_memory_recall(message.text)
 
-    if approval_match is None and rejection_match is None and proposal_payload is None:
+    if approval_match is None and rejection_match is None and proposal_payload is None and recall_language is None:
         return None
 
     user, robot = _resolve_runtime_user_and_robot(session=session, message=message)
@@ -444,6 +462,20 @@ def _handle_telegram_memory_proposal_loop(
             reply_text=reply_text,
             ok=ok,
             error_code=None if ok else f"memory_proposal_{status}",
+        )
+
+    if recall_language is not None:
+        memories = list_active_memories(session=session, user_id=user.id, robot_id=robot.id)
+        reply_text = _compose_telegram_active_memory_recall_reply(
+            language=recall_language,
+            memory_contents=[memory.content for memory in memories],
+        )
+        return _build_memory_loop_result(
+            message=message,
+            config=config,
+            trace={**trace, "stage": "83P", "active_memory_recall": "listed"},
+            reply_text=reply_text,
+            ok=True,
         )
 
     task = Task(
@@ -538,6 +570,42 @@ def _extract_telegram_memory_proposal(text: str) -> dict[str, str] | None:
                 return None
             return _classify_telegram_memory_content(raw_content)
     return None
+
+
+def _detect_telegram_memory_recall(text: str) -> str | None:
+    normalized = _normalize_telegram_recall_text(text)
+    if normalized in TELEGRAM_MEMORY_RECALL_PHRASES_ES:
+        return "es"
+    if normalized in TELEGRAM_MEMORY_RECALL_PHRASES_EN:
+        return "en"
+    return None
+
+
+def _normalize_telegram_recall_text(text: str) -> str:
+    normalized = text.strip().lower()
+    normalized = normalized.lstrip("¿").rstrip("?").strip()
+    return " ".join(normalized.split())
+
+
+def _compose_telegram_active_memory_recall_reply(*, language: str, memory_contents: list[str]) -> str:
+    if not memory_contents:
+        if language == "en":
+            return (
+                "I do not have any approved memories about you yet. "
+                "You can say \"remember that ...\" and I will ask for approval before saving it."
+            )
+        return (
+            "Todavía no tengo memorias aprobadas sobre ti. "
+            "Puedes decir \"recuerda que ...\" y te pediré aprobación antes de guardarlo."
+        )
+
+    if language == "en":
+        header = "Here is what I remember about you:"
+    else:
+        header = "Esto es lo que recuerdo de ti:"
+    lines = [header, ""]
+    lines.extend(f"{index}. {content}" for index, content in enumerate(memory_contents, start=1))
+    return "\n".join(lines)
 
 
 def _classify_telegram_memory_content(raw_content: str) -> dict[str, str]:

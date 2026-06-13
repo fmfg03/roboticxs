@@ -99,6 +99,144 @@ async def test_normal_text_does_not_create_proposed_memory_or_active_memory(clie
 
 
 @pytest.mark.anyio
+async def test_spanish_memory_recall_empty_state_does_not_create_memory(client, db_counts):
+    before = db_counts()
+    response = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update("¿qué recuerdas de mí?", user_id=83001),
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["ok"] is True
+    assert body["trace"]["stage"] == "83P"
+    assert body["trace"]["active_memory_recall"] == "listed"
+    assert body["prepared_send"]["payload"]["text"] == (
+        "Todavía no tengo memorias aprobadas sobre ti. "
+        'Puedes decir "recuerda que ..." y te pediré aprobación antes de guardarlo.'
+    )
+    after = db_counts()
+    assert after["proposals"] == before["proposals"]
+    assert after["memories"] == before["memories"]
+
+
+@pytest.mark.anyio
+async def test_english_memory_recall_empty_state_does_not_create_memory(client, db_counts):
+    before = db_counts()
+    response = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update("what do you remember about me?", user_id=83002),
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["trace"]["stage"] == "83P"
+    assert body["prepared_send"]["payload"]["text"] == (
+        "I do not have any approved memories about you yet. "
+        'You can say "remember that ..." and I will ask for approval before saving it.'
+    )
+    after = db_counts()
+    assert after["proposals"] == before["proposals"]
+    assert after["memories"] == before["memories"]
+
+
+@pytest.mark.anyio
+async def test_memory_recall_lists_only_approved_active_memories_after_approval(client):
+    first_proposal = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update("recuerda que prefiero respuestas cortas", user_id=83003),
+    )
+    first_id = extract_proposal_id(first_proposal.json()["prepared_send"]["payload"]["text"])
+    await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update(f"APROBAR memoria {first_id}", user_id=83003),
+    )
+    second_proposal = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update("remember that I prefer direct answers", user_id=83003),
+    )
+    second_id = extract_proposal_id(second_proposal.json()["prepared_send"]["payload"]["text"])
+    await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update(f"APPROVE memory {second_id}", user_id=83003),
+    )
+
+    response = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update("show my memories", user_id=83003),
+    )
+
+    assert response.status_code == 200
+    reply = response.json()["prepared_send"]["payload"]["text"]
+    assert reply.startswith("Here is what I remember about you:\n\n")
+    assert "1. You prefer direct answers." in reply
+    assert "2. Prefieres respuestas cortas." in reply
+
+
+@pytest.mark.anyio
+async def test_memory_recall_excludes_pending_proposals(client):
+    await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update("remember that I prefer short replies", user_id=83004),
+    )
+    response = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update("what do you remember", user_id=83004),
+    )
+
+    assert response.status_code == 200
+    reply = response.json()["prepared_send"]["payload"]["text"]
+    assert "I do not have any approved memories about you yet." in reply
+    assert "You prefer short replies." not in reply
+
+
+@pytest.mark.anyio
+async def test_memory_recall_excludes_rejected_proposals(client):
+    proposal_response = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update("remember that I prefer short replies", user_id=83005),
+    )
+    proposal_id = extract_proposal_id(proposal_response.json()["prepared_send"]["payload"]["text"])
+    await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update(f"REJECT memory {proposal_id}", user_id=83005),
+    )
+
+    response = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update("list my memories", user_id=83005),
+    )
+
+    assert response.status_code == 200
+    reply = response.json()["prepared_send"]["payload"]["text"]
+    assert "I do not have any approved memories about you yet." in reply
+    assert "You prefer short replies." not in reply
+
+
+@pytest.mark.anyio
+async def test_memory_recall_isolated_by_telegram_user_and_robot(client):
+    proposal_response = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update("remember that I prefer short replies", user_id=83006),
+    )
+    proposal_id = extract_proposal_id(proposal_response.json()["prepared_send"]["payload"]["text"])
+    await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update(f"APPROVE memory {proposal_id}", user_id=83006),
+    )
+
+    response = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update("what do you know about me?", user_id=83007),
+    )
+
+    assert response.status_code == 200
+    reply = response.json()["prepared_send"]["payload"]["text"]
+    assert "I do not have any approved memories about you yet." in reply
+    assert "You prefer short replies." not in reply
+
+
+@pytest.mark.anyio
 async def test_approval_command_activates_memory(client, db_counts):
     proposal_response = await client.post(
         "/api/telegram/runtime/webhook",
@@ -256,11 +394,12 @@ def test_required_memory_proposal_loop_document_exists_with_decision_text():
         assert required in text
 
 
-def test_roadmap_marks_82p_complete_without_inventing_83p():
+def test_roadmap_marks_82p_complete_and_83p_pending_review_without_inventing_84p():
     text = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"82P","stage_name":"Memory Proposal Loop over Telegram v0","status":"COMPLETED_FIXED_BASELINE"' in text
     assert '"docs/reference/TELEGRAM_MEMORY_PROPOSAL_LOOP_v0_1.md"' in text
     assert '"tests/test_telegram_memory_proposal_loop.py"' in text
-    assert '"stage_id":"83P"' not in text
+    assert '"stage_id":"83P","stage_name":"Active Memory Recall over Telegram v0","status":"IMPLEMENTED_PENDING_REVIEW"' in text
+    assert '"stage_id":"84P"' not in text
     assert '"status":"NEXT_ELIGIBLE"' not in text
