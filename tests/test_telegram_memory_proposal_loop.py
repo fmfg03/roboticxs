@@ -7,10 +7,12 @@ import pytest
 from sqlalchemy import select
 
 from app.models import MemoryItem, ProposedMemory
+from app.telegram_runtime import _detect_telegram_memory_forget
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DOC_PATH = REPO_ROOT / "docs/reference/TELEGRAM_MEMORY_PROPOSAL_LOOP_v0_1.md"
+FORGET_DOC_PATH = REPO_ROOT / "docs/reference/TELEGRAM_ACTIVE_MEMORY_FORGET_v0_1.md"
 ROADMAP_PATH = REPO_ROOT / "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md"
 RUNTIME_PATH = REPO_ROOT / "app/telegram_runtime.py"
 
@@ -31,6 +33,55 @@ def extract_proposal_id(reply: str) -> str:
     match = re.search(r"APROBAR memoria ([0-9a-f-]{36})", reply)
     assert match is not None
     return match.group(1)
+
+
+def extract_recall_memory_ids(reply: str) -> list[str]:
+    return re.findall(r"\[id: ([0-9a-f-]{36})\]", reply)
+
+
+def test_detect_telegram_memory_forget_supports_authorized_phrases():
+    memory_id = "00000000-0000-0000-0000-000000000084"
+
+    for phrase in [
+        "olvida memoria",
+        "olvidar memoria",
+        "borra memoria",
+        "elimina memoria",
+    ]:
+        assert _detect_telegram_memory_forget(f"{phrase} {memory_id}") == ("es", memory_id)
+
+    for phrase in [
+        "forget memory",
+        "delete memory",
+        "remove memory",
+        "forget memoria",
+    ]:
+        assert _detect_telegram_memory_forget(f"{phrase} {memory_id}") == ("en", memory_id)
+
+
+async def create_approved_memory(client, *, user_id: int, text: str = "remember that I prefer short replies") -> str:
+    proposal_response = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update(text, user_id=user_id),
+    )
+    proposal_id = extract_proposal_id(proposal_response.json()["prepared_send"]["payload"]["text"])
+    await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update(f"APPROVE memory {proposal_id}", user_id=user_id),
+    )
+    with client.app.state.db.session() as session:
+        proposal = session.scalar(select(ProposedMemory).where(ProposedMemory.id == proposal_id))
+        assert proposal is not None
+        memory = session.scalar(
+            select(MemoryItem).where(
+                MemoryItem.user_id == proposal.user_id,
+                MemoryItem.robot_id == proposal.robot_id,
+                MemoryItem.content == proposal.proposed_content,
+                MemoryItem.status == "ACTIVE",
+            )
+        )
+        assert memory is not None
+        return memory.id
 
 
 @pytest.mark.anyio
@@ -171,6 +222,7 @@ async def test_memory_recall_lists_only_approved_active_memories_after_approval(
     assert reply.startswith("Here is what I remember about you:\n\n")
     assert "1. You prefer direct answers." in reply
     assert "2. Prefieres respuestas cortas." in reply
+    assert len(extract_recall_memory_ids(reply)) == 2
 
 
 @pytest.mark.anyio
@@ -234,6 +286,158 @@ async def test_memory_recall_isolated_by_telegram_user_and_robot(client):
     reply = response.json()["prepared_send"]["payload"]["text"]
     assert "I do not have any approved memories about you yet." in reply
     assert "You prefer short replies." not in reply
+
+
+@pytest.mark.anyio
+async def test_spanish_forget_command_deactivates_active_memory(client):
+    memory_id = await create_approved_memory(
+        client,
+        user_id=84001,
+        text="recuerda que prefiero respuestas cortas",
+    )
+
+    forget_response = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update(f"olvida memoria {memory_id}", user_id=84001),
+    )
+    recall_response = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update("muéstrame mis memorias", user_id=84001),
+    )
+
+    assert forget_response.status_code == 200
+    body = forget_response.json()
+    assert body["ok"] is True
+    assert body["trace"]["stage"] == "84P"
+    assert body["trace"]["active_memory_forget"] == "forgotten"
+    assert body["prepared_send"]["payload"]["text"] == "Listo. Olvidé esa memoria."
+    assert recall_response.json()["prepared_send"]["payload"]["text"].startswith("Todavía no tengo memorias aprobadas")
+    with client.app.state.db.session() as session:
+        memory = session.scalar(select(MemoryItem).where(MemoryItem.id == memory_id))
+        assert memory.status == "FORGOTTEN"
+
+
+@pytest.mark.anyio
+async def test_english_forget_command_deactivates_active_memory(client):
+    memory_id = await create_approved_memory(client, user_id=84002)
+
+    response = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update(f"forget memory {memory_id}", user_id=84002),
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["ok"] is True
+    assert body["trace"]["stage"] == "84P"
+    assert body["prepared_send"]["payload"]["text"] == "Done. I forgot that memory."
+    with client.app.state.db.session() as session:
+        memory = session.scalar(select(MemoryItem).where(MemoryItem.id == memory_id))
+        assert memory.status == "FORGOTTEN"
+
+
+@pytest.mark.anyio
+async def test_forget_pending_proposal_id_fails_without_changing_proposal(client):
+    proposal_response = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update("remember that I prefer direct answers", user_id=84003),
+    )
+    proposal_id = extract_proposal_id(proposal_response.json()["prepared_send"]["payload"]["text"])
+
+    response = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update(f"forget memory {proposal_id}", user_id=84003),
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["ok"] is False
+    assert body["trace"]["stage"] == "84P"
+    assert body["prepared_send"]["payload"]["text"] == "I could not find an active memory with that id."
+    with client.app.state.db.session() as session:
+        proposal = session.scalar(select(ProposedMemory).where(ProposedMemory.id == proposal_id))
+        assert proposal.status == "PENDING"
+        assert session.scalar(select(MemoryItem).where(MemoryItem.id == proposal_id)) is None
+
+
+@pytest.mark.anyio
+async def test_forget_rejected_proposal_id_fails_without_changing_proposal(client):
+    proposal_response = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update("remember that I prefer short replies", user_id=84004),
+    )
+    proposal_id = extract_proposal_id(proposal_response.json()["prepared_send"]["payload"]["text"])
+    await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update(f"REJECT memory {proposal_id}", user_id=84004),
+    )
+
+    response = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update(f"forget memory {proposal_id}", user_id=84004),
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["ok"] is False
+    assert body["prepared_send"]["payload"]["text"] == "I could not find an active memory with that id."
+    with client.app.state.db.session() as session:
+        proposal = session.scalar(select(ProposedMemory).where(ProposedMemory.id == proposal_id))
+        assert proposal.status == "REJECTED"
+
+
+@pytest.mark.anyio
+async def test_forget_other_users_active_memory_fails_without_leaking_or_changing_it(client):
+    memory_id = await create_approved_memory(client, user_id=84005)
+
+    response = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update(f"delete memory {memory_id}", user_id=84006),
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["ok"] is False
+    assert body["trace"]["active_memory_forget"] == "not_found"
+    assert body["prepared_send"]["payload"]["text"] == "I could not find an active memory with that id."
+    assert memory_id not in body["prepared_send"]["payload"]["text"]
+    with client.app.state.db.session() as session:
+        memory = session.scalar(select(MemoryItem).where(MemoryItem.id == memory_id))
+        assert memory.status == "ACTIVE"
+
+
+@pytest.mark.anyio
+async def test_invalid_forget_id_returns_safe_failure(client):
+    response = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update("remove memory not-a-valid-id", user_id=84007),
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["ok"] is False
+    assert body["trace"]["stage"] == "84P"
+    assert body["prepared_send"]["payload"]["text"] == "I could not find an active memory with that id."
+
+
+@pytest.mark.anyio
+async def test_already_forgotten_memory_returns_same_safe_failure(client):
+    memory_id = await create_approved_memory(client, user_id=84008)
+    await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update(f"forget memory {memory_id}", user_id=84008),
+    )
+
+    response = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update(f"forget memory {memory_id}", user_id=84008),
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["ok"] is False
+    assert body["trace"]["active_memory_forget"] == "not_found"
+    assert body["prepared_send"]["payload"]["text"] == "I could not find an active memory with that id."
 
 
 @pytest.mark.anyio
@@ -394,12 +598,49 @@ def test_required_memory_proposal_loop_document_exists_with_decision_text():
         assert required in text
 
 
-def test_roadmap_marks_82p_complete_and_83p_pending_review_without_inventing_84p():
+def test_required_active_memory_forget_document_exists_with_boundary_text():
+    text = FORGET_DOC_PATH.read_text()
+
+    for section in [
+        "Status",
+        "Decision",
+        "Runtime path",
+        "Intent precedence",
+        "Supported forget phrases",
+        "Success responses",
+        "Safe failure responses",
+        "Forget rule",
+        "Recall ID visibility",
+        "What is intentionally not implemented",
+        "Non-claims",
+    ]:
+        assert f"## {section}" in text
+
+    for required in [
+        "Stage 84P is implemented pending review.",
+        "84P adds deterministic active-memory forget commands to the Telegram runtime webhook.",
+        "POST /api/telegram/runtime/webhook",
+        "POST /api/telegram/webhook",
+        "approval/rejection",
+        "active memory forget",
+        "active memory recall",
+        "The failure response is identical for missing, inactive, invalid, already-forgotten, and foreign IDs.",
+        "It only transitions `ACTIVE` memory to `FORGOTTEN`",
+        "1. <memory content> [id: <memory_id>]",
+        "85P",
+        "`NEXT_ELIGIBLE`",
+    ]:
+        assert required in text
+
+
+def test_roadmap_marks_84p_implemented_pending_review_without_inventing_85p():
     text = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"82P","stage_name":"Memory Proposal Loop over Telegram v0","status":"COMPLETED_FIXED_BASELINE"' in text
     assert '"docs/reference/TELEGRAM_MEMORY_PROPOSAL_LOOP_v0_1.md"' in text
     assert '"tests/test_telegram_memory_proposal_loop.py"' in text
     assert '"stage_id":"83P","stage_name":"Active Memory Recall over Telegram v0","status":"CLOSED_COMMITTED"' in text
-    assert '"stage_id":"84P"' not in text
+    assert '"stage_id":"84P","stage_name":"Active Memory Forget over Telegram v0","status":"IMPLEMENTED_PENDING_REVIEW"' in text
+    assert '"docs/reference/TELEGRAM_ACTIVE_MEMORY_FORGET_v0_1.md"' in text
+    assert '"stage_id":"85P"' not in text
     assert '"status":"NEXT_ELIGIBLE"' not in text

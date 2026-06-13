@@ -207,7 +207,7 @@ def test_no_user_facing_voxcpm_command_was_added():
         assert "voxcpm" not in text, path
 
 
-def test_roadmap_marks_76p_complete_and_later_gates_without_inventing_84p():
+def test_roadmap_marks_76p_complete_and_later_gates_without_inventing_85p():
     text = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"76P","stage_name":"VoxCPM Research Parking Lot","status":"COMPLETED_FIXED_BASELINE"' in text
@@ -222,5 +222,6 @@ def test_roadmap_marks_76p_complete_and_later_gates_without_inventing_84p():
     assert '"stage_id":"81P","stage_name":"Telegram Runtime Smoke / Manual Bot Wiring v0","status":"COMPLETED_FIXED_BASELINE"' in text
     assert '"stage_id":"82P","stage_name":"Memory Proposal Loop over Telegram v0","status":"COMPLETED_FIXED_BASELINE"' in text
     assert '"stage_id":"83P","stage_name":"Active Memory Recall over Telegram v0","status":"CLOSED_COMMITTED"' in text
-    assert '"stage_id":"84P"' not in text
+    assert '"stage_id":"84P","stage_name":"Active Memory Forget over Telegram v0","status":"IMPLEMENTED_PENDING_REVIEW"' in text
+    assert '"stage_id":"85P"' not in text
     assert '"status":"NEXT_ELIGIBLE"' not in text

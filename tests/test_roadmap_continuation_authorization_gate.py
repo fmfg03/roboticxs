@@ -206,7 +206,11 @@ def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
         '"stage_id":"83P","stage_name":"Active Memory Recall over Telegram v0","status":"CLOSED_COMMITTED"'
         in roadmap_text
     )
-    assert '"stage_id":"84P"' not in roadmap_text
+    assert (
+        '"stage_id":"84P","stage_name":"Active Memory Forget over Telegram v0","status":"IMPLEMENTED_PENDING_REVIEW"'
+        in roadmap_text
+    )
+    assert '"stage_id":"85P"' not in roadmap_text
     assert '"status":"NEXT_ELIGIBLE"' not in roadmap_text
     assert '"after_commit_next_eligible":null' in roadmap_text
     assert "No next implementation stage is authorized until a maintainer explicitly chooses one." in roadmap_text

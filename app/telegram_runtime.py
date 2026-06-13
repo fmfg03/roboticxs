@@ -16,6 +16,7 @@ from app.memory_service import (
     reject_proposal,
 )
 from app.memory_control import list_active_memories
+from app.memory_control import forget_active_memory
 from app.models import Robot, Task, TaskRun, User
 
 
@@ -63,6 +64,11 @@ TELEGRAM_MEMORY_RECALL_PHRASES_EN = {
     "show my memories",
     "list my memories",
 }
+TELEGRAM_MEMORY_FORGET_PATTERNS = (
+    ("es", re.compile(r"^(?:olvida|olvidar|borra|elimina)\s+memoria\s+(\S+)$", re.IGNORECASE)),
+    ("en", re.compile(r"^(?:forget|delete|remove)\s+memory\s+(\S+)$", re.IGNORECASE)),
+    ("en", re.compile(r"^forget\s+memoria\s+(\S+)$", re.IGNORECASE)),
+)
 
 
 class TelegramRuntimeError(ValueError):
@@ -422,9 +428,16 @@ def _handle_telegram_memory_proposal_loop(
     approval_match = TELEGRAM_MEMORY_APPROVE_PATTERN.match(message.text.strip())
     rejection_match = TELEGRAM_MEMORY_REJECT_PATTERN.match(message.text.strip())
     proposal_payload = _extract_telegram_memory_proposal(message.text)
+    forget_payload = _detect_telegram_memory_forget(message.text)
     recall_language = _detect_telegram_memory_recall(message.text)
 
-    if approval_match is None and rejection_match is None and proposal_payload is None and recall_language is None:
+    if (
+        approval_match is None
+        and rejection_match is None
+        and proposal_payload is None
+        and forget_payload is None
+        and recall_language is None
+    ):
         return None
 
     user, robot = _resolve_runtime_user_and_robot(session=session, message=message)
@@ -464,11 +477,43 @@ def _handle_telegram_memory_proposal_loop(
             error_code=None if ok else f"memory_proposal_{status}",
         )
 
+    if forget_payload is not None:
+        language, memory_id = forget_payload
+        memory = forget_active_memory(
+            session=session,
+            user_id=user.id,
+            robot_id=robot.id,
+            memory_id=memory_id,
+        )
+        if memory is None:
+            reply_text = (
+                "I could not find an active memory with that id."
+                if language == "en"
+                else "No encontré una memoria activa con ese id."
+            )
+            return _build_memory_loop_result(
+                message=message,
+                config=config,
+                trace={**trace, "stage": "84P", "active_memory_forget": "not_found"},
+                reply_text=reply_text,
+                ok=False,
+                error_code="active_memory_forget_not_found",
+            )
+
+        reply_text = "Done. I forgot that memory." if language == "en" else "Listo. Olvidé esa memoria."
+        return _build_memory_loop_result(
+            message=message,
+            config=config,
+            trace={**trace, "stage": "84P", "active_memory_forget": "forgotten"},
+            reply_text=reply_text,
+            ok=True,
+        )
+
     if recall_language is not None:
         memories = list_active_memories(session=session, user_id=user.id, robot_id=robot.id)
         reply_text = _compose_telegram_active_memory_recall_reply(
             language=recall_language,
-            memory_contents=[memory.content for memory in memories],
+            memories=[(memory.id, memory.content) for memory in memories],
         )
         return _build_memory_loop_result(
             message=message,
@@ -581,14 +626,23 @@ def _detect_telegram_memory_recall(text: str) -> str | None:
     return None
 
 
+def _detect_telegram_memory_forget(text: str) -> tuple[str, str] | None:
+    stripped = " ".join(text.strip().split())
+    for language, pattern in TELEGRAM_MEMORY_FORGET_PATTERNS:
+        match = pattern.match(stripped)
+        if match is not None:
+            return language, match.group(1)
+    return None
+
+
 def _normalize_telegram_recall_text(text: str) -> str:
     normalized = text.strip().lower()
     normalized = normalized.lstrip("¿").rstrip("?").strip()
     return " ".join(normalized.split())
 
 
-def _compose_telegram_active_memory_recall_reply(*, language: str, memory_contents: list[str]) -> str:
-    if not memory_contents:
+def _compose_telegram_active_memory_recall_reply(*, language: str, memories: list[tuple[str, str]]) -> str:
+    if not memories:
         if language == "en":
             return (
                 "I do not have any approved memories about you yet. "
@@ -604,7 +658,7 @@ def _compose_telegram_active_memory_recall_reply(*, language: str, memory_conten
     else:
         header = "Esto es lo que recuerdo de ti:"
     lines = [header, ""]
-    lines.extend(f"{index}. {content}" for index, content in enumerate(memory_contents, start=1))
+    lines.extend(f"{index}. {content} [id: {memory_id}]" for index, (memory_id, content) in enumerate(memories, start=1))
     return "\n".join(lines)
 
 

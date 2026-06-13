@@ -4,7 +4,7 @@
 
 This document materializes the maintainer-approved forward-looking roadmap for Roboticxs.
 
-It is the controlling roadmap for future stage sequencing after Stage 83P closeout. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
+It is the controlling roadmap for future stage sequencing after Stage 84P implementation pending review. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
 
 ## Source of authority
 
@@ -13,7 +13,7 @@ The forward sequence comes from explicit maintainer direction in the maintainer-
 ```json canonical-roadmap-authority
 {
   "authority_source":"maintainer_approved_chatgpt_web_planning_thread",
-  "local_evidence_scope":"stages_61P_through_83P",
+  "local_evidence_scope":"stages_61P_through_84P",
   "forward_sequence_source":"explicit_maintainer_direction",
   "runtime_truth_source":"local_repo",
   "roadmap_inclusion_authorizes_implementation":false
@@ -48,8 +48,9 @@ The repository confirms these fixed baselines:
 - 81P adds the Telegram Runtime Smoke / Manual Bot Wiring v0 as a safe manual readiness and wiring path.
 - 82P adds the Memory Proposal Loop over Telegram v0 as explicit user-approved memory proposal handling.
 - 83P adds Active Memory Recall over Telegram v0 as deterministic visibility into approved active memories.
+- 84P adds Active Memory Forget over Telegram v0 as deterministic active-memory deactivation by ID over Telegram.
 
-No local implementation evidence is claimed for any stage after 83P.
+No local implementation evidence is claimed for any stage after 84P.
 
 ## Canonical stage registry
 
@@ -78,7 +79,8 @@ No local implementation evidence is claimed for any stage after 83P.
   {"stage_id":"80P","stage_name":"Telegram Conversation Loop v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_80P_closeout","paths":["app/telegram_runtime.py","app/main.py","docs/reference/TELEGRAM_CONVERSATION_LOOP_v0_1.md","tests/test_telegram_conversation_loop.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic Telegram text conversation loop baseline; no real Telegram API delivery, long-term memory, user profile memory, ProposedMemory creation, caregiver behavior, document/file handling, voice, retrieval, connectors, proactive/background messaging, scheduler, deployment, staging, commit, or 81P behavior is authorized."},
   {"stage_id":"81P","stage_name":"Telegram Runtime Smoke / Manual Bot Wiring v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_81P_closeout","paths":["app/config.py","app/telegram_runtime.py","docs/reference/TELEGRAM_RUNTIME_SMOKE_MANUAL_WIRING_v0_1.md","tests/test_telegram_runtime_smoke.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local manual Telegram runtime smoke baseline; no production deployment, automatic webhook registration, real Telegram API calls in tests, committed secrets, caregiver routines, document/file handling, voice, memory writes, ProposedMemory writes, retrieval, connectors, proactive/background messaging, scheduler, staging, commit, or 82P behavior is authorized."},
   {"stage_id":"82P","stage_name":"Memory Proposal Loop over Telegram v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_82P_closeout","paths":["app/telegram_runtime.py","app/main.py","app/memory_service.py","docs/reference/TELEGRAM_MEMORY_PROPOSAL_LOOP_v0_1.md","tests/test_telegram_memory_proposal_loop.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Telegram memory proposal loop baseline; no automatic memory activation, normal-conversation memory extraction, Context Scan, external source scanning, retrieval, connectors, caregiver routines, document/file handling, voice, proactive/background behavior, scheduler, staging, commit, or 83P behavior is authorized."},
-  {"stage_id":"83P","stage_name":"Active Memory Recall over Telegram v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"ef9faeb5ed427e2fe4cc04720a50a0a5eadf4d22","commit_message":"feat: add active memory recall over telegram","paths":["app/telegram_runtime.py","app/memory_control.py","docs/reference/TELEGRAM_ACTIVE_MEMORY_RECALL_v0_1.md","tests/test_telegram_memory_proposal_loop.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local active memory recall over Telegram baseline. Do not infer 84P implementation, 85P, or NEXT_ELIGIBLE from this status."}
+  {"stage_id":"83P","stage_name":"Active Memory Recall over Telegram v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"ef9faeb5ed427e2fe4cc04720a50a0a5eadf4d22","commit_message":"feat: add active memory recall over telegram","paths":["app/telegram_runtime.py","app/memory_control.py","docs/reference/TELEGRAM_ACTIVE_MEMORY_RECALL_v0_1.md","tests/test_telegram_memory_proposal_loop.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local active memory recall over Telegram baseline."},
+  {"stage_id":"84P","stage_name":"Active Memory Forget over Telegram v0","status":"IMPLEMENTED_PENDING_REVIEW","authority_source":"local_repo_evidence","local_evidence":{"commit":"pending_review_not_committed","paths":["app/telegram_runtime.py","docs/reference/TELEGRAM_ACTIVE_MEMORY_FORGET_v0_1.md","tests/test_telegram_memory_proposal_loop.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Review 84P implementation. Do not infer 85P or NEXT_ELIGIBLE from this pending-review status."}
 ]
 ```
 
@@ -427,7 +429,7 @@ The stage registry records the 82P closeout sequence state. No local next eligib
 
 ## Stage 83P closeout transition
 
-The stage registry records the 83P committed closeout state. No local next eligible implementation stage is authorized after 83P closeout.
+The stage registry records the 83P committed closeout state.
 
 ```json stage-83p-closeout-transition
 {
@@ -440,20 +442,27 @@ The stage registry records the 83P committed closeout state. No local next eligi
 }
 ```
 
-83P adds deterministic active-memory recall to the Telegram runtime webhook. It lists only approved active local memories for the resolved Telegram user and active robot, returns safe empty states, preserves 82P proposal/approval/rejection precedence, and does not mutate memory on recall. It does not authorize retrieval, Context Scan, connectors, caregiver behavior, document/file handling, voice handling, proactive/background behavior, scheduler, staging, commit authority, 84P, or `NEXT_ELIGIBLE`.
+83P adds deterministic active-memory recall to the Telegram runtime webhook. It lists only approved active local memories for the resolved Telegram user and active robot, returns safe empty states, preserves 82P proposal/approval/rejection precedence, and does not mutate memory on recall. It does not authorize retrieval, Context Scan, connectors, caregiver behavior, document/file handling, voice handling, proactive/background behavior, scheduler, staging, commit authority, or `NEXT_ELIGIBLE`.
+
+## Stage 84P implementation pending review
+
+The stage registry records the 84P implemented pending review state. No local next eligible implementation stage is authorized after 84P implementation pending review.
+
+84P adds deterministic active-memory forget commands to the Telegram runtime webhook. It transitions only scoped `ACTIVE` memory to `FORGOTTEN` for the resolved Telegram user and active robot, returns identical safe failure text for missing, inactive, invalid, already-forgotten, and foreign IDs, and extends active memory recall output to include memory IDs. It does not authorize retrieval, Context Scan, connectors, caregiver behavior, document/file handling, voice handling, proactive/background behavior, scheduler, staging, commit authority, 85P, or `NEXT_ELIGIBLE`.
 
 ## Sequencing and authorization rules
 
 ```json roadmap-sequencing-rules
 [
-  "no_stage_is_next_eligible_after_83P_without_explicit_maintainer_direction",
+  "no_stage_is_next_eligible_after_84P_without_explicit_maintainer_direction",
   "eligibility_permits_story_drafting_only",
   "roadmap_inclusion_never_authorizes_implementation",
   "every_stage_requires_story_approval",
   "every_stage_requires_technical_spec_approval",
   "runtime_implementation_requires_separately_approved_scoped_build_tests_and_validation",
   "stage_83P_is_closed_committed_after_metadata_reconciliation",
-  "do_not_invent_84P_without_explicit_maintainer_direction_in_repo_evidence",
+  "stage_84P_is_implemented_pending_review_until_commit_approval",
+  "do_not_invent_85P_without_explicit_maintainer_direction_in_repo_evidence",
   "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
   "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence"
 ]
