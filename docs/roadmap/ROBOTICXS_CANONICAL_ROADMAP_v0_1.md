@@ -4,7 +4,7 @@
 
 This document materializes the maintainer-approved forward-looking roadmap for Roboticxs.
 
-It is the controlling roadmap for future stage sequencing after Stage 77P. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
+It is the controlling roadmap for future stage sequencing after Stage 78P. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
 
 ## Source of authority
 
@@ -13,7 +13,7 @@ The forward sequence comes from explicit maintainer direction in the maintainer-
 ```json canonical-roadmap-authority
 {
   "authority_source":"maintainer_approved_chatgpt_web_planning_thread",
-  "local_evidence_scope":"stages_61P_through_77P",
+  "local_evidence_scope":"stages_61P_through_78P",
   "forward_sequence_source":"explicit_maintainer_direction",
   "runtime_truth_source":"local_repo",
   "roadmap_inclusion_authorizes_implementation":false
@@ -42,8 +42,9 @@ The repository confirms these fixed baselines:
 - 75P parks Agent-Reach as a research-only external reach capability assessment without runtime integration.
 - 76P parks VoxCPM and VoxCPM2 as research-only voice-model candidates without runtime integration.
 - 77P adds a roadmap continuation authorization gate without selecting the next implementation stage.
+- 78P adds the Hermes Runtime Foundation Bootstrap v0 as a minimal local Hermes-compatible runtime foundation with upstream tracking.
 
-No local implementation evidence is claimed for any stage after 77P.
+No local implementation evidence is claimed for any stage after 78P.
 
 ## Canonical stage registry
 
@@ -66,7 +67,8 @@ No local implementation evidence is claimed for any stage after 77P.
   {"stage_id":"74P","stage_name":"ECC Knowledge Compiler Factory Skill","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_74P_closeout","paths":["app/ecc_knowledge_compiler.py","docs/reference/ECC_KNOWLEDGE_COMPILER_FACTORY_SKILL_v0_1.md","tests/test_ecc_knowledge_compiler.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local ECC knowledge compilation packet baseline; no memory writes, proposed-memory writes, retrieval, connectors, network access, user-facing commands, canon auto-apply, or truth conversion is authorized."},
   {"stage_id":"75P","stage_name":"Agent-Reach Research Parking Lot","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_75P_closeout","paths":["docs/research/AGENT_REACH_RESEARCH_PARKING_LOT_v0_1.md","tests/test_agent_reach_research_parking_lot.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Agent-Reach research parking-lot baseline; no runtime dependency, connector, live retrieval, memory ingestion, automatic source scanning, scraping, cookies, credentials, MCP config, user-facing command, or product support claim is authorized."},
   {"stage_id":"76P","stage_name":"VoxCPM Research Parking Lot","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_76P_closeout","paths":["docs/research/VOXCPM_RESEARCH_PARKING_LOT_v0_1.md","tests/test_voxcpm_research_parking_lot.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local VoxCPM research parking-lot baseline; no dependency, model download, inference, audio generation, voice cloning, audio storage, Telegram voice handling, connector, MCP config, user-facing command, or product support claim is authorized."},
-  {"stage_id":"77P","stage_name":"Roadmap Continuation Authorization Gate v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_77P_closeout","paths":["docs/reference/ROADMAP_CONTINUATION_AUTHORIZATION_GATE_v0_1.md","tests/test_roadmap_continuation_authorization_gate.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local roadmap continuation authorization gate; no next implementation stage, 78P, runtime change, product feature, staging, or commit is authorized without explicit maintainer approval."}
+  {"stage_id":"77P","stage_name":"Roadmap Continuation Authorization Gate v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_77P_closeout","paths":["docs/reference/ROADMAP_CONTINUATION_AUTHORIZATION_GATE_v0_1.md","tests/test_roadmap_continuation_authorization_gate.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local roadmap continuation authorization gate; no next implementation stage, 78P, runtime change, product feature, staging, or commit is authorized without explicit maintainer approval."},
+  {"stage_id":"78P","stage_name":"Hermes Runtime Foundation Bootstrap v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_78P_closeout","paths":["app/hermes_runtime.py","docs/reference/HERMES_RUNTIME_FOUNDATION_BOOTSTRAP_v0_1.md","docs/reference/HERMES_UPSTREAM_TRACKING_v0_1.md","tests/test_hermes_runtime_foundation.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Hermes-compatible runtime foundation baseline; no Telegram, caregiver routines, document intake, connectors, retrieval, memory writes, ProposedMemory writes, scheduler, background jobs, shell execution, Hermes dependency install, upstream install script execution, auto-update, staging, commit, or 79P behavior is authorized."}
 ]
 ```
 
@@ -333,18 +335,34 @@ The stage registry records the 77P closeout sequence state. No local next eligib
 
 No next implementation stage is authorized until a maintainer explicitly chooses one. The 77P closeout does not create 78P as `NEXT_ELIGIBLE`, does not authorize product features, does not authorize runtime changes, does not promote research parking lots to runtime, does not convert candidate examples into canon, and does not grant staging or commit authority.
 
+## Stage 78P completion transition
+
+The stage registry records the 78P closeout sequence state. No local next eligible implementation stage is authorized after 78P.
+
+```json stage-78p-completion-transition
+{
+  "closeout_status":"COMPLETED_FIXED_BASELINE",
+  "after_commit_status":"COMPLETED_FIXED_BASELINE",
+  "after_commit_next_eligible":null,
+  "transition_requires_commit":true,
+  "implementation_authorized":false
+}
+```
+
+78P adds a minimal local Hermes-compatible runtime foundation and upstream tracking artifacts. It does not authorize Telegram, caregiver routines, document intake, connectors, retrieval, automatic memory creation, `ProposedMemory` writes, scheduler or background jobs, shell execution, Hermes dependency installation, Hermes upstream install script execution, automatic upstream updates, product support claims, staging, commit authority, or any 79P behavior.
+
 ## Sequencing and authorization rules
 
 ```json roadmap-sequencing-rules
 [
-  "no_stage_is_next_eligible_after_77P_without_explicit_maintainer_direction",
+  "no_stage_is_next_eligible_after_78P_without_explicit_maintainer_direction",
   "eligibility_permits_story_drafting_only",
   "roadmap_inclusion_never_authorizes_implementation",
   "every_stage_requires_story_approval",
   "every_stage_requires_technical_spec_approval",
   "runtime_implementation_requires_separately_approved_scoped_build_tests_and_validation",
-  "stage_77P_is_completed_after_approved_docs_tests_closeout",
-  "do_not_invent_78P_without_explicit_maintainer_direction_in_repo_evidence",
+  "stage_78P_is_completed_after_approved_docs_tests_closeout",
+  "do_not_invent_79P_without_explicit_maintainer_direction_in_repo_evidence",
   "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
   "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence"
 ]

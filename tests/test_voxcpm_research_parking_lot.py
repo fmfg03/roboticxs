@@ -207,7 +207,7 @@ def test_no_user_facing_voxcpm_command_was_added():
         assert "voxcpm" not in text, path
 
 
-def test_roadmap_marks_76p_complete_and_77p_governance_gate_without_inventing_78p():
+def test_roadmap_marks_76p_complete_and_later_gates_without_inventing_79p():
     text = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"76P","stage_name":"VoxCPM Research Parking Lot","status":"COMPLETED_FIXED_BASELINE"' in text
@@ -216,5 +216,6 @@ def test_roadmap_marks_76p_complete_and_77p_governance_gate_without_inventing_78
     assert '"after_commit_next_eligible":null' in text
     assert "No local next eligible implementation stage is authorized after 76P." in text
     assert '"stage_id":"77P","stage_name":"Roadmap Continuation Authorization Gate v0","status":"COMPLETED_FIXED_BASELINE"' in text
-    assert '"stage_id":"78P"' not in text
+    assert '"stage_id":"78P","stage_name":"Hermes Runtime Foundation Bootstrap v0","status":"COMPLETED_FIXED_BASELINE"' in text
+    assert '"stage_id":"79P"' not in text
     assert '"status":"NEXT_ELIGIBLE"' not in text

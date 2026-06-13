@@ -158,7 +158,7 @@ def test_hard_boundaries_block_runtime_dependency_connector_and_command_changes(
         assert boundary in text
 
 
-def test_roadmap_marks_77p_complete_and_does_not_authorize_78p():
+def test_roadmap_preserves_77p_gate_and_records_later_78p_authorization():
     roadmap_text = ROADMAP_PATH.read_text()
     stages = load_json_block("canonical-stage-registry")
     stages_by_id = {stage["stage_id"]: stage for stage in stages}
@@ -182,8 +182,11 @@ def test_roadmap_marks_77p_complete_and_does_not_authorize_78p():
         "next_action": "Use as the local roadmap continuation authorization gate; no next implementation stage, 78P, runtime change, product feature, staging, or commit is authorized without explicit maintainer approval.",
     }
     assert next_eligible == []
-    assert '"stage_id":"78P"' not in roadmap_text
-    assert '"stage_id":"78P","stage_name"' not in roadmap_text
+    assert (
+        '"stage_id":"78P","stage_name":"Hermes Runtime Foundation Bootstrap v0","status":"COMPLETED_FIXED_BASELINE"'
+        in roadmap_text
+    )
+    assert '"stage_id":"79P"' not in roadmap_text
     assert '"status":"NEXT_ELIGIBLE"' not in roadmap_text
     assert '"after_commit_next_eligible":null' in roadmap_text
     assert "No next implementation stage is authorized until a maintainer explicitly chooses one." in roadmap_text
