@@ -119,4 +119,4 @@ def test_approved_85p_spec_is_present_and_keeps_86p_out_of_scope():
     assert "# 85P - Hermes Profile / Roboticxs SOUL Rebase v0.1" in text
     assert "Status: approved technical spec" in text
     assert "85P does not implement" in text
-    assert "86P+ are listed as proposed/future only" in text
+    assert "At 85P approval time, 86P+ are listed as proposed/future only" in text

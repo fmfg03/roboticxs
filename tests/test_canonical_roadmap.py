@@ -62,7 +62,7 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_83P_is_closed_committed_after_metadata_reconciliation",
     "stage_84P_is_closed_committed_after_active_memory_forget_closeout",
     "stage_85P_is_closed_committed_after_hermes_soul_rebase_closeout",
-    "stage_86P_is_next_eligible_for_story_spec_only_after_85P_closeout",
+    "stage_86P_is_implemented_pending_review_after_85P_authorization",
     "do_not_invent_87P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
@@ -89,6 +89,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "83P": ("CLOSED_COMMITTED", "Active Memory Recall over Telegram v0"),
     "84P": ("CLOSED_COMMITTED", "Active Memory Forget over Telegram v0"),
     "85P": ("CLOSED_COMMITTED", "Hermes Profile / Roboticxs SOUL Rebase v0"),
+    "86P": ("IMPLEMENTED_PENDING_REVIEW", "Hermes Real Settings Baseline v0"),
 }
 
 
@@ -111,7 +112,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_85P",
+        "local_evidence_scope": "stages_61P_through_86P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -123,7 +124,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 86)
+        f"{number}P" for number in range(67, 87)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -293,7 +294,7 @@ def test_no_future_sequence_entries_claim_local_evidence_or_authorization():
     assert stages_by_id["84P"]["local_evidence"]["commit"] == "1b5875db2cc0864a7aa02ac80b5b60507ca0a0a6"
     assert stages_by_id["85P"]["status"] == "CLOSED_COMMITTED"
     assert stages_by_id["85P"]["local_evidence"]["commit"] == "95e23e5438812328f804ba026095237d17f1bf72"
-    assert "86P" not in stages_by_id
+    assert stages_by_id["86P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
@@ -1013,7 +1014,7 @@ def test_85p_is_hermes_profile_rebase_closed_committed_and_self_referenced():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local Hermes profile and Roboticxs SOUL rebase baseline. 86P is next eligible for story/spec work only; do not infer 86P implementation, 87P, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local Hermes profile and Roboticxs SOUL rebase baseline. 86P is implemented pending review; do not infer 87P or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["85P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -1038,7 +1039,48 @@ def test_85p_transition_selects_86p_without_runtime_authorization():
     }
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
-    assert "86P" not in stages_by_id
+    assert stages_by_id["86P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+
+
+def test_86p_is_hermes_real_settings_baseline_implemented_pending_review_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["86P"] == {
+        "stage_id": "86P",
+        "stage_name": "Hermes Real Settings Baseline v0",
+        "status": "IMPLEMENTED_PENDING_REVIEW",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "pending_86P_review_commit",
+            "paths": [
+                "docs/research/HERMES_REAL_SETTINGS_BASELINE_v0_1.md",
+                "docs/reference/ROBOTICXS_HERMES_CONFIG_CONTRACT_v0_1.md",
+                "tests/test_hermes_real_settings_baseline.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Review the verified Hermes settings baseline and config contract. 87P is not authorized; no NEXT_ELIGIBLE stage exists without explicit maintainer direction.",
+    }
+    for path in stages_by_id["86P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_86p_transition_does_not_authorize_87p_or_next_eligible():
+    transition = load_json_block("stage-86p-implementation-transition")
+
+    assert transition == {
+        "closeout_status": "IMPLEMENTED_PENDING_REVIEW",
+        "commit": "pending_86P_review_commit",
+        "commit_message": "docs: add hermes real settings baseline",
+        "after_commit_next_eligible": None,
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+    assert "87P" not in stages_by_id
 
 
 def test_sequencing_rules_preserve_story_spec_build_and_validation_gates():

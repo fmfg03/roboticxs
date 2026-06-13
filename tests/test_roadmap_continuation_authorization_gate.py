@@ -214,7 +214,11 @@ def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
         '"stage_id":"85P","stage_name":"Hermes Profile / Roboticxs SOUL Rebase v0","status":"CLOSED_COMMITTED"'
         in roadmap_text
     )
-    assert '"stage_id":"86P"' not in roadmap_text
+    assert (
+        '"stage_id":"86P","stage_name":"Hermes Real Settings Baseline v0","status":"IMPLEMENTED_PENDING_REVIEW"'
+        in roadmap_text
+    )
+    assert '"stage_id":"87P"' not in roadmap_text
     assert '"status":"NEXT_ELIGIBLE"' not in roadmap_text
     assert '"after_commit_next_eligible":null' in roadmap_text
     assert "No next implementation stage is authorized until a maintainer explicitly chooses one." in roadmap_text

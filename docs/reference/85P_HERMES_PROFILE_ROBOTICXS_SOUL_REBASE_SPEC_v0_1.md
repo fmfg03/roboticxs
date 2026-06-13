@@ -136,7 +136,7 @@ Tests must assert:
 
 - 84P is closed committed before 85P begins.
 - 85P docs make 85P the only authorized current stage.
-- 86P+ are listed as proposed/future only.
+- At 85P approval time, 86P+ are listed as proposed/future only.
 - Tests reject SOUL pollution.
 - Tests reject sandbox overclaiming.
 - Tests reject safety overclaiming.

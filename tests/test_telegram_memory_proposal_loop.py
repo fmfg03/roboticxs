@@ -643,5 +643,6 @@ def test_roadmap_marks_84p_closed_and_85p_pending_without_inventing_86p():
     assert '"stage_id":"84P","stage_name":"Active Memory Forget over Telegram v0","status":"CLOSED_COMMITTED"' in text
     assert '"docs/reference/TELEGRAM_ACTIVE_MEMORY_FORGET_v0_1.md"' in text
     assert '"stage_id":"85P","stage_name":"Hermes Profile / Roboticxs SOUL Rebase v0","status":"CLOSED_COMMITTED"' in text
-    assert '"stage_id":"86P"' not in text
+    assert '"stage_id":"86P","stage_name":"Hermes Real Settings Baseline v0","status":"IMPLEMENTED_PENDING_REVIEW"' in text
+    assert '"stage_id":"87P"' not in text
     assert '"status":"NEXT_ELIGIBLE"' not in text
