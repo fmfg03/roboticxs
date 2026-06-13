@@ -4,7 +4,7 @@
 
 This document materializes the maintainer-approved forward-looking roadmap for Roboticxs.
 
-It is the controlling roadmap for future stage sequencing after Stage 76P. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
+It is the controlling roadmap for future stage sequencing after Stage 77P. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
 
 ## Source of authority
 
@@ -13,7 +13,7 @@ The forward sequence comes from explicit maintainer direction in the maintainer-
 ```json canonical-roadmap-authority
 {
   "authority_source":"maintainer_approved_chatgpt_web_planning_thread",
-  "local_evidence_scope":"stages_61P_through_76P",
+  "local_evidence_scope":"stages_61P_through_77P",
   "forward_sequence_source":"explicit_maintainer_direction",
   "runtime_truth_source":"local_repo",
   "roadmap_inclusion_authorizes_implementation":false
@@ -41,8 +41,9 @@ The repository confirms these fixed baselines:
 - 74P adds ECC Knowledge Compiler Factory Skill v0 as local non-authoritative knowledge compilation packet preparation only.
 - 75P parks Agent-Reach as a research-only external reach capability assessment without runtime integration.
 - 76P parks VoxCPM and VoxCPM2 as research-only voice-model candidates without runtime integration.
+- 77P adds a roadmap continuation authorization gate without selecting the next implementation stage.
 
-No local implementation evidence is claimed for any stage after 76P.
+No local implementation evidence is claimed for any stage after 77P.
 
 ## Canonical stage registry
 
@@ -64,7 +65,8 @@ No local implementation evidence is claimed for any stage after 76P.
   {"stage_id":"73P","stage_name":"Understand-Anything + codegraph Factory Skill","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_73P_closeout","paths":["app/repo_understanding.py","docs/reference/REPO_UNDERSTANDING_FACTORY_SKILL_v0_1.md","tests/test_repo_understanding.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local repo-understanding packet baseline; no code execution, dependency install, repo clone, MCP server, external tool activation, network access, persistent index, raw source archive, security certification, correctness claim, or 74P behavior is authorized."},
   {"stage_id":"74P","stage_name":"ECC Knowledge Compiler Factory Skill","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_74P_closeout","paths":["app/ecc_knowledge_compiler.py","docs/reference/ECC_KNOWLEDGE_COMPILER_FACTORY_SKILL_v0_1.md","tests/test_ecc_knowledge_compiler.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local ECC knowledge compilation packet baseline; no memory writes, proposed-memory writes, retrieval, connectors, network access, user-facing commands, canon auto-apply, or truth conversion is authorized."},
   {"stage_id":"75P","stage_name":"Agent-Reach Research Parking Lot","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_75P_closeout","paths":["docs/research/AGENT_REACH_RESEARCH_PARKING_LOT_v0_1.md","tests/test_agent_reach_research_parking_lot.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Agent-Reach research parking-lot baseline; no runtime dependency, connector, live retrieval, memory ingestion, automatic source scanning, scraping, cookies, credentials, MCP config, user-facing command, or product support claim is authorized."},
-  {"stage_id":"76P","stage_name":"VoxCPM Research Parking Lot","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_76P_closeout","paths":["docs/research/VOXCPM_RESEARCH_PARKING_LOT_v0_1.md","tests/test_voxcpm_research_parking_lot.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local VoxCPM research parking-lot baseline; no dependency, model download, inference, audio generation, voice cloning, audio storage, Telegram voice handling, connector, MCP config, user-facing command, or product support claim is authorized."}
+  {"stage_id":"76P","stage_name":"VoxCPM Research Parking Lot","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_76P_closeout","paths":["docs/research/VOXCPM_RESEARCH_PARKING_LOT_v0_1.md","tests/test_voxcpm_research_parking_lot.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local VoxCPM research parking-lot baseline; no dependency, model download, inference, audio generation, voice cloning, audio storage, Telegram voice handling, connector, MCP config, user-facing command, or product support claim is authorized."},
+  {"stage_id":"77P","stage_name":"Roadmap Continuation Authorization Gate v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_77P_closeout","paths":["docs/reference/ROADMAP_CONTINUATION_AUTHORIZATION_GATE_v0_1.md","tests/test_roadmap_continuation_authorization_gate.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local roadmap continuation authorization gate; no next implementation stage, 78P, runtime change, product feature, staging, or commit is authorized without explicit maintainer approval."}
 ]
 ```
 
@@ -313,20 +315,36 @@ The stage registry records the 76P closeout sequence state. No local next eligib
 }
 ```
 
-The 76P closeout parks VoxCPM and VoxCPM2 as research-only voice-model candidates. It does not authorize dependency installation, model download, model weights, inference, TTS execution, audio generation, voice design, voice cloning, speaker identification, speaker authentication, Telegram voice handling, audio upload handling, raw audio storage, generated audio storage, durable transcript storage, background listening, streaming audio runtime, local web demos, serving endpoints, CUDA/PyTorch/vLLM/Nano-vLLM/ModelScope/Hugging Face integration, connectors, MCP configuration, external APIs, user-facing commands, product support claims, automatic roadmap promotion, or any 77P behavior.
+The 76P closeout parks VoxCPM and VoxCPM2 as research-only voice-model candidates. It does not authorize dependency installation, model download, model weights, inference, TTS execution, audio generation, voice design, voice cloning, speaker identification, speaker authentication, Telegram voice handling, audio upload handling, raw audio storage, generated audio storage, durable transcript storage, background listening, streaming audio runtime, local web demos, serving endpoints, CUDA/PyTorch/vLLM/Nano-vLLM/ModelScope/Hugging Face integration, connectors, MCP configuration, external APIs, user-facing commands, product support claims, automatic roadmap promotion, or any implementation-stage behavior. It permits 77P roadmap continuation authorization gate story/spec/build only after explicit maintainer approval.
+
+## Stage 77P completion transition
+
+The stage registry records the 77P closeout sequence state. No local next eligible implementation stage is authorized after 77P.
+
+```json stage-77p-completion-transition
+{
+  "closeout_status":"COMPLETED_FIXED_BASELINE",
+  "after_commit_status":"COMPLETED_FIXED_BASELINE",
+  "after_commit_next_eligible":null,
+  "transition_requires_commit":true,
+  "implementation_authorized":false
+}
+```
+
+No next implementation stage is authorized until a maintainer explicitly chooses one. The 77P closeout does not create 78P as `NEXT_ELIGIBLE`, does not authorize product features, does not authorize runtime changes, does not promote research parking lots to runtime, does not convert candidate examples into canon, and does not grant staging or commit authority.
 
 ## Sequencing and authorization rules
 
 ```json roadmap-sequencing-rules
 [
-  "no_stage_is_next_eligible_after_76P_without_explicit_maintainer_direction",
+  "no_stage_is_next_eligible_after_77P_without_explicit_maintainer_direction",
   "eligibility_permits_story_drafting_only",
   "roadmap_inclusion_never_authorizes_implementation",
   "every_stage_requires_story_approval",
   "every_stage_requires_technical_spec_approval",
   "runtime_implementation_requires_separately_approved_scoped_build_tests_and_validation",
-  "stage_76P_is_completed_after_approved_docs_tests_closeout",
-  "do_not_invent_77P_without_explicit_maintainer_direction_in_repo_evidence",
+  "stage_77P_is_completed_after_approved_docs_tests_closeout",
+  "do_not_invent_78P_without_explicit_maintainer_direction_in_repo_evidence",
   "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
   "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence"
 ]

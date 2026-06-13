@@ -51,14 +51,14 @@ REQUIRED_DEFERRED_IDS = {
     "voxcpm",
 }
 REQUIRED_SEQUENCE_RULES = {
-    "no_stage_is_next_eligible_after_76P_without_explicit_maintainer_direction",
+    "no_stage_is_next_eligible_after_77P_without_explicit_maintainer_direction",
     "eligibility_permits_story_drafting_only",
     "roadmap_inclusion_never_authorizes_implementation",
     "every_stage_requires_story_approval",
     "every_stage_requires_technical_spec_approval",
     "runtime_implementation_requires_separately_approved_scoped_build_tests_and_validation",
-    "stage_76P_is_completed_after_approved_docs_tests_closeout",
-    "do_not_invent_77P_without_explicit_maintainer_direction_in_repo_evidence",
+    "stage_77P_is_completed_after_approved_docs_tests_closeout",
+    "do_not_invent_78P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -75,6 +75,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "74P": ("COMPLETED_FIXED_BASELINE", "ECC Knowledge Compiler Factory Skill"),
     "75P": ("COMPLETED_FIXED_BASELINE", "Agent-Reach Research Parking Lot"),
     "76P": ("COMPLETED_FIXED_BASELINE", "VoxCPM Research Parking Lot"),
+    "77P": ("COMPLETED_FIXED_BASELINE", "Roadmap Continuation Authorization Gate v0"),
 }
 
 
@@ -97,19 +98,19 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_76P",
+        "local_evidence_scope": "stages_61P_through_77P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
     }
 
 
-def test_stage_registry_contains_ordered_61p_through_66p2_and_76p_once():
+def test_stage_registry_contains_ordered_61p_through_66p2_and_77p_once():
     stages = load_stage_registry()
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 77)
+        f"{number}P" for number in range(67, 78)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -272,7 +273,7 @@ def test_required_final_sequence_after_66p_is_encoded_exactly():
 def test_no_future_sequence_entries_claim_local_evidence_or_authorization():
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
-    assert "77P" not in stages_by_id
+    assert "78P" not in stages_by_id
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
@@ -639,7 +640,7 @@ def test_76p_is_voxcpm_research_parking_lot_only_and_self_referenced():
     }
 
 
-def test_76p_transition_does_not_invent_77p():
+def test_76p_transition_points_to_77p_governance_gate():
     stages = load_stage_registry()
     transition = load_json_block("stage-76p-completion-transition")
 
@@ -651,7 +652,43 @@ def test_76p_transition_does_not_invent_77p():
         "implementation_authorized": False,
     }
     assert [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"] == []
-    assert "77P" not in {stage["stage_id"] for stage in stages}
+
+
+def test_77p_is_roadmap_continuation_authorization_gate_only_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["77P"] == {
+        "stage_id": "77P",
+        "stage_name": "Roadmap Continuation Authorization Gate v0",
+        "status": "COMPLETED_FIXED_BASELINE",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "same_commit_as_77P_closeout",
+            "paths": [
+                "docs/reference/ROADMAP_CONTINUATION_AUTHORIZATION_GATE_v0_1.md",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local roadmap continuation authorization gate; no next implementation stage, 78P, runtime change, product feature, staging, or commit is authorized without explicit maintainer approval.",
+    }
+
+
+def test_77p_transition_does_not_invent_78p():
+    stages = load_stage_registry()
+    transition = load_json_block("stage-77p-completion-transition")
+
+    assert transition == {
+        "closeout_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_next_eligible": None,
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    assert [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"] == []
+    assert "78P" not in {stage["stage_id"] for stage in stages}
 
 
 def test_sequencing_rules_preserve_story_spec_build_and_validation_gates():
