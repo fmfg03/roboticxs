@@ -351,5 +351,6 @@ def test_roadmap_marks_73p_completed_and_74p_next_after_closeout():
     assert '"app/repo_understanding.py"' in text
     assert '"docs/reference/REPO_UNDERSTANDING_FACTORY_SKILL_v0_1.md"' in text
     assert '"tests/test_repo_understanding.py"' in text
-    assert '"stage_id":"74P","stage_name":"ECC Knowledge Compiler Factory Skill","status":"NEXT_ELIGIBLE"' in text
-    assert '"after_commit_next_eligible":"74P"' in text
+    assert '"stage_id":"74P","stage_name":"ECC Knowledge Compiler Factory Skill","status":"COMPLETED_FIXED_BASELINE"' in text
+    assert '"stage_id":"75P","stage_name":"Agent-Reach Research Parking Lot","status":"NEXT_ELIGIBLE"' in text
+    assert '"after_commit_next_eligible":"75P"' in text

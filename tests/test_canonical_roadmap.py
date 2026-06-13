@@ -52,13 +52,13 @@ REQUIRED_DEFERRED_IDS = {
 }
 REQUIRED_SEQUENCE_RULES = {
     "exactly_one_stage_may_be_next_eligible",
-    "sole_next_eligible_stage_is_74P",
+    "sole_next_eligible_stage_is_75P",
     "eligibility_permits_story_drafting_only",
     "roadmap_inclusion_never_authorizes_implementation",
     "every_stage_requires_story_approval",
     "every_stage_requires_technical_spec_approval",
     "runtime_implementation_requires_separately_approved_scoped_build_tests_and_validation",
-    "stages_75P_through_76P_remain_unopened_until_74P_closes_or_explicit_maintainer_direction_changes_the_canon",
+    "stage_76P_remains_unopened_until_75P_closes_or_explicit_maintainer_direction_changes_the_canon",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -72,8 +72,8 @@ EXPECTED_FINAL_SEQUENCE = {
     "71P": ("COMPLETED_FIXED_BASELINE", "Voice Intake for Caregiver Routines"),
     "72P": ("COMPLETED_FIXED_BASELINE", "Research Radar / Last30Days Skill"),
     "73P": ("COMPLETED_FIXED_BASELINE", "Understand-Anything + codegraph Factory Skill"),
-    "74P": ("NEXT_ELIGIBLE", "ECC Knowledge Compiler Factory Skill"),
-    "75P": ("SEQUENCE_ENTRY_ONLY", "Agent-Reach Research Parking Lot"),
+    "74P": ("COMPLETED_FIXED_BASELINE", "ECC Knowledge Compiler Factory Skill"),
+    "75P": ("NEXT_ELIGIBLE", "Agent-Reach Research Parking Lot"),
     "76P": ("SEQUENCE_ENTRY_ONLY", "VoxCPM Research Parking Lot"),
 }
 
@@ -97,7 +97,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_73P",
+        "local_evidence_scope": "stages_61P_through_74P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -220,9 +220,9 @@ def test_67p_transition_and_68p_are_the_only_current_sequence_gate():
         "implementation_authorized": False,
     }
     next_eligible = [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"]
-    assert [stage["stage_id"] for stage in next_eligible] == ["74P"]
-    assert next_eligible[0]["stage_name"] == "ECC Knowledge Compiler Factory Skill"
-    assert next_eligible[0]["next_action"] == "Eligible for bounded ECC Knowledge Compiler Factory Skill story drafting only after 73P closes."
+    assert [stage["stage_id"] for stage in next_eligible] == ["75P"]
+    assert next_eligible[0]["stage_name"] == "Agent-Reach Research Parking Lot"
+    assert next_eligible[0]["next_action"] == "Eligible for bounded Agent-Reach research parking-lot story drafting only after 74P closes."
 
 
 def test_68p_transition_and_69p_are_the_only_current_sequence_gate():
@@ -239,9 +239,9 @@ def test_68p_transition_and_69p_are_the_only_current_sequence_gate():
         "implementation_authorized": False,
     }
     next_eligible = [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"]
-    assert [stage["stage_id"] for stage in next_eligible] == ["74P"]
-    assert next_eligible[0]["stage_name"] == "ECC Knowledge Compiler Factory Skill"
-    assert next_eligible[0]["next_action"] == "Eligible for bounded ECC Knowledge Compiler Factory Skill story drafting only after 73P closes."
+    assert [stage["stage_id"] for stage in next_eligible] == ["75P"]
+    assert next_eligible[0]["stage_name"] == "Agent-Reach Research Parking Lot"
+    assert next_eligible[0]["next_action"] == "Eligible for bounded Agent-Reach research parking-lot story drafting only after 74P closes."
 
 
 def test_69p_transition_and_70p_are_the_only_current_sequence_gate():
@@ -258,9 +258,9 @@ def test_69p_transition_and_70p_are_the_only_current_sequence_gate():
         "implementation_authorized": False,
     }
     next_eligible = [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"]
-    assert [stage["stage_id"] for stage in next_eligible] == ["74P"]
-    assert next_eligible[0]["stage_name"] == "ECC Knowledge Compiler Factory Skill"
-    assert next_eligible[0]["next_action"] == "Eligible for bounded ECC Knowledge Compiler Factory Skill story drafting only after 73P closes."
+    assert [stage["stage_id"] for stage in next_eligible] == ["75P"]
+    assert next_eligible[0]["stage_name"] == "Agent-Reach Research Parking Lot"
+    assert next_eligible[0]["next_action"] == "Eligible for bounded Agent-Reach research parking-lot story drafting only after 74P closes."
 
 
 def test_required_final_sequence_after_66p_is_encoded_exactly():
@@ -275,7 +275,7 @@ def test_required_final_sequence_after_66p_is_encoded_exactly():
 def test_future_sequence_entries_do_not_claim_local_evidence_or_authorization():
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
-    for stage_id in [f"{number}P" for number in range(74, 77)]:
+    for stage_id in [f"{number}P" for number in range(75, 77)]:
         stage = stages_by_id[stage_id]
         assert stage["status"] in {"NEXT_ELIGIBLE", "SEQUENCE_ENTRY_ONLY"}
         assert stage["authority_source"] == "explicit_maintainer_direction"
@@ -465,8 +465,8 @@ def test_71p_transition_and_72p_are_the_only_current_sequence_gate():
         "implementation_authorized": False,
     }
     next_eligible = [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"]
-    assert [stage["stage_id"] for stage in next_eligible] == ["74P"]
-    assert next_eligible[0]["stage_name"] == "ECC Knowledge Compiler Factory Skill"
+    assert [stage["stage_id"] for stage in next_eligible] == ["75P"]
+    assert next_eligible[0]["stage_name"] == "Agent-Reach Research Parking Lot"
 
 
 def test_72p_is_research_radar_packet_preparation_only_and_self_referenced():
@@ -506,8 +506,8 @@ def test_72p_transition_and_73p_are_the_only_current_sequence_gate():
         "implementation_authorized": False,
     }
     next_eligible = [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"]
-    assert [stage["stage_id"] for stage in next_eligible] == ["74P"]
-    assert next_eligible[0]["stage_name"] == "ECC Knowledge Compiler Factory Skill"
+    assert [stage["stage_id"] for stage in next_eligible] == ["75P"]
+    assert next_eligible[0]["stage_name"] == "Agent-Reach Research Parking Lot"
 
 
 def test_73p_is_repo_understanding_packet_preparation_only_and_self_referenced():
@@ -547,8 +547,49 @@ def test_73p_transition_and_74p_are_the_only_current_sequence_gate():
         "implementation_authorized": False,
     }
     next_eligible = [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"]
-    assert [stage["stage_id"] for stage in next_eligible] == ["74P"]
-    assert next_eligible[0]["stage_name"] == "ECC Knowledge Compiler Factory Skill"
+    assert [stage["stage_id"] for stage in next_eligible] == ["75P"]
+    assert next_eligible[0]["stage_name"] == "Agent-Reach Research Parking Lot"
+
+
+def test_74p_is_ecc_knowledge_compilation_packet_preparation_only_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["74P"] == {
+        "stage_id": "74P",
+        "stage_name": "ECC Knowledge Compiler Factory Skill",
+        "status": "COMPLETED_FIXED_BASELINE",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "same_commit_as_74P_closeout",
+            "paths": [
+                "app/ecc_knowledge_compiler.py",
+                "docs/reference/ECC_KNOWLEDGE_COMPILER_FACTORY_SKILL_v0_1.md",
+                "tests/test_ecc_knowledge_compiler.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local ECC knowledge compilation packet baseline; no memory writes, proposed-memory writes, retrieval, connectors, network access, user-facing commands, canon auto-apply, or truth conversion is authorized.",
+    }
+
+
+def test_74p_transition_and_75p_are_the_only_current_sequence_gate():
+    stages = load_stage_registry()
+    stages_by_id = {stage["stage_id"]: stage for stage in stages}
+    transition = load_json_block("stage-74p-completion-transition")
+
+    assert stages_by_id["74P"]["status"] == "COMPLETED_FIXED_BASELINE"
+    assert transition == {
+        "closeout_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_next_eligible": "75P",
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    next_eligible = [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"]
+    assert [stage["stage_id"] for stage in next_eligible] == ["75P"]
+    assert next_eligible[0]["stage_name"] == "Agent-Reach Research Parking Lot"
 
 
 def test_sequencing_rules_preserve_story_spec_build_and_validation_gates():

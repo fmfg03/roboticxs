@@ -323,8 +323,8 @@ def test_roadmap_marks_70p_completed_and_71p_next_after_closeout():
     }
     assert stages_by_id["71P"]["status"] == "COMPLETED_FIXED_BASELINE"
     assert stages_by_id["72P"]["status"] == "COMPLETED_FIXED_BASELINE"
-    assert [stage["stage_id"] for stage in next_eligible] == ["74P"]
-    assert next_eligible[0]["stage_name"] == "ECC Knowledge Compiler Factory Skill"
+    assert [stage["stage_id"] for stage in next_eligible] == ["75P"]
+    assert next_eligible[0]["stage_name"] == "Agent-Reach Research Parking Lot"
     assert transition == {
         "closeout_status": "COMPLETED_FIXED_BASELINE",
         "after_commit_status": "COMPLETED_FIXED_BASELINE",
