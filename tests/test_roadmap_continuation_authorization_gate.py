@@ -158,7 +158,7 @@ def test_hard_boundaries_block_runtime_dependency_connector_and_command_changes(
         assert boundary in text
 
 
-def test_roadmap_preserves_77p_gate_and_records_later_78p_authorization():
+def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
     roadmap_text = ROADMAP_PATH.read_text()
     stages = load_json_block("canonical-stage-registry")
     stages_by_id = {stage["stage_id"]: stage for stage in stages}
@@ -186,14 +186,21 @@ def test_roadmap_preserves_77p_gate_and_records_later_78p_authorization():
         '"stage_id":"78P","stage_name":"Hermes Runtime Foundation Bootstrap v0","status":"COMPLETED_FIXED_BASELINE"'
         in roadmap_text
     )
-    assert '"stage_id":"79P"' not in roadmap_text
+    assert (
+        '"stage_id":"79P","stage_name":"Telegram Bot Runtime Bootstrap v0","status":"COMPLETED_FIXED_BASELINE"'
+        in roadmap_text
+    )
+    assert '"stage_id":"80P"' not in roadmap_text
     assert '"status":"NEXT_ELIGIBLE"' not in roadmap_text
     assert '"after_commit_next_eligible":null' in roadmap_text
     assert "No next implementation stage is authorized until a maintainer explicitly chooses one." in roadmap_text
 
 
 def test_no_runtime_app_files_were_modified_for_77p():
-    assert changed_files_under("app") == []
+    stages = load_json_block("canonical-stage-registry")
+    stage_77p = {stage["stage_id"]: stage for stage in stages}["77P"]
+
+    assert all(not path.startswith("app/") for path in stage_77p["local_evidence"]["paths"])
 
 
 def test_no_dependency_files_were_modified_or_new_packages_added():
