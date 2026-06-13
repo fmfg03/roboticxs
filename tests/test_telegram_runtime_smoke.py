@@ -174,7 +174,7 @@ def test_runtime_smoke_boundaries_do_not_add_forbidden_product_behavior():
     assert "connectors." not in runtime_text
 
 
-def test_roadmap_marks_81p_complete_and_later_84p_without_inventing_85p():
+def test_roadmap_marks_81p_complete_and_later_85p_without_inventing_86p():
     text = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"81P","stage_name":"Telegram Runtime Smoke / Manual Bot Wiring v0","status":"COMPLETED_FIXED_BASELINE"' in text
@@ -182,6 +182,7 @@ def test_roadmap_marks_81p_complete_and_later_84p_without_inventing_85p():
     assert '"tests/test_telegram_runtime_smoke.py"' in text
     assert '"stage_id":"82P","stage_name":"Memory Proposal Loop over Telegram v0","status":"COMPLETED_FIXED_BASELINE"' in text
     assert '"stage_id":"83P","stage_name":"Active Memory Recall over Telegram v0","status":"CLOSED_COMMITTED"' in text
-    assert '"stage_id":"84P","stage_name":"Active Memory Forget over Telegram v0","status":"IMPLEMENTED_PENDING_REVIEW"' in text
-    assert '"stage_id":"85P"' not in text
+    assert '"stage_id":"84P","stage_name":"Active Memory Forget over Telegram v0","status":"CLOSED_COMMITTED"' in text
+    assert '"stage_id":"85P","stage_name":"Hermes Profile / Roboticxs SOUL Rebase v0","status":"IMPLEMENTED_PENDING_REVIEW"' in text
+    assert '"stage_id":"86P"' not in text
     assert '"status":"NEXT_ELIGIBLE"' not in text
