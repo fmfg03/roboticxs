@@ -4,7 +4,7 @@
 
 This document materializes the maintainer-approved forward-looking roadmap for Roboticxs.
 
-It is the controlling roadmap for future stage sequencing after Stage 73P. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
+It is the controlling roadmap for future stage sequencing after Stage 76P. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
 
 ## Source of authority
 
@@ -13,7 +13,7 @@ The forward sequence comes from explicit maintainer direction in the maintainer-
 ```json canonical-roadmap-authority
 {
   "authority_source":"maintainer_approved_chatgpt_web_planning_thread",
-  "local_evidence_scope":"stages_61P_through_75P",
+  "local_evidence_scope":"stages_61P_through_76P",
   "forward_sequence_source":"explicit_maintainer_direction",
   "runtime_truth_source":"local_repo",
   "roadmap_inclusion_authorizes_implementation":false
@@ -40,8 +40,9 @@ The repository confirms these fixed baselines:
 - 73P adds Understand-Anything + codegraph Factory Skill v0 as local repo-understanding packet preparation only.
 - 74P adds ECC Knowledge Compiler Factory Skill v0 as local non-authoritative knowledge compilation packet preparation only.
 - 75P parks Agent-Reach as a research-only external reach capability assessment without runtime integration.
+- 76P parks VoxCPM and VoxCPM2 as research-only voice-model candidates without runtime integration.
 
-No local implementation evidence is claimed for stage 76P.
+No local implementation evidence is claimed for any stage after 76P.
 
 ## Canonical stage registry
 
@@ -63,7 +64,7 @@ No local implementation evidence is claimed for stage 76P.
   {"stage_id":"73P","stage_name":"Understand-Anything + codegraph Factory Skill","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_73P_closeout","paths":["app/repo_understanding.py","docs/reference/REPO_UNDERSTANDING_FACTORY_SKILL_v0_1.md","tests/test_repo_understanding.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local repo-understanding packet baseline; no code execution, dependency install, repo clone, MCP server, external tool activation, network access, persistent index, raw source archive, security certification, correctness claim, or 74P behavior is authorized."},
   {"stage_id":"74P","stage_name":"ECC Knowledge Compiler Factory Skill","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_74P_closeout","paths":["app/ecc_knowledge_compiler.py","docs/reference/ECC_KNOWLEDGE_COMPILER_FACTORY_SKILL_v0_1.md","tests/test_ecc_knowledge_compiler.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local ECC knowledge compilation packet baseline; no memory writes, proposed-memory writes, retrieval, connectors, network access, user-facing commands, canon auto-apply, or truth conversion is authorized."},
   {"stage_id":"75P","stage_name":"Agent-Reach Research Parking Lot","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_75P_closeout","paths":["docs/research/AGENT_REACH_RESEARCH_PARKING_LOT_v0_1.md","tests/test_agent_reach_research_parking_lot.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Agent-Reach research parking-lot baseline; no runtime dependency, connector, live retrieval, memory ingestion, automatic source scanning, scraping, cookies, credentials, MCP config, user-facing command, or product support claim is authorized."},
-  {"stage_id":"76P","stage_name":"VoxCPM Research Parking Lot","status":"NEXT_ELIGIBLE","authority_source":"explicit_maintainer_direction","local_evidence":null,"implementation_authorized":false,"next_action":"Eligible for bounded VoxCPM research parking-lot story drafting only after 75P closes."}
+  {"stage_id":"76P","stage_name":"VoxCPM Research Parking Lot","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_76P_closeout","paths":["docs/research/VOXCPM_RESEARCH_PARKING_LOT_v0_1.md","tests/test_voxcpm_research_parking_lot.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local VoxCPM research parking-lot baseline; no dependency, model download, inference, audio generation, voice cloning, audio storage, Telegram voice handling, connector, MCP config, user-facing command, or product support claim is authorized."}
 ]
 ```
 
@@ -298,18 +299,34 @@ The stage registry records the 75P closeout sequence state. Stage 76P is the sol
 
 The 75P closeout parks Agent-Reach as research-only external reach assessment. It does not authorize Agent-Reach installation, runtime dependency use, connector activation, live retrieval, automatic source scanning, scraping, credential or cookie handling, MCP configuration, command routing changes, memory ingestion, retrieval index writes, background monitoring, user-facing commands, product support claims, automatic roadmap promotion, or 76P VoxCPM behavior. It permits 76P bounded VoxCPM research parking-lot story drafting only.
 
+## Stage 76P completion transition
+
+The stage registry records the 76P closeout sequence state. No local next eligible implementation stage is authorized after 76P.
+
+```json stage-76p-completion-transition
+{
+  "closeout_status":"COMPLETED_FIXED_BASELINE",
+  "after_commit_status":"COMPLETED_FIXED_BASELINE",
+  "after_commit_next_eligible":null,
+  "transition_requires_commit":true,
+  "implementation_authorized":false
+}
+```
+
+The 76P closeout parks VoxCPM and VoxCPM2 as research-only voice-model candidates. It does not authorize dependency installation, model download, model weights, inference, TTS execution, audio generation, voice design, voice cloning, speaker identification, speaker authentication, Telegram voice handling, audio upload handling, raw audio storage, generated audio storage, durable transcript storage, background listening, streaming audio runtime, local web demos, serving endpoints, CUDA/PyTorch/vLLM/Nano-vLLM/ModelScope/Hugging Face integration, connectors, MCP configuration, external APIs, user-facing commands, product support claims, automatic roadmap promotion, or any 77P behavior.
+
 ## Sequencing and authorization rules
 
 ```json roadmap-sequencing-rules
 [
-  "exactly_one_stage_may_be_next_eligible",
-  "sole_next_eligible_stage_is_76P",
+  "no_stage_is_next_eligible_after_76P_without_explicit_maintainer_direction",
   "eligibility_permits_story_drafting_only",
   "roadmap_inclusion_never_authorizes_implementation",
   "every_stage_requires_story_approval",
   "every_stage_requires_technical_spec_approval",
   "runtime_implementation_requires_separately_approved_scoped_build_tests_and_validation",
-  "stage_76P_is_next_eligible_after_75P_closes_or_explicit_maintainer_direction_changes_the_canon",
+  "stage_76P_is_completed_after_approved_docs_tests_closeout",
+  "do_not_invent_77P_without_explicit_maintainer_direction_in_repo_evidence",
   "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
   "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence"
 ]

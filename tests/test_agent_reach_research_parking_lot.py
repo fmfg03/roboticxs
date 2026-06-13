@@ -208,5 +208,5 @@ def test_roadmap_marks_75p_complete_and_76p_next_after_closeout():
     assert '"stage_id":"75P","stage_name":"Agent-Reach Research Parking Lot","status":"COMPLETED_FIXED_BASELINE"' in text
     assert '"docs/research/AGENT_REACH_RESEARCH_PARKING_LOT_v0_1.md"' in text
     assert '"tests/test_agent_reach_research_parking_lot.py"' in text
-    assert '"stage_id":"76P","stage_name":"VoxCPM Research Parking Lot","status":"NEXT_ELIGIBLE"' in text
+    assert '"stage_id":"76P","stage_name":"VoxCPM Research Parking Lot","status":"COMPLETED_FIXED_BASELINE"' in text
     assert '"after_commit_next_eligible":"76P"' in text

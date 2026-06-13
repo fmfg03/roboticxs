@@ -257,5 +257,5 @@ def test_roadmap_marks_68p_and_69p_completed_and_70p_next_after_closeout():
     assert '"stage_id":"71P","stage_name":"Voice Intake for Caregiver Routines","status":"COMPLETED_FIXED_BASELINE"' in text
     assert '"stage_id":"72P","stage_name":"Research Radar / Last30Days Skill","status":"COMPLETED_FIXED_BASELINE"' in text
     assert '"stage_id":"74P","stage_name":"ECC Knowledge Compiler Factory Skill","status":"COMPLETED_FIXED_BASELINE"' in text
-    assert '"stage_id":"76P","stage_name":"VoxCPM Research Parking Lot","status":"NEXT_ELIGIBLE"' in text
+    assert '"stage_id":"76P","stage_name":"VoxCPM Research Parking Lot","status":"COMPLETED_FIXED_BASELINE"' in text
     assert '"after_commit_next_eligible":"76P"' in text
