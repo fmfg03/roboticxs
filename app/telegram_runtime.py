@@ -18,6 +18,7 @@ TELEGRAM_CONVERSATION_REPLY = (
 TELEGRAM_EMPTY_TEXT_REPLY = "No recibí texto para procesar."
 TELEGRAM_UNSUPPORTED_REPLY = "Por ahora solo puedo procesar mensajes de texto."
 TELEGRAM_MALFORMED_REPLY = "No pude procesar ese mensaje por ahora."
+TELEGRAM_RUNTIME_WEBHOOK_PATH = "/api/telegram/runtime/webhook"
 
 
 class TelegramRuntimeError(ValueError):
@@ -27,6 +28,17 @@ class TelegramRuntimeError(ValueError):
 @dataclass(frozen=True, slots=True)
 class TelegramBotRuntimeConfig:
     token_configured: bool
+
+
+@dataclass(frozen=True, slots=True)
+class TelegramRuntimeSmokeReadiness:
+    ready: bool
+    runtime_webhook_path: str
+    token_configured: bool
+    webhook_url_configured: bool
+    webhook_url_valid: bool
+    diagnostics: dict[str, object]
+    failure_reasons: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,6 +84,47 @@ class TelegramConversationLoopResult:
 
 def get_telegram_bot_runtime_config(settings: Settings) -> TelegramBotRuntimeConfig:
     return TelegramBotRuntimeConfig(token_configured=bool(settings.telegram_bot_token))
+
+
+def build_telegram_runtime_smoke_readiness(settings: Settings) -> TelegramRuntimeSmokeReadiness:
+    token = settings.telegram_bot_token or ""
+    webhook_url = settings.telegram_public_webhook_url or ""
+    token_configured = bool(token.strip())
+    webhook_url_configured = bool(webhook_url.strip())
+    webhook_url_valid = _is_valid_public_webhook_url(webhook_url, token=token)
+
+    failure_reasons: list[str] = []
+    if not token_configured:
+        failure_reasons.append("telegram_bot_token_missing")
+    if not webhook_url_configured:
+        failure_reasons.append("telegram_public_webhook_url_missing")
+    elif not webhook_url_valid:
+        failure_reasons.append("telegram_public_webhook_url_invalid")
+
+    diagnostics: dict[str, object] = {
+        "stage": "81P",
+        "runtime_webhook_path": TELEGRAM_RUNTIME_WEBHOOK_PATH,
+        "telegram_bot_token": "configured_redacted" if token_configured else "missing",
+        "telegram_public_webhook_url_configured": webhook_url_configured,
+        "telegram_public_webhook_url_valid": webhook_url_valid,
+        "external_telegram_api_call": False,
+        "automatic_webhook_registration": False,
+        "production_deployment": False,
+    }
+    if webhook_url_configured:
+        diagnostics["telegram_public_webhook_url"] = (
+            "redacted_token_in_url" if token and token in webhook_url else webhook_url
+        )
+
+    return TelegramRuntimeSmokeReadiness(
+        ready=not failure_reasons,
+        runtime_webhook_path=TELEGRAM_RUNTIME_WEBHOOK_PATH,
+        token_configured=token_configured,
+        webhook_url_configured=webhook_url_configured,
+        webhook_url_valid=webhook_url_valid,
+        diagnostics=diagnostics,
+        failure_reasons=tuple(failure_reasons),
+    )
 
 
 def parse_telegram_text_update(update: dict) -> TelegramRuntimeMessage:
@@ -323,3 +376,18 @@ def _classify_parse_error(message: str) -> str:
     if "non-empty Telegram text" in message:
         return "empty_text"
     return "malformed_payload"
+
+
+def _is_valid_public_webhook_url(webhook_url: str, *, token: str) -> bool:
+    if not webhook_url:
+        return False
+    normalized = webhook_url.strip()
+    if not normalized.startswith("https://"):
+        return False
+    if not normalized.endswith(TELEGRAM_RUNTIME_WEBHOOK_PATH):
+        return False
+    if token and token in normalized:
+        return False
+    if any(character.isspace() for character in normalized):
+        return False
+    return "." in normalized.removeprefix("https://").split("/", 1)[0]

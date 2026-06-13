@@ -196,7 +196,7 @@ def test_telegram_runtime_document_exists_and_records_boundaries():
         assert boundary in text
 
 
-def test_roadmap_marks_79p_complete_and_later_80p_without_inventing_81p():
+def test_roadmap_marks_79p_complete_and_later_stages_without_inventing_82p():
     text = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"79P","stage_name":"Telegram Bot Runtime Bootstrap v0","status":"COMPLETED_FIXED_BASELINE"' in text
@@ -204,5 +204,6 @@ def test_roadmap_marks_79p_complete_and_later_80p_without_inventing_81p():
     assert '"tests/test_telegram_runtime_bootstrap.py"' in text
     assert '"docs/reference/TELEGRAM_BOT_RUNTIME_BOOTSTRAP_v0_1.md"' in text
     assert '"stage_id":"80P","stage_name":"Telegram Conversation Loop v0","status":"COMPLETED_FIXED_BASELINE"' in text
-    assert '"stage_id":"81P"' not in text
+    assert '"stage_id":"81P","stage_name":"Telegram Runtime Smoke / Manual Bot Wiring v0","status":"COMPLETED_FIXED_BASELINE"' in text
+    assert '"stage_id":"82P"' not in text
     assert '"status":"NEXT_ELIGIBLE"' not in text

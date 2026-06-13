@@ -207,11 +207,12 @@ def test_required_conversation_loop_document_exists_with_decision_text():
         assert required in text
 
 
-def test_roadmap_marks_80p_complete_without_inventing_81p():
+def test_roadmap_marks_80p_complete_and_later_81p_without_inventing_82p():
     text = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"80P","stage_name":"Telegram Conversation Loop v0","status":"COMPLETED_FIXED_BASELINE"' in text
     assert '"docs/reference/TELEGRAM_CONVERSATION_LOOP_v0_1.md"' in text
     assert '"tests/test_telegram_conversation_loop.py"' in text
-    assert '"stage_id":"81P"' not in text
+    assert '"stage_id":"81P","stage_name":"Telegram Runtime Smoke / Manual Bot Wiring v0","status":"COMPLETED_FIXED_BASELINE"' in text
+    assert '"stage_id":"82P"' not in text
     assert '"status":"NEXT_ELIGIBLE"' not in text
