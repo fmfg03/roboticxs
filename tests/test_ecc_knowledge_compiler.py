@@ -257,8 +257,8 @@ def test_roadmap_marks_74p_completed_and_75p_next_after_closeout():
     assert '"app/ecc_knowledge_compiler.py"' in text
     assert '"docs/reference/ECC_KNOWLEDGE_COMPILER_FACTORY_SKILL_v0_1.md"' in text
     assert '"tests/test_ecc_knowledge_compiler.py"' in text
-    assert '"stage_id":"75P","stage_name":"Agent-Reach Research Parking Lot","status":"NEXT_ELIGIBLE"' in text
-    assert '"after_commit_next_eligible":"75P"' in text
+    assert '"stage_id":"76P","stage_name":"VoxCPM Research Parking Lot","status":"NEXT_ELIGIBLE"' in text
+    assert '"after_commit_next_eligible":"76P"' in text
 
 
 def _memory_counts(db) -> dict[str, int]:

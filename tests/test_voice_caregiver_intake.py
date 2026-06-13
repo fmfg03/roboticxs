@@ -395,5 +395,5 @@ def test_roadmap_marks_71p_completed_and_72p_next_after_closeout():
     assert '"tests/test_voice_caregiver_intake.py"' in text
     assert '"stage_id":"72P","stage_name":"Research Radar / Last30Days Skill","status":"COMPLETED_FIXED_BASELINE"' in text
     assert '"stage_id":"74P","stage_name":"ECC Knowledge Compiler Factory Skill","status":"COMPLETED_FIXED_BASELINE"' in text
-    assert '"stage_id":"75P","stage_name":"Agent-Reach Research Parking Lot","status":"NEXT_ELIGIBLE"' in text
-    assert '"after_commit_next_eligible":"75P"' in text
+    assert '"stage_id":"76P","stage_name":"VoxCPM Research Parking Lot","status":"NEXT_ELIGIBLE"' in text
+    assert '"after_commit_next_eligible":"76P"' in text
