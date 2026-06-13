@@ -53,7 +53,7 @@ REQUIRED_DEFERRED_IDS = {
     "voxcpm",
 }
 REQUIRED_SEQUENCE_RULES = {
-    "no_stage_is_next_eligible_after_85P_without_explicit_maintainer_direction",
+    "no_stage_is_next_eligible_after_86P_without_explicit_maintainer_direction",
     "eligibility_permits_story_drafting_only",
     "roadmap_inclusion_never_authorizes_implementation",
     "every_stage_requires_story_approval",
@@ -61,8 +61,9 @@ REQUIRED_SEQUENCE_RULES = {
     "runtime_implementation_requires_separately_approved_scoped_build_tests_and_validation",
     "stage_83P_is_closed_committed_after_metadata_reconciliation",
     "stage_84P_is_closed_committed_after_active_memory_forget_closeout",
-    "stage_85P_is_implemented_pending_review_until_commit_approval",
-    "do_not_invent_86P_without_explicit_maintainer_direction_in_repo_evidence",
+    "stage_85P_is_closed_committed_after_hermes_soul_rebase_closeout",
+    "stage_86P_is_next_eligible_for_story_spec_only_after_85P_closeout",
+    "do_not_invent_87P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -87,7 +88,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "82P": ("COMPLETED_FIXED_BASELINE", "Memory Proposal Loop over Telegram v0"),
     "83P": ("CLOSED_COMMITTED", "Active Memory Recall over Telegram v0"),
     "84P": ("CLOSED_COMMITTED", "Active Memory Forget over Telegram v0"),
-    "85P": ("IMPLEMENTED_PENDING_REVIEW", "Hermes Profile / Roboticxs SOUL Rebase v0"),
+    "85P": ("CLOSED_COMMITTED", "Hermes Profile / Roboticxs SOUL Rebase v0"),
 }
 
 
@@ -290,8 +291,8 @@ def test_no_future_sequence_entries_claim_local_evidence_or_authorization():
     assert stages_by_id["83P"]["local_evidence"]["commit"] == "ef9faeb5ed427e2fe4cc04720a50a0a5eadf4d22"
     assert stages_by_id["84P"]["status"] == "CLOSED_COMMITTED"
     assert stages_by_id["84P"]["local_evidence"]["commit"] == "1b5875db2cc0864a7aa02ac80b5b60507ca0a0a6"
-    assert stages_by_id["85P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
-    assert stages_by_id["85P"]["local_evidence"]["commit"] == "pending_review_not_committed"
+    assert stages_by_id["85P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["85P"]["local_evidence"]["commit"] == "95e23e5438812328f804ba026095237d17f1bf72"
     assert "86P" not in stages_by_id
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
@@ -988,16 +989,17 @@ def test_84p_transition_selects_85p_without_runtime_authorization():
     }
 
 
-def test_85p_is_hermes_profile_rebase_implemented_pending_review_and_self_referenced():
+def test_85p_is_hermes_profile_rebase_closed_committed_and_self_referenced():
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
     assert stages_by_id["85P"] == {
         "stage_id": "85P",
         "stage_name": "Hermes Profile / Roboticxs SOUL Rebase v0",
-        "status": "IMPLEMENTED_PENDING_REVIEW",
+        "status": "CLOSED_COMMITTED",
         "authority_source": "local_repo_evidence",
         "local_evidence": {
-            "commit": "pending_review_not_committed",
+            "commit": "95e23e5438812328f804ba026095237d17f1bf72",
+            "commit_message": "docs: add hermes roboticxs soul rebase",
             "paths": [
                 "runtime/hermes/SOUL.md",
                 "runtime/hermes/AGENTS.md",
@@ -1011,10 +1013,30 @@ def test_85p_is_hermes_profile_rebase_implemented_pending_review_and_self_refere
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Review 85P implementation. Do not infer 86P or NEXT_ELIGIBLE from this pending-review status.",
+        "next_action": "Use as the local Hermes profile and Roboticxs SOUL rebase baseline. 86P is next eligible for story/spec work only; do not infer 86P implementation, 87P, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["85P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
+    result = subprocess.run(
+        ["git", "cat-file", "-e", "95e23e5438812328f804ba026095237d17f1bf72^{commit}"],
+        cwd=REPO_ROOT,
+        check=False,
+    )
+    assert result.returncode == 0
+
+
+def test_85p_transition_selects_86p_without_runtime_authorization():
+    transition = load_json_block("stage-85p-closeout-transition")
+
+    assert transition == {
+        "closeout_status": "CLOSED_COMMITTED",
+        "commit": "95e23e5438812328f804ba026095237d17f1bf72",
+        "commit_message": "docs: add hermes roboticxs soul rebase",
+        "after_commit_next_eligible": "86P",
+        "transition_requires_commit": False,
+        "implementation_authorized": False,
+    }
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
     assert "86P" not in stages_by_id
 

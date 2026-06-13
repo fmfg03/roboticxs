@@ -4,7 +4,7 @@
 
 This document materializes the maintainer-approved forward-looking roadmap for Roboticxs.
 
-It is the controlling roadmap for future stage sequencing after Stage 85P implementation pending review. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
+It is the controlling roadmap for future stage sequencing after Stage 85P closeout. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
 
 ## Source of authority
 
@@ -51,7 +51,7 @@ The repository confirms these fixed baselines:
 - 84P adds Active Memory Forget over Telegram v0 as deterministic active-memory deactivation by ID over Telegram.
 - 85P adds the Hermes Profile / Roboticxs SOUL Rebase v0 as a profile identity and runtime-instruction boundary.
 
-No local implementation evidence is claimed for any stage after 85P.
+No local implementation evidence is claimed for any stage after 85P. Stage 86P is next eligible for story/spec work only and is not implemented.
 
 ## Canonical stage registry
 
@@ -82,7 +82,7 @@ No local implementation evidence is claimed for any stage after 85P.
   {"stage_id":"82P","stage_name":"Memory Proposal Loop over Telegram v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_82P_closeout","paths":["app/telegram_runtime.py","app/main.py","app/memory_service.py","docs/reference/TELEGRAM_MEMORY_PROPOSAL_LOOP_v0_1.md","tests/test_telegram_memory_proposal_loop.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Telegram memory proposal loop baseline; no automatic memory activation, normal-conversation memory extraction, Context Scan, external source scanning, retrieval, connectors, caregiver routines, document/file handling, voice, proactive/background behavior, scheduler, staging, commit, or 83P behavior is authorized."},
   {"stage_id":"83P","stage_name":"Active Memory Recall over Telegram v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"ef9faeb5ed427e2fe4cc04720a50a0a5eadf4d22","commit_message":"feat: add active memory recall over telegram","paths":["app/telegram_runtime.py","app/memory_control.py","docs/reference/TELEGRAM_ACTIVE_MEMORY_RECALL_v0_1.md","tests/test_telegram_memory_proposal_loop.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local active memory recall over Telegram baseline."},
   {"stage_id":"84P","stage_name":"Active Memory Forget over Telegram v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"1b5875db2cc0864a7aa02ac80b5b60507ca0a0a6","commit_message":"feat: add telegram active memory forget","paths":["app/telegram_runtime.py","docs/reference/TELEGRAM_ACTIVE_MEMORY_FORGET_v0_1.md","tests/test_telegram_memory_proposal_loop.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local active memory forget over Telegram baseline."},
-  {"stage_id":"85P","stage_name":"Hermes Profile / Roboticxs SOUL Rebase v0","status":"IMPLEMENTED_PENDING_REVIEW","authority_source":"local_repo_evidence","local_evidence":{"commit":"pending_review_not_committed","paths":["runtime/hermes/SOUL.md","runtime/hermes/AGENTS.md","docs/reference/85P_HERMES_PROFILE_ROBOTICXS_SOUL_REBASE_SPEC_v0_1.md","docs/reference/ROBOTICXS_HERMES_SOUL_v0_1.md","docs/reference/ROBOTICXS_HERMES_PROFILE_REBASE_v0_1.md","tests/test_hermes_soul_contract.py","tests/test_hermes_profile_boundary.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Review 85P implementation. Do not infer 86P or NEXT_ELIGIBLE from this pending-review status."}
+  {"stage_id":"85P","stage_name":"Hermes Profile / Roboticxs SOUL Rebase v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"95e23e5438812328f804ba026095237d17f1bf72","commit_message":"docs: add hermes roboticxs soul rebase","paths":["runtime/hermes/SOUL.md","runtime/hermes/AGENTS.md","docs/reference/85P_HERMES_PROFILE_ROBOTICXS_SOUL_REBASE_SPEC_v0_1.md","docs/reference/ROBOTICXS_HERMES_SOUL_v0_1.md","docs/reference/ROBOTICXS_HERMES_PROFILE_REBASE_v0_1.md","tests/test_hermes_soul_contract.py","tests/test_hermes_profile_boundary.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Hermes profile and Roboticxs SOUL rebase baseline. 86P is next eligible for story/spec work only; do not infer 86P implementation, 87P, or NEXT_ELIGIBLE from this status."}
 ]
 ```
 
@@ -463,9 +463,20 @@ The stage registry records the 84P committed closeout state.
 
 84P adds deterministic active-memory forget commands to the Telegram runtime webhook. It transitions only scoped `ACTIVE` memory to `FORGOTTEN` for the resolved Telegram user and active robot, returns identical safe failure text for missing, inactive, invalid, already-forgotten, and foreign IDs, and extends active memory recall output to include memory IDs. It does not authorize retrieval, Context Scan, connectors, caregiver behavior, document/file handling, voice handling, proactive/background behavior, scheduler, staging, commit authority, 85P, or `NEXT_ELIGIBLE`.
 
-## Stage 85P implementation pending review
+## Stage 85P closeout transition
 
-The stage registry records the 85P implemented pending review state. No local next eligible implementation stage is authorized after 85P implementation pending review.
+The stage registry records the 85P committed closeout state. Stage 86P is next eligible for story/spec work only and is not implemented.
+
+```json stage-85p-closeout-transition
+{
+  "closeout_status":"CLOSED_COMMITTED",
+  "commit":"95e23e5438812328f804ba026095237d17f1bf72",
+  "commit_message":"docs: add hermes roboticxs soul rebase",
+  "after_commit_next_eligible":"86P",
+  "transition_requires_commit":false,
+  "implementation_authorized":false
+}
+```
 
 85P adds the Roboticxs Hermes profile identity boundary. `runtime/hermes/SOUL.md` is identity/style only, `runtime/hermes/AGENTS.md` contains runtime/project instructions, and reference docs preserve the boundary that Hermes profiles are not security sandboxes, Hermes memory is not Roboticxs canonical memory, and Hermes command approval is not Roboticxs business-action authority. It does not authorize Hermes install automation, Telegram gateway changes, model routing, tool interception, automation blueprints, memory center bridge, payment or subscription logic, UI, 86P, or `NEXT_ELIGIBLE`.
 
@@ -473,7 +484,7 @@ The stage registry records the 85P implemented pending review state. No local ne
 
 ```json roadmap-sequencing-rules
 [
-  "no_stage_is_next_eligible_after_85P_without_explicit_maintainer_direction",
+  "no_stage_is_next_eligible_after_86P_without_explicit_maintainer_direction",
   "eligibility_permits_story_drafting_only",
   "roadmap_inclusion_never_authorizes_implementation",
   "every_stage_requires_story_approval",
@@ -481,8 +492,9 @@ The stage registry records the 85P implemented pending review state. No local ne
   "runtime_implementation_requires_separately_approved_scoped_build_tests_and_validation",
   "stage_83P_is_closed_committed_after_metadata_reconciliation",
   "stage_84P_is_closed_committed_after_active_memory_forget_closeout",
-  "stage_85P_is_implemented_pending_review_until_commit_approval",
-  "do_not_invent_86P_without_explicit_maintainer_direction_in_repo_evidence",
+  "stage_85P_is_closed_committed_after_hermes_soul_rebase_closeout",
+  "stage_86P_is_next_eligible_for_story_spec_only_after_85P_closeout",
+  "do_not_invent_87P_without_explicit_maintainer_direction_in_repo_evidence",
   "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
   "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence"
 ]

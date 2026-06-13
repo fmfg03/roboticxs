@@ -211,7 +211,7 @@ def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
         in roadmap_text
     )
     assert (
-        '"stage_id":"85P","stage_name":"Hermes Profile / Roboticxs SOUL Rebase v0","status":"IMPLEMENTED_PENDING_REVIEW"'
+        '"stage_id":"85P","stage_name":"Hermes Profile / Roboticxs SOUL Rebase v0","status":"CLOSED_COMMITTED"'
         in roadmap_text
     )
     assert '"stage_id":"86P"' not in roadmap_text
