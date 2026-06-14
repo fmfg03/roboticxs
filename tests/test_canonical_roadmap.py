@@ -53,7 +53,7 @@ REQUIRED_DEFERRED_IDS = {
     "voxcpm",
 }
 REQUIRED_SEQUENCE_RULES = {
-    "no_stage_is_next_eligible_after_90P_without_explicit_maintainer_direction",
+    "no_stage_is_next_eligible_after_91P_without_explicit_maintainer_direction",
     "eligibility_permits_story_drafting_only",
     "roadmap_inclusion_never_authorizes_implementation",
     "every_stage_requires_story_approval",
@@ -66,8 +66,10 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_87P_is_closed_committed_after_hermes_agent_skills_cron_baseline_closeout",
     "stage_88P_is_closed_committed_after_routine_wake_gate_closeout",
     "stage_89P_is_closed_committed_after_automation_blueprints_closeout",
-    "stage_90P_is_implemented_pending_review_after_command_surface_policy_scope",
-    "do_not_invent_91P_without_explicit_maintainer_direction_in_repo_evidence",
+    "stage_90P_is_closed_committed_after_command_surface_policy_closeout",
+    "stage_91P_is_next_eligible_for_story_spec_only_after_90P_closeout",
+    "do_not_implement_91P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_92P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -97,7 +99,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "87P": ("CLOSED_COMMITTED", "Hermes + Agent Skills + Cron Integration Baseline v0"),
     "88P": ("CLOSED_COMMITTED", "Routine Wake Gate / Zero-Token Preflight v0"),
     "89P": ("CLOSED_COMMITTED", "Roboticxs Automation Blueprints v0"),
-    "90P": ("IMPLEMENTED_PENDING_REVIEW", "Roboticxs Command Surface Policy v0"),
+    "90P": ("CLOSED_COMMITTED", "Roboticxs Command Surface Policy v0"),
 }
 
 
@@ -306,7 +308,7 @@ def test_no_future_sequence_entries_claim_local_evidence_or_authorization():
     assert stages_by_id["87P"]["status"] == "CLOSED_COMMITTED"
     assert stages_by_id["88P"]["status"] == "CLOSED_COMMITTED"
     assert stages_by_id["89P"]["status"] == "CLOSED_COMMITTED"
-    assert stages_by_id["90P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert stages_by_id["90P"]["status"] == "CLOSED_COMMITTED"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
@@ -1200,7 +1202,7 @@ def test_88p_transition_selects_89p_without_implementation_authorization():
     }
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
     assert stages_by_id["89P"]["status"] == "CLOSED_COMMITTED"
-    assert stages_by_id["90P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert stages_by_id["90P"]["status"] == "CLOSED_COMMITTED"
 
 
 def test_89p_is_automation_blueprints_closed_committed_and_self_referenced():
@@ -1229,7 +1231,7 @@ def test_89p_is_automation_blueprints_closed_committed_and_self_referenced():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the Automation Blueprints baseline. 90P - Roboticxs Command Surface Policy v0 - is implemented pending review as docs/spec/tests only; do not infer 91P or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the Automation Blueprints baseline. 90P - Roboticxs Command Surface Policy v0 - is closed committed; do not infer 91P implementation, 92P, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["89P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -1245,26 +1247,28 @@ def test_89p_transition_selects_90p_without_implementation_authorization():
         "commit_message": "docs: add roboticxs automation blueprints",
         "after_commit_next_eligible": "90P",
         "next_eligible_stage_name": "Roboticxs Command Surface Policy v0",
-        "next_eligible_implementation_status": "IMPLEMENTED_PENDING_REVIEW",
-        "stage_91p_and_later_authorized": False,
+        "next_eligible_implementation_status": "CLOSED_COMMITTED",
+        "stage_91p_next_eligible_after_90p_closeout": True,
+        "stage_91p_implemented": False,
+        "stage_92p_and_later_authorized": False,
         "transition_requires_commit": False,
         "implementation_authorized": False,
     }
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
-    assert stages_by_id["90P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert stages_by_id["90P"]["status"] == "CLOSED_COMMITTED"
     assert "91P" not in stages_by_id
 
 
-def test_90p_is_command_surface_policy_pending_review_and_self_referenced():
+def test_90p_is_command_surface_policy_closed_committed_and_self_referenced():
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
     assert stages_by_id["90P"] == {
         "stage_id": "90P",
         "stage_name": "Roboticxs Command Surface Policy v0",
-        "status": "IMPLEMENTED_PENDING_REVIEW",
+        "status": "CLOSED_COMMITTED",
         "authority_source": "local_repo_evidence",
         "local_evidence": {
-            "commit": "pending_review",
+            "commit": "970e6e9014ec6e7b3031a7d3d412004fdebea815",
             "commit_message": "docs: add roboticxs command surface policy",
             "paths": [
                 "docs/reference/ROBOTICXS_COMMAND_SURFACE_POLICY_v0_1.md",
@@ -1280,27 +1284,30 @@ def test_90p_is_command_surface_policy_pending_review_and_self_referenced():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Review and close out 90P. 91P and later are not authorized; do not infer NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the Command Surface Policy baseline. 91P - Skill Activation Scope Guard v0 - is next eligible for story/spec work only and is not implemented; do not infer 92P or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["90P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 
-def test_90p_transition_does_not_authorize_91p_or_next_eligible():
-    transition = load_json_block("stage-90p-implementation-transition")
+def test_90p_closeout_selects_91p_without_implementation_authorization():
+    transition = load_json_block("stage-90p-closeout-transition")
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
     assert transition == {
-        "status": "IMPLEMENTED_PENDING_REVIEW",
-        "commit": "pending_review",
+        "closeout_status": "CLOSED_COMMITTED",
+        "commit": "970e6e9014ec6e7b3031a7d3d412004fdebea815",
         "commit_message": "docs: add roboticxs command surface policy",
-        "after_commit_next_eligible": None,
-        "stage_91p_and_later_authorized": False,
-        "transition_requires_commit": True,
+        "after_commit_next_eligible": "91P",
+        "next_eligible_stage_name": "Skill Activation Scope Guard v0",
+        "next_eligible_implementation_status": "NOT_IMPLEMENTED",
+        "stage_92p_and_later_authorized": False,
+        "transition_requires_commit": False,
         "implementation_authorized": False,
     }
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
     assert "91P" not in stages_by_id
+    assert "92P" not in stages_by_id
 
 
 def test_sequencing_rules_preserve_story_spec_build_and_validation_gates():

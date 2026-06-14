@@ -4,7 +4,7 @@
 
 This document materializes the maintainer-approved forward-looking roadmap for Roboticxs.
 
-It is the controlling roadmap for future stage sequencing after Stage 90P implementation review. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
+It is the controlling roadmap for future stage sequencing after Stage 90P closeout. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
 
 ## Source of authority
 
@@ -56,7 +56,7 @@ The repository confirms these fixed baselines:
 - 89P adds Roboticxs Automation Blueprints v0 as documentation/spec/test installable routine templates with portable Agent Skills packaging and explicit authority boundaries.
 - 90P adds Roboticxs Command Surface Policy v0 as documentation/spec/test command surface governance for consumer-safe aliases, raw Hermes command blocking, Action Packet approval requirements, and operator-only command boundaries.
 
-No local implementation evidence is claimed for any stage after 90P. Stage 89P - Roboticxs Automation Blueprints v0 - is closed committed. Stage 90P - Roboticxs Command Surface Policy v0 - is implemented pending review as docs/spec/tests only. Stage 91P and later are not authorized.
+No local implementation evidence is claimed for any stage after 90P. Stage 89P - Roboticxs Automation Blueprints v0 - is closed committed. Stage 90P - Roboticxs Command Surface Policy v0 - is closed committed. Stage 91P - Skill Activation Scope Guard v0 - is next eligible for story/spec work only and is not implemented. Stage 92P and later are not authorized.
 
 ## Canonical stage registry
 
@@ -91,8 +91,8 @@ No local implementation evidence is claimed for any stage after 90P. Stage 89P -
   {"stage_id":"86P","stage_name":"Hermes Real Settings Baseline v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"efb4f5f","commit_message":"docs: add hermes real settings baseline","paths":["docs/research/HERMES_REAL_SETTINGS_BASELINE_v0_1.md","docs/reference/ROBOTICXS_HERMES_CONFIG_CONTRACT_v0_1.md","tests/test_hermes_real_settings_baseline.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the verified Hermes real-settings baseline and config contract. 87P is closed committed; do not infer 88P implementation, 89P, or NEXT_ELIGIBLE from this status."},
   {"stage_id":"87P","stage_name":"Hermes + Agent Skills + Cron Integration Baseline v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"213a7772aef3a55e03f2284044aba458c752c54e","commit_message":"docs: add hermes agent skills cron baseline","paths":["docs/reference/ROBOTICXS_SKILL_MANIFEST_TO_AGENT_SKILLS_BRIDGE_v0_1.md","docs/reference/ROBOTICXS_HERMES_CRON_ROUTINE_MAPPING_v0_1.md","docs/reference/ROBOTICXS_HERMES_CAPABILITY_SURFACE_AUDIT_v0_1.md","docs/research/HERMES_AGENT_SKILLS_CRON_BASELINE_v0_1.md","tests/test_agent_skills_export_contract.py","tests/test_hermes_cron_routine_mapping.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the Hermes Agent Skills and cron integration baseline. 88P - Routine Wake Gate / Zero-Token Preflight v0 - is closed committed; do not infer 89P implementation, 90P, or NEXT_ELIGIBLE from this status."},
   {"stage_id":"88P","stage_name":"Routine Wake Gate / Zero-Token Preflight v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"590305394f57ccfbc729b895b446b052adbc4e6e","commit_message":"docs: add routine wake gate baseline","paths":["docs/reference/ROBOTICXS_ROUTINE_WAKE_GATE_v0_1.md","docs/reference/ROBOTICXS_ROUTINE_COST_POLICY_v0_1.md","docs/reference/ROBOTICXS_SCRIPT_ONLY_ROUTINES_v0_1.md","runtime/hermes/scripts/examples/file_change_gate.py","runtime/hermes/scripts/examples/http_diff_gate.py","runtime/hermes/scripts/examples/external_flag_gate.py","tests/test_routine_wake_gate.py","tests/test_routine_no_agent_mode.py","tests/test_routine_budget_skip.py","tests/test_routine_context_payload.py","tests/test_routine_silent_is_not_cost_control.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the Routine Wake Gate and Zero-Token Preflight baseline. 89P - Roboticxs Automation Blueprints v0 - is closed committed; do not infer 90P implementation, 91P, or NEXT_ELIGIBLE from this status."},
-  {"stage_id":"89P","stage_name":"Roboticxs Automation Blueprints v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"dc53ef24f2d15ba1d35ce93ec82555e8290dc565","commit_message":"docs: add roboticxs automation blueprints","paths":["docs/reference/ROBOTICXS_AUTOMATION_BLUEPRINTS_v0_1.md","docs/reference/ROBOTICXS_BLUEPRINT_AUTHORITY_BOUNDARIES_v0_1.md","docs/reference/ROBOTICXS_BLUEPRINT_INSTALLATION_CONTRACT_v0_1.md","runtime/hermes/skills/roboticxs-daily-brief/SKILL.md","runtime/hermes/skills/roboticxs-research-radar/SKILL.md","runtime/hermes/skills/roboticxs-caregiver-routine/SKILL.md","tests/test_roboticxs_blueprint_manifest.py","tests/test_roboticxs_blueprint_authority.py","tests/test_roboticxs_blueprint_no_silent_schedule.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the Automation Blueprints baseline. 90P - Roboticxs Command Surface Policy v0 - is implemented pending review as docs/spec/tests only; do not infer 91P or NEXT_ELIGIBLE from this status."},
-  {"stage_id":"90P","stage_name":"Roboticxs Command Surface Policy v0","status":"IMPLEMENTED_PENDING_REVIEW","authority_source":"local_repo_evidence","local_evidence":{"commit":"pending_review","commit_message":"docs: add roboticxs command surface policy","paths":["docs/reference/ROBOTICXS_COMMAND_SURFACE_POLICY_v0_1.md","docs/reference/ROBOTICXS_CONSUMER_COMMAND_ALIASES_v0_1.md","docs/reference/ROBOTICXS_HERMES_RAW_COMMAND_BLOCKLIST_v0_1.md","tests/test_command_surface_policy.py","tests/test_forbidden_hermes_commands.py","tests/test_consumer_command_aliases.py","tests/test_approval_command_packets.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Review and close out 90P. 91P and later are not authorized; do not infer NEXT_ELIGIBLE from this status."}
+  {"stage_id":"89P","stage_name":"Roboticxs Automation Blueprints v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"dc53ef24f2d15ba1d35ce93ec82555e8290dc565","commit_message":"docs: add roboticxs automation blueprints","paths":["docs/reference/ROBOTICXS_AUTOMATION_BLUEPRINTS_v0_1.md","docs/reference/ROBOTICXS_BLUEPRINT_AUTHORITY_BOUNDARIES_v0_1.md","docs/reference/ROBOTICXS_BLUEPRINT_INSTALLATION_CONTRACT_v0_1.md","runtime/hermes/skills/roboticxs-daily-brief/SKILL.md","runtime/hermes/skills/roboticxs-research-radar/SKILL.md","runtime/hermes/skills/roboticxs-caregiver-routine/SKILL.md","tests/test_roboticxs_blueprint_manifest.py","tests/test_roboticxs_blueprint_authority.py","tests/test_roboticxs_blueprint_no_silent_schedule.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the Automation Blueprints baseline. 90P - Roboticxs Command Surface Policy v0 - is closed committed; do not infer 91P implementation, 92P, or NEXT_ELIGIBLE from this status."},
+  {"stage_id":"90P","stage_name":"Roboticxs Command Surface Policy v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"970e6e9014ec6e7b3031a7d3d412004fdebea815","commit_message":"docs: add roboticxs command surface policy","paths":["docs/reference/ROBOTICXS_COMMAND_SURFACE_POLICY_v0_1.md","docs/reference/ROBOTICXS_CONSUMER_COMMAND_ALIASES_v0_1.md","docs/reference/ROBOTICXS_HERMES_RAW_COMMAND_BLOCKLIST_v0_1.md","tests/test_command_surface_policy.py","tests/test_forbidden_hermes_commands.py","tests/test_consumer_command_aliases.py","tests/test_approval_command_packets.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the Command Surface Policy baseline. 91P - Skill Activation Scope Guard v0 - is next eligible for story/spec work only and is not implemented; do not infer 92P or NEXT_ELIGIBLE from this status."}
 ]
 ```
 
@@ -552,7 +552,7 @@ The stage registry records the 88P committed closeout state. Stage 89P - Robotic
 
 ## Stage 89P closeout transition
 
-The stage registry records the 89P committed closeout state. Stage 90P - Roboticxs Command Surface Policy v0 - is implemented pending review as docs/spec/tests only. Stage 91P and later are not authorized.
+The stage registry records the 89P committed closeout state. Stage 90P - Roboticxs Command Surface Policy v0 - is closed committed. Stage 91P - Skill Activation Scope Guard v0 - is next eligible for story/spec work only and is not implemented. Stage 92P and later are not authorized.
 
 ```json stage-89p-closeout-transition
 {
@@ -561,8 +561,10 @@ The stage registry records the 89P committed closeout state. Stage 90P - Robotic
   "commit_message":"docs: add roboticxs automation blueprints",
   "after_commit_next_eligible":"90P",
   "next_eligible_stage_name":"Roboticxs Command Surface Policy v0",
-  "next_eligible_implementation_status":"IMPLEMENTED_PENDING_REVIEW",
-  "stage_91p_and_later_authorized":false,
+  "next_eligible_implementation_status":"CLOSED_COMMITTED",
+  "stage_91p_next_eligible_after_90p_closeout":true,
+  "stage_91p_implemented":false,
+  "stage_92p_and_later_authorized":false,
   "transition_requires_commit":false,
   "implementation_authorized":false
 }
@@ -570,29 +572,31 @@ The stage registry records the 89P committed closeout state. Stage 90P - Robotic
 
 89P defines Roboticxs Automation Blueprints as user-installable `Routine` templates, not silently scheduled cron jobs. Each blueprint must declare name, description, package, inputs, schedule policy, source authorization, wake policy, skill binding, model/budget policy, delivery target, authority boundary, memory sink policy, and confirmation behavior. Recurring blueprints must reference the 88P wake-gate policy where feasible. Blueprint outputs may create `ProposedMemory` candidates but never canonical memory automatically. Hermes remains runtime capability, Agent Skills remains portable packaging, Roboticxs SkillManifest remains product/package/scope authority, and Zaubern-lite remains action authority. 89P does not authorize live Hermes cron execution, production scheduling, gateway changes, actual MCP/plugin activation, UI, 91P, or `NEXT_ELIGIBLE`.
 
-## Stage 90P implementation transition
+## Stage 90P closeout transition
 
-The stage registry records the 90P implemented-pending-review state. Stage 91P and later are not authorized.
+The stage registry records the 90P committed closeout state. Stage 91P - Skill Activation Scope Guard v0 - is next eligible for story/spec work only and is not implemented. Stage 92P and later are not authorized.
 
-```json stage-90p-implementation-transition
+```json stage-90p-closeout-transition
 {
-  "status":"IMPLEMENTED_PENDING_REVIEW",
-  "commit":"pending_review",
+  "closeout_status":"CLOSED_COMMITTED",
+  "commit":"970e6e9014ec6e7b3031a7d3d412004fdebea815",
   "commit_message":"docs: add roboticxs command surface policy",
-  "after_commit_next_eligible":null,
-  "stage_91p_and_later_authorized":false,
-  "transition_requires_commit":true,
+  "after_commit_next_eligible":"91P",
+  "next_eligible_stage_name":"Skill Activation Scope Guard v0",
+  "next_eligible_implementation_status":"NOT_IMPLEMENTED",
+  "stage_92p_and_later_authorized":false,
+  "transition_requires_commit":false,
   "implementation_authorized":false
 }
 ```
 
-90P defines the consumer-safe command surface policy for raw Hermes slash commands, CLI commands, tool controls, model controls, gateway controls, MCP/plugin controls, and dangerous bypass commands. End-user commands must use Roboticxs product language and map to user intent, allowed plan, authority boundary, cost policy, audit log, and safe fallback before exposure. `/approve` and `/deny` require Action Packets for sensitive actions. `/yolo` is never consumer-visible. Hermes capability does not equal Roboticxs permission. Zaubern-lite remains action authority, Cost Governor remains spend/wake authority, and Memory Center remains canonical memory. 90P does not authorize live command routing, runtime gateway changes, production enforcement code, MCP/plugin activation, UI, 91P, or `NEXT_ELIGIBLE`.
+90P defines the consumer-safe command surface policy for raw Hermes slash commands, CLI commands, tool controls, model controls, gateway controls, MCP/plugin controls, and dangerous bypass commands. End-user commands must use Roboticxs product language and map to user intent, allowed plan, authority boundary, cost policy, audit log, and safe fallback before exposure. `/approve` and `/deny` require Action Packets for sensitive actions. `/yolo` is never consumer-visible. Hermes capability does not equal Roboticxs permission. Zaubern-lite remains action authority, Cost Governor remains spend/wake authority, and Memory Center remains canonical memory. 90P does not authorize live command routing, runtime gateway changes, production enforcement code, MCP/plugin activation, UI, 91P implementation, 92P, or `NEXT_ELIGIBLE`.
 
 ## Sequencing and authorization rules
 
 ```json roadmap-sequencing-rules
 [
-  "no_stage_is_next_eligible_after_90P_without_explicit_maintainer_direction",
+  "no_stage_is_next_eligible_after_91P_without_explicit_maintainer_direction",
   "eligibility_permits_story_drafting_only",
   "roadmap_inclusion_never_authorizes_implementation",
   "every_stage_requires_story_approval",
@@ -605,8 +609,10 @@ The stage registry records the 90P implemented-pending-review state. Stage 91P a
   "stage_87P_is_closed_committed_after_hermes_agent_skills_cron_baseline_closeout",
   "stage_88P_is_closed_committed_after_routine_wake_gate_closeout",
   "stage_89P_is_closed_committed_after_automation_blueprints_closeout",
-  "stage_90P_is_implemented_pending_review_after_command_surface_policy_scope",
-  "do_not_invent_91P_without_explicit_maintainer_direction_in_repo_evidence",
+  "stage_90P_is_closed_committed_after_command_surface_policy_closeout",
+  "stage_91P_is_next_eligible_for_story_spec_only_after_90P_closeout",
+  "do_not_implement_91P_without_explicit_maintainer_direction_in_repo_evidence",
+  "do_not_invent_92P_without_explicit_maintainer_direction_in_repo_evidence",
   "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
   "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence"
 ]
