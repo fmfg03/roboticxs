@@ -233,5 +233,5 @@ def test_roadmap_marks_80p_complete_and_later_stages_without_inventing_86p():
     assert '"after_commit_next_eligible":"94P"' in text
     assert '"next_eligible_stage_name":"Telegram MVP on Hermes Gateway v0"' in text
     assert '"stage_id":"93P","stage_name":"Roboticxs Memory Center Bridge v0","status":"CLOSED_COMMITTED"' in text
-    assert '"stage_id":"94P"' not in text
+    assert '"stage_id":"94P","stage_name":"Telegram MVP on Hermes Gateway v0","status":"IMPLEMENTED_PENDING_REVIEW"' in text
     assert '"status":"NEXT_ELIGIBLE"' not in text

@@ -70,8 +70,7 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_91P_is_closed_committed_after_skill_activation_scope_guard_closeout",
     "stage_92P_is_closed_committed_after_tool_authority_guard_closeout",
     "stage_93P_is_closed_committed_after_memory_center_bridge_closeout",
-    "stage_94P_is_next_eligible_for_story_spec_only_after_93P_closeout",
-    "do_not_implement_94P_without_explicit_maintainer_direction_in_repo_evidence",
+    "stage_94P_is_implemented_pending_review_after_maintainer_direction",
     "do_not_invent_95P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
@@ -106,6 +105,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "91P": ("CLOSED_COMMITTED", "Skill Activation Scope Guard v0"),
     "92P": ("CLOSED_COMMITTED", "Hermes Tool Authority Guard v0"),
     "93P": ("CLOSED_COMMITTED", "Roboticxs Memory Center Bridge v0"),
+    "94P": ("IMPLEMENTED_PENDING_REVIEW", "Telegram MVP on Hermes Gateway v0"),
 }
 
 
@@ -128,7 +128,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_93P",
+        "local_evidence_scope": "stages_61P_through_94P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -140,7 +140,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 94)
+        f"{number}P" for number in range(67, 95)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -318,6 +318,7 @@ def test_no_future_sequence_entries_claim_local_evidence_or_authorization():
     assert stages_by_id["91P"]["status"] == "CLOSED_COMMITTED"
     assert stages_by_id["92P"]["status"] == "CLOSED_COMMITTED"
     assert stages_by_id["93P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["94P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
@@ -1418,14 +1419,14 @@ def test_92p_closeout_records_93p_closed_committed_without_94p_implementation():
         "next_eligible_stage_name": "Roboticxs Memory Center Bridge v0",
         "next_eligible_implementation_status": "CLOSED_COMMITTED",
         "stage_94p_next_eligible_after_93p_closeout": True,
-        "stage_94p_implemented": False,
+        "stage_94p_implemented_pending_review": True,
         "stage_95p_and_later_authorized": False,
         "transition_requires_commit": False,
         "implementation_authorized": False,
     }
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
     assert stages_by_id["93P"]["status"] == "CLOSED_COMMITTED"
-    assert "94P" not in stages_by_id
+    assert stages_by_id["94P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
 
 
 def test_93p_is_memory_center_bridge_closed_committed_and_self_referenced():
@@ -1454,13 +1455,13 @@ def test_93p_is_memory_center_bridge_closed_committed_and_self_referenced():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the Memory Center Bridge baseline. 94P - Telegram MVP on Hermes Gateway v0 - is next eligible for story/spec work only and is not implemented; do not infer 95P or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the Memory Center Bridge baseline. 94P - Telegram MVP on Hermes Gateway v0 - is implemented pending review as story/spec/test work only; do not infer 95P or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["93P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 
-def test_93p_closeout_selects_94p_without_implementation_authorization():
+def test_93p_closeout_selects_94p_as_implemented_pending_review_without_future_authorization():
     transition = load_json_block("stage-93p-closeout-transition")
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
@@ -1470,13 +1471,68 @@ def test_93p_closeout_selects_94p_without_implementation_authorization():
         "commit_message": "docs: add memory center bridge",
         "after_commit_next_eligible": "94P",
         "next_eligible_stage_name": "Telegram MVP on Hermes Gateway v0",
-        "next_eligible_implementation_status": "NOT_IMPLEMENTED",
+        "next_eligible_implementation_status": "IMPLEMENTED_PENDING_REVIEW",
+        "stage_94p_implemented_pending_review": True,
         "stage_95p_and_later_authorized": False,
         "transition_requires_commit": False,
         "implementation_authorized": False,
     }
     assert stages_by_id["93P"]["status"] == "CLOSED_COMMITTED"
-    assert "94P" not in stages_by_id
+    assert stages_by_id["94P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+
+
+def test_94p_is_telegram_hermes_gateway_mvp_pending_review_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["94P"] == {
+        "stage_id": "94P",
+        "stage_name": "Telegram MVP on Hermes Gateway v0",
+        "status": "IMPLEMENTED_PENDING_REVIEW",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "same_commit_as_94P_implementation",
+            "commit_message": "docs: add telegram hermes gateway mvp",
+            "paths": [
+                "docs/reference/ROBOTICXS_TELEGRAM_HERMES_GATEWAY_MVP_v0_1.md",
+                "docs/reference/ROBOTICXS_TELEGRAM_GATEWAY_BOUNDARY_v0_1.md",
+                "docs/reference/ROBOTICXS_TELEGRAM_ACTION_PACKET_FLOW_v0_1.md",
+                "docs/reference/ROBOTICXS_TELEGRAM_MEMORY_ROUTINE_FLOW_v0_1.md",
+                "tests/test_telegram_hermes_gateway_mvp.py",
+                "tests/test_telegram_gateway_boundary.py",
+                "tests/test_telegram_action_packet_flow.py",
+                "tests/test_telegram_memory_routine_flow.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the Telegram MVP on Hermes Gateway story/spec/test contract. 95P and later are not authorized; do not infer runtime gateway startup, production Telegram messaging, credentials, UI, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["94P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_94p_implementation_transition_blocks_95p_runtime_and_credentials():
+    transition = load_json_block("stage-94p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "IMPLEMENTED_PENDING_REVIEW",
+        "commit": "same_commit_as_94P_implementation",
+        "commit_message": "docs: add telegram hermes gateway mvp",
+        "implemented_stage": "94P",
+        "implemented_stage_name": "Telegram MVP on Hermes Gateway v0",
+        "stage_95p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "runtime_gateway_start_authorized": False,
+        "production_messaging_authorized": False,
+        "telegram_credentials_authorized": False,
+        "implementation_authorized": False,
+    }
+    assert stages_by_id["94P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert "95P" not in stages_by_id
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
 def test_sequencing_rules_preserve_story_spec_build_and_validation_gates():
