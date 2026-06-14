@@ -70,7 +70,7 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_91P_is_closed_committed_after_skill_activation_scope_guard_closeout",
     "stage_92P_is_closed_committed_after_tool_authority_guard_closeout",
     "stage_93P_is_closed_committed_after_memory_center_bridge_closeout",
-    "stage_94P_is_implemented_pending_review_after_maintainer_direction",
+    "stage_94P_is_closed_committed_after_telegram_hermes_gateway_mvp_closeout",
     "do_not_invent_95P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
@@ -105,7 +105,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "91P": ("CLOSED_COMMITTED", "Skill Activation Scope Guard v0"),
     "92P": ("CLOSED_COMMITTED", "Hermes Tool Authority Guard v0"),
     "93P": ("CLOSED_COMMITTED", "Roboticxs Memory Center Bridge v0"),
-    "94P": ("IMPLEMENTED_PENDING_REVIEW", "Telegram MVP on Hermes Gateway v0"),
+    "94P": ("CLOSED_COMMITTED", "Telegram MVP on Hermes Gateway v0"),
 }
 
 
@@ -318,7 +318,7 @@ def test_no_future_sequence_entries_claim_local_evidence_or_authorization():
     assert stages_by_id["91P"]["status"] == "CLOSED_COMMITTED"
     assert stages_by_id["92P"]["status"] == "CLOSED_COMMITTED"
     assert stages_by_id["93P"]["status"] == "CLOSED_COMMITTED"
-    assert stages_by_id["94P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert stages_by_id["94P"]["status"] == "CLOSED_COMMITTED"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
@@ -1418,15 +1418,14 @@ def test_92p_closeout_records_93p_closed_committed_without_94p_implementation():
         "after_commit_next_eligible": "93P",
         "next_eligible_stage_name": "Roboticxs Memory Center Bridge v0",
         "next_eligible_implementation_status": "CLOSED_COMMITTED",
-        "stage_94p_next_eligible_after_93p_closeout": True,
-        "stage_94p_implemented_pending_review": True,
+        "stage_94p_closed_committed": True,
         "stage_95p_and_later_authorized": False,
         "transition_requires_commit": False,
         "implementation_authorized": False,
     }
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
     assert stages_by_id["93P"]["status"] == "CLOSED_COMMITTED"
-    assert stages_by_id["94P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert stages_by_id["94P"]["status"] == "CLOSED_COMMITTED"
 
 
 def test_93p_is_memory_center_bridge_closed_committed_and_self_referenced():
@@ -1455,13 +1454,13 @@ def test_93p_is_memory_center_bridge_closed_committed_and_self_referenced():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the Memory Center Bridge baseline. 94P - Telegram MVP on Hermes Gateway v0 - is implemented pending review as story/spec/test work only; do not infer 95P or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the Memory Center Bridge baseline. 94P - Telegram MVP on Hermes Gateway v0 - is closed committed as story/spec/test work only; do not infer 95P or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["93P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 
-def test_93p_closeout_selects_94p_as_implemented_pending_review_without_future_authorization():
+def test_93p_closeout_selects_94p_as_closed_committed_without_future_authorization():
     transition = load_json_block("stage-93p-closeout-transition")
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
@@ -1471,26 +1470,26 @@ def test_93p_closeout_selects_94p_as_implemented_pending_review_without_future_a
         "commit_message": "docs: add memory center bridge",
         "after_commit_next_eligible": "94P",
         "next_eligible_stage_name": "Telegram MVP on Hermes Gateway v0",
-        "next_eligible_implementation_status": "IMPLEMENTED_PENDING_REVIEW",
-        "stage_94p_implemented_pending_review": True,
+        "next_eligible_implementation_status": "CLOSED_COMMITTED",
+        "stage_94p_closed_committed": True,
         "stage_95p_and_later_authorized": False,
         "transition_requires_commit": False,
         "implementation_authorized": False,
     }
     assert stages_by_id["93P"]["status"] == "CLOSED_COMMITTED"
-    assert stages_by_id["94P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert stages_by_id["94P"]["status"] == "CLOSED_COMMITTED"
 
 
-def test_94p_is_telegram_hermes_gateway_mvp_pending_review_and_self_referenced():
+def test_94p_is_telegram_hermes_gateway_mvp_closed_committed_and_self_referenced():
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
     assert stages_by_id["94P"] == {
         "stage_id": "94P",
         "stage_name": "Telegram MVP on Hermes Gateway v0",
-        "status": "IMPLEMENTED_PENDING_REVIEW",
+        "status": "CLOSED_COMMITTED",
         "authority_source": "local_repo_evidence",
         "local_evidence": {
-            "commit": "same_commit_as_94P_implementation",
+            "commit": "97777ca68e0443e17236e9858ce350f68ed77864",
             "commit_message": "docs: add telegram hermes gateway mvp",
             "paths": [
                 "docs/reference/ROBOTICXS_TELEGRAM_HERMES_GATEWAY_MVP_v0_1.md",
@@ -1513,16 +1512,16 @@ def test_94p_is_telegram_hermes_gateway_mvp_pending_review_and_self_referenced()
         assert (REPO_ROOT / path).is_file()
 
 
-def test_94p_implementation_transition_blocks_95p_runtime_and_credentials():
-    transition = load_json_block("stage-94p-implementation-transition")
+def test_94p_closeout_transition_blocks_95p_runtime_and_credentials():
+    transition = load_json_block("stage-94p-closeout-transition")
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
     assert transition == {
-        "implementation_status": "IMPLEMENTED_PENDING_REVIEW",
-        "commit": "same_commit_as_94P_implementation",
+        "closeout_status": "CLOSED_COMMITTED",
+        "commit": "97777ca68e0443e17236e9858ce350f68ed77864",
         "commit_message": "docs: add telegram hermes gateway mvp",
-        "implemented_stage": "94P",
-        "implemented_stage_name": "Telegram MVP on Hermes Gateway v0",
+        "closed_stage": "94P",
+        "closed_stage_name": "Telegram MVP on Hermes Gateway v0",
         "stage_95p_and_later_authorized": False,
         "next_eligible_stage": None,
         "runtime_gateway_start_authorized": False,
@@ -1530,7 +1529,7 @@ def test_94p_implementation_transition_blocks_95p_runtime_and_credentials():
         "telegram_credentials_authorized": False,
         "implementation_authorized": False,
     }
-    assert stages_by_id["94P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert stages_by_id["94P"]["status"] == "CLOSED_COMMITTED"
     assert "95P" not in stages_by_id
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
