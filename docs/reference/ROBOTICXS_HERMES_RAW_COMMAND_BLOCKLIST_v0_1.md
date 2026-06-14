@@ -67,4 +67,4 @@ Approving or denying a sensitive action without an Action Packet is consumer-blo
 - no plugin or MCP activation;
 - no model-provider switching implementation;
 - no UI;
-- no 91P or later authorization.
+- no 92P or later authorization.

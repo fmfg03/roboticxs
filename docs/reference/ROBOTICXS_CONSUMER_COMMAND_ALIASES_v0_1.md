@@ -72,4 +72,4 @@ No consumer alias may expose:
 - no Telegram command changes;
 - no gateway changes;
 - no UI;
-- no 91P or later authorization.
+- no 92P or later authorization.

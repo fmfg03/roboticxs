@@ -64,6 +64,6 @@ def test_blocklist_is_reference_only_not_runtime_enforcement():
         "no plugin or MCP activation",
         "no model-provider switching implementation",
         "no UI",
-        "no 91P or later authorization",
+        "no 92P or later authorization",
     ]:
         assert non_claim in text

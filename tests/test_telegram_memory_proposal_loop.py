@@ -653,6 +653,6 @@ def test_roadmap_marks_84p_closed_and_85p_pending_without_inventing_86p():
     assert '"after_commit_next_eligible":"90P"' in text
     assert '"stage_id":"90P","stage_name":"Roboticxs Command Surface Policy v0","status":"CLOSED_COMMITTED"' in text
     assert '"after_commit_next_eligible":"91P"' in text
-    assert '"stage_id":"91P"' not in text
+    assert '"stage_id":"91P","stage_name":"Skill Activation Scope Guard v0","status":"IMPLEMENTED_PENDING_REVIEW"' in text
     assert '"stage_id":"92P"' not in text
     assert '"status":"NEXT_ELIGIBLE"' not in text

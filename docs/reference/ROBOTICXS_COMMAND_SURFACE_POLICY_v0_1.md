@@ -131,4 +131,4 @@ Consumer-visible command labels use Roboticxs product terms:
 - no arbitrary tool enablement;
 - no model-provider switching implementation;
 - no UI;
-- no 91P or later authorization.
+- no 92P or later authorization.

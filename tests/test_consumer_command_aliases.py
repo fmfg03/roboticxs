@@ -18,7 +18,7 @@ def test_consumer_aliases_doc_exists_and_is_reference_only():
         "no Telegram command changes",
         "no gateway changes",
         "no UI",
-        "no 91P or later authorization",
+        "no 92P or later authorization",
     ]:
         assert non_claim in text
 

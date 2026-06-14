@@ -20,7 +20,7 @@ def test_command_surface_policy_doc_exists_and_is_docs_only_90p():
         "no arbitrary tool enablement",
         "no model-provider switching implementation",
         "no UI",
-        "no 91P or later authorization",
+        "no 92P or later authorization",
     ]:
         assert non_claim in text
 
