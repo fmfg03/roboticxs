@@ -65,8 +65,10 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_86P_is_closed_committed_after_hermes_real_settings_baseline_closeout",
     "stage_87P_is_closed_committed_after_hermes_agent_skills_cron_baseline_closeout",
     "stage_88P_is_closed_committed_after_routine_wake_gate_closeout",
-    "stage_89P_is_implemented_pending_review_after_automation_blueprints_baseline",
-    "do_not_invent_90P_without_explicit_maintainer_direction_in_repo_evidence",
+    "stage_89P_is_closed_committed_after_automation_blueprints_closeout",
+    "stage_90P_is_next_eligible_for_story_spec_only_after_89P_closeout",
+    "do_not_implement_90P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_91P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -95,7 +97,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "86P": ("CLOSED_COMMITTED", "Hermes Real Settings Baseline v0"),
     "87P": ("CLOSED_COMMITTED", "Hermes + Agent Skills + Cron Integration Baseline v0"),
     "88P": ("CLOSED_COMMITTED", "Routine Wake Gate / Zero-Token Preflight v0"),
-    "89P": ("IMPLEMENTED_PENDING_REVIEW", "Roboticxs Automation Blueprints v0"),
+    "89P": ("CLOSED_COMMITTED", "Roboticxs Automation Blueprints v0"),
 }
 
 
@@ -303,7 +305,7 @@ def test_no_future_sequence_entries_claim_local_evidence_or_authorization():
     assert stages_by_id["86P"]["status"] == "CLOSED_COMMITTED"
     assert stages_by_id["87P"]["status"] == "CLOSED_COMMITTED"
     assert stages_by_id["88P"]["status"] == "CLOSED_COMMITTED"
-    assert stages_by_id["89P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert stages_by_id["89P"]["status"] == "CLOSED_COMMITTED"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
@@ -1136,14 +1138,14 @@ def test_87p_transition_selects_88p_without_runtime_authorization():
         "after_commit_next_eligible": "88P",
         "next_eligible_stage_name": "Routine Wake Gate / Zero-Token Preflight v0",
         "next_eligible_implementation_status": "CLOSED_COMMITTED",
-        "stage_90p_and_later_authorized": False,
+        "stage_91p_and_later_authorized": False,
         "transition_requires_commit": False,
         "implementation_authorized": False,
     }
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
     assert stages_by_id["88P"]["status"] == "CLOSED_COMMITTED"
-    assert stages_by_id["89P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert stages_by_id["89P"]["status"] == "CLOSED_COMMITTED"
 
 
 def test_88p_is_routine_wake_gate_closed_committed_and_self_referenced():
@@ -1174,7 +1176,7 @@ def test_88p_is_routine_wake_gate_closed_committed_and_self_referenced():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the Routine Wake Gate and Zero-Token Preflight baseline. 89P - Roboticxs Automation Blueprints v0 - is implemented pending review; do not infer 90P or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the Routine Wake Gate and Zero-Token Preflight baseline. 89P - Roboticxs Automation Blueprints v0 - is closed committed; do not infer 90P implementation, 91P, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["88P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -1190,26 +1192,27 @@ def test_88p_transition_selects_89p_without_implementation_authorization():
         "commit_message": "docs: add routine wake gate baseline",
         "after_commit_next_eligible": "89P",
         "next_eligible_stage_name": "Roboticxs Automation Blueprints v0",
-        "next_eligible_implementation_status": "IMPLEMENTED_PENDING_REVIEW",
-        "stage_90p_and_later_authorized": False,
+        "next_eligible_implementation_status": "CLOSED_COMMITTED",
+        "stage_91p_and_later_authorized": False,
         "transition_requires_commit": False,
         "implementation_authorized": False,
     }
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
-    assert stages_by_id["89P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert stages_by_id["89P"]["status"] == "CLOSED_COMMITTED"
     assert "90P" not in stages_by_id
 
 
-def test_89p_is_automation_blueprints_implemented_pending_review_and_self_referenced():
+def test_89p_is_automation_blueprints_closed_committed_and_self_referenced():
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
     assert stages_by_id["89P"] == {
         "stage_id": "89P",
         "stage_name": "Roboticxs Automation Blueprints v0",
-        "status": "IMPLEMENTED_PENDING_REVIEW",
+        "status": "CLOSED_COMMITTED",
         "authority_source": "local_repo_evidence",
         "local_evidence": {
-            "commit": "same_commit_as_89P_implementation",
+            "commit": "dc53ef24f2d15ba1d35ce93ec82555e8290dc565",
+            "commit_message": "docs: add roboticxs automation blueprints",
             "paths": [
                 "docs/reference/ROBOTICXS_AUTOMATION_BLUEPRINTS_v0_1.md",
                 "docs/reference/ROBOTICXS_BLUEPRINT_AUTHORITY_BOUNDARIES_v0_1.md",
@@ -1225,27 +1228,30 @@ def test_89p_is_automation_blueprints_implemented_pending_review_and_self_refere
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the Automation Blueprints baseline. 90P and later are not authorized; do not infer live Hermes cron execution, production scheduling, gateway changes, MCP/plugin activation, UI, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the Automation Blueprints baseline. 90P - Roboticxs Command Surface Policy v0 - is next eligible for story/spec work only and is not implemented; do not infer 91P or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["89P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 
-def test_89p_transition_does_not_authorize_90p_or_next_eligible():
-    transition = load_json_block("stage-89p-implementation-transition")
+def test_89p_transition_selects_90p_without_implementation_authorization():
+    transition = load_json_block("stage-89p-closeout-transition")
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
     assert transition == {
-        "implementation_status": "IMPLEMENTED_PENDING_REVIEW",
-        "commit": "same_commit_as_89P_implementation",
+        "closeout_status": "CLOSED_COMMITTED",
+        "commit": "dc53ef24f2d15ba1d35ce93ec82555e8290dc565",
         "commit_message": "docs: add roboticxs automation blueprints",
-        "after_commit_next_eligible": None,
-        "stage_90p_and_later_authorized": False,
-        "transition_requires_commit": True,
+        "after_commit_next_eligible": "90P",
+        "next_eligible_stage_name": "Roboticxs Command Surface Policy v0",
+        "next_eligible_implementation_status": "NOT_IMPLEMENTED",
+        "stage_91p_and_later_authorized": False,
+        "transition_requires_commit": False,
         "implementation_authorized": False,
     }
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
     assert "90P" not in stages_by_id
+    assert "91P" not in stages_by_id
 
 
 def test_sequencing_rules_preserve_story_spec_build_and_validation_gates():
