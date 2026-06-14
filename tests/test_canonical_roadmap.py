@@ -64,7 +64,7 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_85P_is_closed_committed_after_hermes_soul_rebase_closeout",
     "stage_86P_is_closed_committed_after_hermes_real_settings_baseline_closeout",
     "stage_87P_is_closed_committed_after_hermes_agent_skills_cron_baseline_closeout",
-    "stage_88P_is_next_eligible_for_story_spec_only_after_87P_closeout",
+    "stage_88P_is_implemented_pending_review_after_routine_wake_gate_baseline",
     "do_not_invent_89P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
@@ -93,6 +93,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "85P": ("CLOSED_COMMITTED", "Hermes Profile / Roboticxs SOUL Rebase v0"),
     "86P": ("CLOSED_COMMITTED", "Hermes Real Settings Baseline v0"),
     "87P": ("CLOSED_COMMITTED", "Hermes + Agent Skills + Cron Integration Baseline v0"),
+    "88P": ("IMPLEMENTED_PENDING_REVIEW", "Routine Wake Gate / Zero-Token Preflight v0"),
 }
 
 
@@ -115,7 +116,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_87P",
+        "local_evidence_scope": "stages_61P_through_88P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -127,7 +128,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 88)
+        f"{number}P" for number in range(67, 89)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -298,6 +299,8 @@ def test_no_future_sequence_entries_claim_local_evidence_or_authorization():
     assert stages_by_id["85P"]["status"] == "CLOSED_COMMITTED"
     assert stages_by_id["85P"]["local_evidence"]["commit"] == "95e23e5438812328f804ba026095237d17f1bf72"
     assert stages_by_id["86P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["87P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["88P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
@@ -1088,7 +1091,7 @@ def test_86p_transition_selects_87p_without_runtime_authorization():
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
     assert stages_by_id["87P"]["status"] == "CLOSED_COMMITTED"
-    assert "88P" not in stages_by_id
+    assert stages_by_id["88P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
 
 
 def test_87p_is_hermes_agent_skills_cron_baseline_closed_committed_and_self_referenced():
@@ -1114,7 +1117,7 @@ def test_87p_is_hermes_agent_skills_cron_baseline_closed_committed_and_self_refe
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the Hermes Agent Skills and cron integration baseline. 88P - Routine Wake Gate / Zero-Token Preflight v0 - is next eligible for story/spec work only and is not implemented; do not infer 89P or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the Hermes Agent Skills and cron integration baseline. 88P - Routine Wake Gate / Zero-Token Preflight v0 - is implemented pending review; do not infer 89P or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["87P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -1129,14 +1132,64 @@ def test_87p_transition_selects_88p_without_runtime_authorization():
         "commit_message": "docs: add hermes agent skills cron baseline",
         "after_commit_next_eligible": "88P",
         "next_eligible_stage_name": "Routine Wake Gate / Zero-Token Preflight v0",
-        "next_eligible_implementation_status": "NOT_IMPLEMENTED",
+        "next_eligible_implementation_status": "IMPLEMENTED_PENDING_REVIEW",
         "stage_89p_and_later_authorized": False,
         "transition_requires_commit": False,
         "implementation_authorized": False,
     }
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
-    assert "88P" not in stages_by_id
+    assert stages_by_id["88P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert "89P" not in stages_by_id
+
+
+def test_88p_is_routine_wake_gate_implemented_pending_review_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["88P"] == {
+        "stage_id": "88P",
+        "stage_name": "Routine Wake Gate / Zero-Token Preflight v0",
+        "status": "IMPLEMENTED_PENDING_REVIEW",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "same_commit_as_88P_implementation",
+            "paths": [
+                "docs/reference/ROBOTICXS_ROUTINE_WAKE_GATE_v0_1.md",
+                "docs/reference/ROBOTICXS_ROUTINE_COST_POLICY_v0_1.md",
+                "docs/reference/ROBOTICXS_SCRIPT_ONLY_ROUTINES_v0_1.md",
+                "runtime/hermes/scripts/examples/file_change_gate.py",
+                "runtime/hermes/scripts/examples/http_diff_gate.py",
+                "runtime/hermes/scripts/examples/external_flag_gate.py",
+                "tests/test_routine_wake_gate.py",
+                "tests/test_routine_no_agent_mode.py",
+                "tests/test_routine_budget_skip.py",
+                "tests/test_routine_context_payload.py",
+                "tests/test_routine_silent_is_not_cost_control.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the Routine Wake Gate and Zero-Token Preflight baseline. 89P and later are not authorized; do not infer live Hermes cron execution, gateway changes, production scheduling, MCP/plugin activation, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["88P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_88p_transition_does_not_authorize_89p_or_next_eligible():
+    transition = load_json_block("stage-88p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "IMPLEMENTED_PENDING_REVIEW",
+        "commit": "same_commit_as_88P_implementation",
+        "commit_message": "docs: add routine wake gate baseline",
+        "after_commit_next_eligible": None,
+        "stage_89p_and_later_authorized": False,
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
     assert "89P" not in stages_by_id
 
 
