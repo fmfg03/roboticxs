@@ -53,7 +53,7 @@ REQUIRED_DEFERRED_IDS = {
     "voxcpm",
 }
 REQUIRED_SEQUENCE_RULES = {
-    "no_stage_is_next_eligible_after_87P_without_explicit_maintainer_direction",
+    "no_stage_is_next_eligible_after_88P_without_explicit_maintainer_direction",
     "eligibility_permits_story_drafting_only",
     "roadmap_inclusion_never_authorizes_implementation",
     "every_stage_requires_story_approval",
@@ -63,7 +63,7 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_84P_is_closed_committed_after_active_memory_forget_closeout",
     "stage_85P_is_closed_committed_after_hermes_soul_rebase_closeout",
     "stage_86P_is_closed_committed_after_hermes_real_settings_baseline_closeout",
-    "stage_87P_is_next_eligible_for_story_spec_only_after_86P_closeout",
+    "stage_87P_is_implemented_pending_review_after_hermes_agent_skills_cron_baseline",
     "do_not_invent_88P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
@@ -91,6 +91,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "84P": ("CLOSED_COMMITTED", "Active Memory Forget over Telegram v0"),
     "85P": ("CLOSED_COMMITTED", "Hermes Profile / Roboticxs SOUL Rebase v0"),
     "86P": ("CLOSED_COMMITTED", "Hermes Real Settings Baseline v0"),
+    "87P": ("IMPLEMENTED_PENDING_REVIEW", "Hermes + Agent Skills + Cron Integration Baseline v0"),
 }
 
 
@@ -113,7 +114,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_86P",
+        "local_evidence_scope": "stages_61P_through_87P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -125,7 +126,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 87)
+        f"{number}P" for number in range(67, 88)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -1063,7 +1064,7 @@ def test_86p_is_hermes_real_settings_baseline_closed_committed_and_self_referenc
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the verified Hermes real-settings baseline and config contract. 87P - Hermes + Agent Skills + Cron Integration Baseline v0 - is next eligible for story/spec work only and is not implemented; do not infer 88P or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the verified Hermes real-settings baseline and config contract. 87P is implemented pending review; do not infer 88P or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["86P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -1078,14 +1079,60 @@ def test_86p_transition_selects_87p_without_runtime_authorization():
         "commit_message": "docs: add hermes real settings baseline",
         "after_commit_next_eligible": "87P",
         "next_eligible_stage_name": "Hermes + Agent Skills + Cron Integration Baseline v0",
-        "next_eligible_implementation_status": "NOT_IMPLEMENTED",
+        "next_eligible_implementation_status": "IMPLEMENTED_PENDING_REVIEW",
         "stage_88p_and_later_authorized": False,
         "transition_requires_commit": False,
         "implementation_authorized": False,
     }
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
-    assert "87P" not in stages_by_id
+    assert stages_by_id["87P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert "88P" not in stages_by_id
+
+
+def test_87p_is_hermes_agent_skills_cron_baseline_pending_review_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["87P"] == {
+        "stage_id": "87P",
+        "stage_name": "Hermes + Agent Skills + Cron Integration Baseline v0",
+        "status": "IMPLEMENTED_PENDING_REVIEW",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "pending_87P_commit",
+            "commit_message": "docs: add hermes agent skills cron baseline",
+            "paths": [
+                "docs/reference/ROBOTICXS_SKILL_MANIFEST_TO_AGENT_SKILLS_BRIDGE_v0_1.md",
+                "docs/reference/ROBOTICXS_HERMES_CRON_ROUTINE_MAPPING_v0_1.md",
+                "docs/reference/ROBOTICXS_HERMES_CAPABILITY_SURFACE_AUDIT_v0_1.md",
+                "docs/research/HERMES_AGENT_SKILLS_CRON_BASELINE_v0_1.md",
+                "tests/test_agent_skills_export_contract.py",
+                "tests/test_hermes_cron_routine_mapping.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Review the 87P documentation/spec/test baseline. 88P and later are not authorized; do not infer NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["87P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_87p_transition_does_not_authorize_88p_or_next_eligible():
+    transition = load_json_block("stage-87p-implementation-transition")
+
+    assert transition == {
+        "closeout_status": "IMPLEMENTED_PENDING_REVIEW",
+        "commit": "pending_87P_commit",
+        "commit_message": "docs: add hermes agent skills cron baseline",
+        "after_commit_next_eligible": None,
+        "stage_88p_and_later_authorized": False,
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
     assert "88P" not in stages_by_id
 
 
