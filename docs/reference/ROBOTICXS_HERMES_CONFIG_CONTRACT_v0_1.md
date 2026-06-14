@@ -2,7 +2,7 @@
 
 ## Status
 
-Stage 86P is implemented pending review.
+Stage 86P is closed committed.
 
 This contract translates the verified Hermes settings baseline into Roboticxs planning rules. It is a contract for future implementation review, not an implementation of Hermes configuration loading.
 

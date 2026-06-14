@@ -4,7 +4,7 @@
 
 This document materializes the maintainer-approved forward-looking roadmap for Roboticxs.
 
-It is the controlling roadmap for future stage sequencing after Stage 86P implementation pending review. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
+It is the controlling roadmap for future stage sequencing after Stage 86P closeout. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
 
 ## Source of authority
 
@@ -52,7 +52,7 @@ The repository confirms these fixed baselines:
 - 85P adds the Hermes Profile / Roboticxs SOUL Rebase v0 as a profile identity and runtime-instruction boundary.
 - 86P adds the Hermes Real Settings Baseline v0 as a verified config/reference contract for real Hermes settings and fake-setting rejection.
 
-No local implementation evidence is claimed for any stage after 86P. Stage 87P is not authorized.
+No local implementation evidence is claimed for any stage after 86P. Stage 87P - Hermes + Agent Skills + Cron Integration Baseline v0 - is next eligible for story/spec work only and is not implemented. Stage 88P and later are not authorized.
 
 ## Canonical stage registry
 
@@ -83,8 +83,8 @@ No local implementation evidence is claimed for any stage after 86P. Stage 87P i
   {"stage_id":"82P","stage_name":"Memory Proposal Loop over Telegram v0","status":"COMPLETED_FIXED_BASELINE","authority_source":"local_repo_evidence","local_evidence":{"commit":"same_commit_as_82P_closeout","paths":["app/telegram_runtime.py","app/main.py","app/memory_service.py","docs/reference/TELEGRAM_MEMORY_PROPOSAL_LOOP_v0_1.md","tests/test_telegram_memory_proposal_loop.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Telegram memory proposal loop baseline; no automatic memory activation, normal-conversation memory extraction, Context Scan, external source scanning, retrieval, connectors, caregiver routines, document/file handling, voice, proactive/background behavior, scheduler, staging, commit, or 83P behavior is authorized."},
   {"stage_id":"83P","stage_name":"Active Memory Recall over Telegram v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"ef9faeb5ed427e2fe4cc04720a50a0a5eadf4d22","commit_message":"feat: add active memory recall over telegram","paths":["app/telegram_runtime.py","app/memory_control.py","docs/reference/TELEGRAM_ACTIVE_MEMORY_RECALL_v0_1.md","tests/test_telegram_memory_proposal_loop.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local active memory recall over Telegram baseline."},
   {"stage_id":"84P","stage_name":"Active Memory Forget over Telegram v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"1b5875db2cc0864a7aa02ac80b5b60507ca0a0a6","commit_message":"feat: add telegram active memory forget","paths":["app/telegram_runtime.py","docs/reference/TELEGRAM_ACTIVE_MEMORY_FORGET_v0_1.md","tests/test_telegram_memory_proposal_loop.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local active memory forget over Telegram baseline."},
-  {"stage_id":"85P","stage_name":"Hermes Profile / Roboticxs SOUL Rebase v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"95e23e5438812328f804ba026095237d17f1bf72","commit_message":"docs: add hermes roboticxs soul rebase","paths":["runtime/hermes/SOUL.md","runtime/hermes/AGENTS.md","docs/reference/85P_HERMES_PROFILE_ROBOTICXS_SOUL_REBASE_SPEC_v0_1.md","docs/reference/ROBOTICXS_HERMES_SOUL_v0_1.md","docs/reference/ROBOTICXS_HERMES_PROFILE_REBASE_v0_1.md","tests/test_hermes_soul_contract.py","tests/test_hermes_profile_boundary.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Hermes profile and Roboticxs SOUL rebase baseline. 86P is implemented pending review; do not infer 87P or NEXT_ELIGIBLE from this status."},
-  {"stage_id":"86P","stage_name":"Hermes Real Settings Baseline v0","status":"IMPLEMENTED_PENDING_REVIEW","authority_source":"local_repo_evidence","local_evidence":{"commit":"pending_86P_review_commit","paths":["docs/research/HERMES_REAL_SETTINGS_BASELINE_v0_1.md","docs/reference/ROBOTICXS_HERMES_CONFIG_CONTRACT_v0_1.md","tests/test_hermes_real_settings_baseline.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Review the verified Hermes settings baseline and config contract. 87P is not authorized; no NEXT_ELIGIBLE stage exists without explicit maintainer direction."}
+  {"stage_id":"85P","stage_name":"Hermes Profile / Roboticxs SOUL Rebase v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"95e23e5438812328f804ba026095237d17f1bf72","commit_message":"docs: add hermes roboticxs soul rebase","paths":["runtime/hermes/SOUL.md","runtime/hermes/AGENTS.md","docs/reference/85P_HERMES_PROFILE_ROBOTICXS_SOUL_REBASE_SPEC_v0_1.md","docs/reference/ROBOTICXS_HERMES_SOUL_v0_1.md","docs/reference/ROBOTICXS_HERMES_PROFILE_REBASE_v0_1.md","tests/test_hermes_soul_contract.py","tests/test_hermes_profile_boundary.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Hermes profile and Roboticxs SOUL rebase baseline. 86P is closed committed; do not infer 87P implementation, 88P, or NEXT_ELIGIBLE from this status."},
+  {"stage_id":"86P","stage_name":"Hermes Real Settings Baseline v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"efb4f5f","commit_message":"docs: add hermes real settings baseline","paths":["docs/research/HERMES_REAL_SETTINGS_BASELINE_v0_1.md","docs/reference/ROBOTICXS_HERMES_CONFIG_CONTRACT_v0_1.md","tests/test_hermes_real_settings_baseline.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the verified Hermes real-settings baseline and config contract. 87P - Hermes + Agent Skills + Cron Integration Baseline v0 - is next eligible for story/spec work only and is not implemented; do not infer 88P or NEXT_ELIGIBLE from this status."}
 ]
 ```
 
@@ -482,28 +482,31 @@ The stage registry records the 85P committed closeout state. At 85P closeout, St
 
 85P adds the Roboticxs Hermes profile identity boundary. `runtime/hermes/SOUL.md` is identity/style only, `runtime/hermes/AGENTS.md` contains runtime/project instructions, and reference docs preserve the boundary that Hermes profiles are not security sandboxes, Hermes memory is not Roboticxs canonical memory, and Hermes command approval is not Roboticxs business-action authority. It does not authorize Hermes install automation, Telegram gateway changes, model routing, tool interception, automation blueprints, memory center bridge, payment or subscription logic, UI, 87P, or `NEXT_ELIGIBLE`.
 
-## Stage 86P implementation pending review
+## Stage 86P closeout transition
 
-The stage registry records the 86P implemented-pending-review state. Stage 87P is not authorized.
+The stage registry records the 86P committed closeout state. Stage 87P - Hermes + Agent Skills + Cron Integration Baseline v0 - is next eligible for story/spec work only and is not implemented. Stage 88P and later are not authorized.
 
 ```json stage-86p-implementation-transition
 {
-  "closeout_status":"IMPLEMENTED_PENDING_REVIEW",
-  "commit":"pending_86P_review_commit",
+  "closeout_status":"CLOSED_COMMITTED",
+  "commit":"efb4f5f",
   "commit_message":"docs: add hermes real settings baseline",
-  "after_commit_next_eligible":null,
-  "transition_requires_commit":true,
+  "after_commit_next_eligible":"87P",
+  "next_eligible_stage_name":"Hermes + Agent Skills + Cron Integration Baseline v0",
+  "next_eligible_implementation_status":"NOT_IMPLEMENTED",
+  "stage_88p_and_later_authorized":false,
+  "transition_requires_commit":false,
   "implementation_authorized":false
 }
 ```
 
-86P adds a verified Hermes real-settings research baseline and a Roboticxs Hermes config contract. It records official upstream source evidence for real Hermes config files, environment-variable boundaries, commands, profile behavior, SOUL/AGENTS roles, and rejects fake settings such as `MEMORY_BACKEND`, `SKILLS_WATCH`, `CONTEXT_PRELOAD`, `NOTIFICATION_GATEWAY`, `MEMORY_RETRIEVAL_DEPTH`, `OUTPUT_PATH`, and `HERMES_MAKE_ME_SMARTER`. It preserves that `SOUL.md` is identity/style only, `.env` is for secrets, config files are for non-secret runtime configuration, Hermes profiles are state isolation rather than business authorization, Hermes memory is not Roboticxs canonical memory, Hermes command approval is not Roboticxs business-action authority, Zaubern-lite remains the authority layer, Memory Center remains canonical memory, and Cost Governor remains spend/wake authority. It does not authorize Hermes install automation, Telegram gateway changes, model routing, tool interception, automation blueprints, Memory Center bridge implementation, payment or subscription logic, UI, 87P, or `NEXT_ELIGIBLE`.
+86P adds a verified Hermes real-settings research baseline and a Roboticxs Hermes config contract. It records official upstream source evidence for real Hermes config files, environment-variable boundaries, commands, profile behavior, SOUL/AGENTS roles, and rejects fake settings such as `MEMORY_BACKEND`, `SKILLS_WATCH`, `CONTEXT_PRELOAD`, `NOTIFICATION_GATEWAY`, `MEMORY_RETRIEVAL_DEPTH`, `OUTPUT_PATH`, and `HERMES_MAKE_ME_SMARTER`. It preserves that `SOUL.md` is identity/style only, `.env` is for secrets, config files are for non-secret runtime configuration, Hermes profiles are state isolation rather than business authorization, Hermes memory is not Roboticxs canonical memory, Hermes command approval is not Roboticxs business-action authority, Zaubern-lite remains the authority layer, Memory Center remains canonical memory, and Cost Governor remains spend/wake authority. It does not authorize Hermes install automation, Telegram gateway changes, model routing, tool interception, automation blueprints, Memory Center bridge implementation, payment or subscription logic, UI, 87P implementation, 88P, or `NEXT_ELIGIBLE`.
 
 ## Sequencing and authorization rules
 
 ```json roadmap-sequencing-rules
 [
-  "no_stage_is_next_eligible_after_86P_without_explicit_maintainer_direction",
+  "no_stage_is_next_eligible_after_87P_without_explicit_maintainer_direction",
   "eligibility_permits_story_drafting_only",
   "roadmap_inclusion_never_authorizes_implementation",
   "every_stage_requires_story_approval",
@@ -512,8 +515,9 @@ The stage registry records the 86P implemented-pending-review state. Stage 87P i
   "stage_83P_is_closed_committed_after_metadata_reconciliation",
   "stage_84P_is_closed_committed_after_active_memory_forget_closeout",
   "stage_85P_is_closed_committed_after_hermes_soul_rebase_closeout",
-  "stage_86P_is_implemented_pending_review_after_85P_authorization",
-  "do_not_invent_87P_without_explicit_maintainer_direction_in_repo_evidence",
+  "stage_86P_is_closed_committed_after_hermes_real_settings_baseline_closeout",
+  "stage_87P_is_next_eligible_for_story_spec_only_after_86P_closeout",
+  "do_not_invent_88P_without_explicit_maintainer_direction_in_repo_evidence",
   "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
   "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence"
 ]

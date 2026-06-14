@@ -31,7 +31,7 @@ def test_86p_reference_docs_exist_and_record_verified_upstream_source():
         assert path.is_file()
 
     for required in [
-        "Stage 86P is implemented pending review.",
+        "Stage 86P is closed committed.",
         "https://github.com/NousResearch/hermes-agent",
         "6b76284c7769e0ca80012a5a4b7e22b1cea05b6b",
         "official upstream source",

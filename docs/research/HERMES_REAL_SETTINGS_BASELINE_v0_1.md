@@ -2,7 +2,7 @@
 
 ## Status
 
-Stage 86P is implemented pending review.
+Stage 86P is closed committed.
 
 This is a verified research baseline for Hermes Agent configuration surfaces that Roboticxs may reference later. It is not a runtime integration, dependency install, upstream adoption, gateway change, model-routing change, memory bridge, or product authorization layer.
 
