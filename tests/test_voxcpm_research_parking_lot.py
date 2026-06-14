@@ -230,6 +230,6 @@ def test_roadmap_marks_76p_complete_and_later_gates_without_inventing_86p():
     assert '"after_commit_next_eligible":"88P"' in text
     assert '"stage_id":"88P","stage_name":"Routine Wake Gate / Zero-Token Preflight v0","status":"CLOSED_COMMITTED"' in text
     assert '"after_commit_next_eligible":"89P"' in text
-    assert '"stage_id":"89P"' not in text
+    assert '"stage_id":"89P","stage_name":"Roboticxs Automation Blueprints v0","status":"IMPLEMENTED_PENDING_REVIEW"' in text
     assert '"stage_id":"90P"' not in text
     assert '"status":"NEXT_ELIGIBLE"' not in text

@@ -229,7 +229,7 @@ def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
     assert '"after_commit_next_eligible":"87P"' in roadmap_text
     assert '"after_commit_next_eligible":"88P"' in roadmap_text
     assert '"after_commit_next_eligible":"89P"' in roadmap_text
-    assert '"stage_id":"89P"' not in roadmap_text
+    assert '"stage_id":"89P","stage_name":"Roboticxs Automation Blueprints v0","status":"IMPLEMENTED_PENDING_REVIEW"' in roadmap_text
     assert '"stage_id":"90P"' not in roadmap_text
     assert '"status":"NEXT_ELIGIBLE"' not in roadmap_text
     assert '"after_commit_next_eligible":null' in roadmap_text
