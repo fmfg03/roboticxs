@@ -69,8 +69,7 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_90P_is_closed_committed_after_command_surface_policy_closeout",
     "stage_91P_is_closed_committed_after_skill_activation_scope_guard_closeout",
     "stage_92P_is_closed_committed_after_tool_authority_guard_closeout",
-    "stage_93P_is_next_eligible_for_story_spec_only_after_92P_closeout",
-    "do_not_implement_93P_without_explicit_maintainer_direction_in_repo_evidence",
+    "stage_93P_is_implemented_pending_review_after_memory_center_bridge_work",
     "do_not_invent_94P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
@@ -104,6 +103,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "90P": ("CLOSED_COMMITTED", "Roboticxs Command Surface Policy v0"),
     "91P": ("CLOSED_COMMITTED", "Skill Activation Scope Guard v0"),
     "92P": ("CLOSED_COMMITTED", "Hermes Tool Authority Guard v0"),
+    "93P": ("IMPLEMENTED_PENDING_REVIEW", "Roboticxs Memory Center Bridge v0"),
 }
 
 
@@ -126,7 +126,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_92P",
+        "local_evidence_scope": "stages_61P_through_93P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -138,7 +138,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 93)
+        f"{number}P" for number in range(67, 94)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -315,6 +315,7 @@ def test_no_future_sequence_entries_claim_local_evidence_or_authorization():
     assert stages_by_id["90P"]["status"] == "CLOSED_COMMITTED"
     assert stages_by_id["91P"]["status"] == "CLOSED_COMMITTED"
     assert stages_by_id["92P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["93P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
@@ -1368,7 +1369,7 @@ def test_91p_closeout_selects_92p_closed_committed_without_implementation_author
     }
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
     assert stages_by_id["92P"]["status"] == "CLOSED_COMMITTED"
-    assert "93P" not in stages_by_id
+    assert stages_by_id["93P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
 
 
 def test_92p_is_hermes_tool_authority_guard_closed_committed_and_self_referenced():
@@ -1397,13 +1398,13 @@ def test_92p_is_hermes_tool_authority_guard_closed_committed_and_self_referenced
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the Hermes Tool Authority Guard baseline. 93P - Roboticxs Memory Center Bridge v0 - is next eligible for story/spec work only and is not implemented; do not infer 94P or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the Hermes Tool Authority Guard baseline. 93P - Roboticxs Memory Center Bridge v0 - is implemented pending review; do not infer 94P or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["92P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 
-def test_92p_closeout_selects_93p_without_implementation_authorization():
+def test_92p_closeout_records_93p_pending_review_without_94p_authorization():
     transition = load_json_block("stage-92p-closeout-transition")
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
@@ -1413,13 +1414,63 @@ def test_92p_closeout_selects_93p_without_implementation_authorization():
         "commit_message": "docs: add hermes tool authority guard",
         "after_commit_next_eligible": "93P",
         "next_eligible_stage_name": "Roboticxs Memory Center Bridge v0",
-        "next_eligible_implementation_status": "NOT_IMPLEMENTED",
+        "next_eligible_implementation_status": "IMPLEMENTED_PENDING_REVIEW",
+        "stage_93p_implemented_pending_review": True,
         "stage_94p_and_later_authorized": False,
         "transition_requires_commit": False,
         "implementation_authorized": False,
     }
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
-    assert "93P" not in stages_by_id
+    assert stages_by_id["93P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert "94P" not in stages_by_id
+
+
+def test_93p_is_memory_center_bridge_implemented_pending_review_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["93P"] == {
+        "stage_id": "93P",
+        "stage_name": "Roboticxs Memory Center Bridge v0",
+        "status": "IMPLEMENTED_PENDING_REVIEW",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "pending_review",
+            "commit_message": "docs: add memory center bridge",
+            "paths": [
+                "docs/reference/ROBOTICXS_MEMORY_CENTER_BRIDGE_v0_1.md",
+                "docs/reference/ROBOTICXS_MEMORY_PROJECTION_POLICY_v0_1.md",
+                "docs/reference/ROBOTICXS_MEMORY_WRITEBACK_BOUNDARY_v0_1.md",
+                "docs/reference/ROBOTICXS_MEMORY_CONTEXT_INJECTION_CONTRACT_v0_1.md",
+                "tests/test_memory_center_bridge.py",
+                "tests/test_memory_projection_policy.py",
+                "tests/test_memory_writeback_boundary.py",
+                "tests/test_memory_context_injection_contract.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Review 93P Memory Center Bridge docs/tests. 94P and later remain not authorized; do not infer NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["93P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_93p_implementation_transition_does_not_authorize_94p():
+    transition = load_json_block("stage-93p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "IMPLEMENTED_PENDING_REVIEW",
+        "commit": "pending_review",
+        "commit_message": "docs: add memory center bridge",
+        "stage_94p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    assert stages_by_id["93P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
     assert "94P" not in stages_by_id
 
 

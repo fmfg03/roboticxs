@@ -243,7 +243,7 @@ def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
     assert '"after_commit_next_eligible":"93P"' in roadmap_text
     assert '"next_eligible_stage_name":"Roboticxs Memory Center Bridge v0"' in roadmap_text
     assert '"stage_94p_and_later_authorized":false' in roadmap_text
-    assert '"stage_id":"93P"' not in roadmap_text
+    assert '"stage_id":"93P","stage_name":"Roboticxs Memory Center Bridge v0","status":"IMPLEMENTED_PENDING_REVIEW"' in roadmap_text
     assert '"stage_id":"94P"' not in roadmap_text
     assert '"status":"NEXT_ELIGIBLE"' not in roadmap_text
 
