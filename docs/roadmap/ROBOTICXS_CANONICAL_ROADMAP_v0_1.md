@@ -4,7 +4,7 @@
 
 This document materializes the maintainer-approved forward-looking roadmap for Roboticxs.
 
-It is the controlling roadmap for future stage sequencing after Stage 87P implementation. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
+It is the controlling roadmap for future stage sequencing after Stage 87P closeout. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
 
 ## Source of authority
 
@@ -53,7 +53,7 @@ The repository confirms these fixed baselines:
 - 86P adds the Hermes Real Settings Baseline v0 as a verified config/reference contract for real Hermes settings and fake-setting rejection.
 - 87P adds the Hermes + Agent Skills + Cron Integration Baseline v0 as a documentation/spec/test bridge from Hermes runtime capabilities, Agent Skills packaging, and Hermes cron scheduling to Roboticxs authority layers.
 
-No local implementation evidence is claimed for any stage after 87P. Stage 87P - Hermes + Agent Skills + Cron Integration Baseline v0 - is implemented pending review. Stage 88P and later are not authorized.
+No local implementation evidence is claimed for any stage after 87P. Stage 88P - Routine Wake Gate / Zero-Token Preflight v0 - is next eligible for story/spec work only and is not implemented. Stage 89P and later are not authorized.
 
 ## Canonical stage registry
 
@@ -85,8 +85,8 @@ No local implementation evidence is claimed for any stage after 87P. Stage 87P -
   {"stage_id":"83P","stage_name":"Active Memory Recall over Telegram v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"ef9faeb5ed427e2fe4cc04720a50a0a5eadf4d22","commit_message":"feat: add active memory recall over telegram","paths":["app/telegram_runtime.py","app/memory_control.py","docs/reference/TELEGRAM_ACTIVE_MEMORY_RECALL_v0_1.md","tests/test_telegram_memory_proposal_loop.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local active memory recall over Telegram baseline."},
   {"stage_id":"84P","stage_name":"Active Memory Forget over Telegram v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"1b5875db2cc0864a7aa02ac80b5b60507ca0a0a6","commit_message":"feat: add telegram active memory forget","paths":["app/telegram_runtime.py","docs/reference/TELEGRAM_ACTIVE_MEMORY_FORGET_v0_1.md","tests/test_telegram_memory_proposal_loop.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local active memory forget over Telegram baseline."},
   {"stage_id":"85P","stage_name":"Hermes Profile / Roboticxs SOUL Rebase v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"95e23e5438812328f804ba026095237d17f1bf72","commit_message":"docs: add hermes roboticxs soul rebase","paths":["runtime/hermes/SOUL.md","runtime/hermes/AGENTS.md","docs/reference/85P_HERMES_PROFILE_ROBOTICXS_SOUL_REBASE_SPEC_v0_1.md","docs/reference/ROBOTICXS_HERMES_SOUL_v0_1.md","docs/reference/ROBOTICXS_HERMES_PROFILE_REBASE_v0_1.md","tests/test_hermes_soul_contract.py","tests/test_hermes_profile_boundary.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Hermes profile and Roboticxs SOUL rebase baseline. 86P is closed committed; do not infer 87P implementation, 88P, or NEXT_ELIGIBLE from this status."},
-  {"stage_id":"86P","stage_name":"Hermes Real Settings Baseline v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"efb4f5f","commit_message":"docs: add hermes real settings baseline","paths":["docs/research/HERMES_REAL_SETTINGS_BASELINE_v0_1.md","docs/reference/ROBOTICXS_HERMES_CONFIG_CONTRACT_v0_1.md","tests/test_hermes_real_settings_baseline.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the verified Hermes real-settings baseline and config contract. 87P is implemented pending review; do not infer 88P or NEXT_ELIGIBLE from this status."},
-  {"stage_id":"87P","stage_name":"Hermes + Agent Skills + Cron Integration Baseline v0","status":"IMPLEMENTED_PENDING_REVIEW","authority_source":"local_repo_evidence","local_evidence":{"commit":"pending_87P_commit","commit_message":"docs: add hermes agent skills cron baseline","paths":["docs/reference/ROBOTICXS_SKILL_MANIFEST_TO_AGENT_SKILLS_BRIDGE_v0_1.md","docs/reference/ROBOTICXS_HERMES_CRON_ROUTINE_MAPPING_v0_1.md","docs/reference/ROBOTICXS_HERMES_CAPABILITY_SURFACE_AUDIT_v0_1.md","docs/research/HERMES_AGENT_SKILLS_CRON_BASELINE_v0_1.md","tests/test_agent_skills_export_contract.py","tests/test_hermes_cron_routine_mapping.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Review the 87P documentation/spec/test baseline. 88P and later are not authorized; do not infer NEXT_ELIGIBLE from this status."}
+  {"stage_id":"86P","stage_name":"Hermes Real Settings Baseline v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"efb4f5f","commit_message":"docs: add hermes real settings baseline","paths":["docs/research/HERMES_REAL_SETTINGS_BASELINE_v0_1.md","docs/reference/ROBOTICXS_HERMES_CONFIG_CONTRACT_v0_1.md","tests/test_hermes_real_settings_baseline.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the verified Hermes real-settings baseline and config contract. 87P is closed committed; do not infer 88P implementation, 89P, or NEXT_ELIGIBLE from this status."},
+  {"stage_id":"87P","stage_name":"Hermes + Agent Skills + Cron Integration Baseline v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"213a7772aef3a55e03f2284044aba458c752c54e","commit_message":"docs: add hermes agent skills cron baseline","paths":["docs/reference/ROBOTICXS_SKILL_MANIFEST_TO_AGENT_SKILLS_BRIDGE_v0_1.md","docs/reference/ROBOTICXS_HERMES_CRON_ROUTINE_MAPPING_v0_1.md","docs/reference/ROBOTICXS_HERMES_CAPABILITY_SURFACE_AUDIT_v0_1.md","docs/research/HERMES_AGENT_SKILLS_CRON_BASELINE_v0_1.md","tests/test_agent_skills_export_contract.py","tests/test_hermes_cron_routine_mapping.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the Hermes Agent Skills and cron integration baseline. 88P - Routine Wake Gate / Zero-Token Preflight v0 - is next eligible for story/spec work only and is not implemented; do not infer 89P or NEXT_ELIGIBLE from this status."}
 ]
 ```
 
@@ -486,7 +486,7 @@ The stage registry records the 85P committed closeout state. At 85P closeout, St
 
 ## Stage 86P closeout transition
 
-The stage registry records the 86P committed closeout state. Stage 87P - Hermes + Agent Skills + Cron Integration Baseline v0 - was selected for the current documentation/spec/test implementation pass. Stage 88P and later are not authorized.
+The stage registry records the 86P committed closeout state. Stage 87P - Hermes + Agent Skills + Cron Integration Baseline v0 - is closed committed. Stage 88P status is recorded separately below.
 
 ```json stage-86p-implementation-transition
 {
@@ -495,7 +495,7 @@ The stage registry records the 86P committed closeout state. Stage 87P - Hermes 
   "commit_message":"docs: add hermes real settings baseline",
   "after_commit_next_eligible":"87P",
   "next_eligible_stage_name":"Hermes + Agent Skills + Cron Integration Baseline v0",
-  "next_eligible_implementation_status":"IMPLEMENTED_PENDING_REVIEW",
+  "next_eligible_implementation_status":"CLOSED_COMMITTED",
   "stage_88p_and_later_authorized":false,
   "transition_requires_commit":false,
   "implementation_authorized":false
@@ -506,27 +506,29 @@ The stage registry records the 86P committed closeout state. Stage 87P - Hermes 
 
 ## Stage 87P implementation transition
 
-The stage registry records the 87P implementation-pending-review state. Stage 88P and later are not authorized.
+The stage registry records the 87P committed closeout state. Stage 88P - Routine Wake Gate / Zero-Token Preflight v0 - is next eligible for story/spec work only and is not implemented. Stage 89P and later are not authorized.
 
 ```json stage-87p-implementation-transition
 {
-  "closeout_status":"IMPLEMENTED_PENDING_REVIEW",
-  "commit":"pending_87P_commit",
+  "closeout_status":"CLOSED_COMMITTED",
+  "commit":"213a7772aef3a55e03f2284044aba458c752c54e",
   "commit_message":"docs: add hermes agent skills cron baseline",
-  "after_commit_next_eligible":null,
-  "stage_88p_and_later_authorized":false,
-  "transition_requires_commit":true,
+  "after_commit_next_eligible":"88P",
+  "next_eligible_stage_name":"Routine Wake Gate / Zero-Token Preflight v0",
+  "next_eligible_implementation_status":"NOT_IMPLEMENTED",
+  "stage_89p_and_later_authorized":false,
+  "transition_requires_commit":false,
   "implementation_authorized":false
 }
 ```
 
-87P creates a documentation/spec/test baseline for using Hermes runtime capabilities, Agent Skills packaging, and Hermes cron scheduling without confusing capability with product authority. Hermes is runtime capability, not Roboticxs product. Agent Skills packages instructions/resources; it does not enforce authority. Roboticxs SkillManifest remains canonical for package, scope, plan, confirmation, blocked actions, and upgrade path. Hermes cron schedules work; Roboticxs Routine is the consumer product object. Cron `[SILENT]` is not cost control. `wakeAgent=false` and no-agent mode belong to 88P, not 87P implementation. Hermes memory remains runtime memory, not canonical Roboticxs Memory Center. No external send/update/publish/payment/destructive action may be implied without Zaubern-lite authority and user confirmation. 87P does not authorize actual Hermes cron execution, runtime gateway changes, blueprints, wake-gate execution, MCP/plugin activation, 88P, or `NEXT_ELIGIBLE`.
+87P creates a documentation/spec/test baseline for using Hermes runtime capabilities, Agent Skills packaging, and Hermes cron scheduling without confusing capability with product authority. Hermes is runtime capability, not Roboticxs product. Agent Skills packages instructions/resources; it does not enforce authority. Roboticxs SkillManifest remains canonical for package, scope, plan, confirmation, blocked actions, and upgrade path. Hermes cron schedules work; Roboticxs Routine is the consumer product object. Cron `[SILENT]` is not cost control. `wakeAgent=false` and no-agent mode belong to 88P, not 87P implementation. Hermes memory remains runtime memory, not canonical Roboticxs Memory Center. No external send/update/publish/payment/destructive action may be implied without Zaubern-lite authority and user confirmation. 87P does not authorize actual Hermes cron execution, runtime gateway changes, blueprints, wake-gate execution, MCP/plugin activation, 88P implementation, 89P, or `NEXT_ELIGIBLE`.
 
 ## Sequencing and authorization rules
 
 ```json roadmap-sequencing-rules
 [
-  "no_stage_is_next_eligible_after_88P_without_explicit_maintainer_direction",
+  "no_stage_is_next_eligible_after_89P_without_explicit_maintainer_direction",
   "eligibility_permits_story_drafting_only",
   "roadmap_inclusion_never_authorizes_implementation",
   "every_stage_requires_story_approval",
@@ -536,8 +538,9 @@ The stage registry records the 87P implementation-pending-review state. Stage 88
   "stage_84P_is_closed_committed_after_active_memory_forget_closeout",
   "stage_85P_is_closed_committed_after_hermes_soul_rebase_closeout",
   "stage_86P_is_closed_committed_after_hermes_real_settings_baseline_closeout",
-  "stage_87P_is_implemented_pending_review_after_hermes_agent_skills_cron_baseline",
-  "do_not_invent_88P_without_explicit_maintainer_direction_in_repo_evidence",
+  "stage_87P_is_closed_committed_after_hermes_agent_skills_cron_baseline_closeout",
+  "stage_88P_is_next_eligible_for_story_spec_only_after_87P_closeout",
+  "do_not_invent_89P_without_explicit_maintainer_direction_in_repo_evidence",
   "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
   "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence"
 ]

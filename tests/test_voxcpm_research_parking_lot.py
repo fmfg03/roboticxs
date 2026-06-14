@@ -226,6 +226,8 @@ def test_roadmap_marks_76p_complete_and_later_gates_without_inventing_86p():
     assert '"stage_id":"85P","stage_name":"Hermes Profile / Roboticxs SOUL Rebase v0","status":"CLOSED_COMMITTED"' in text
     assert '"stage_id":"86P","stage_name":"Hermes Real Settings Baseline v0","status":"CLOSED_COMMITTED"' in text
     assert '"after_commit_next_eligible":"87P"' in text
-    assert '"stage_id":"87P","stage_name":"Hermes + Agent Skills + Cron Integration Baseline v0","status":"IMPLEMENTED_PENDING_REVIEW"' in text
+    assert '"stage_id":"87P","stage_name":"Hermes + Agent Skills + Cron Integration Baseline v0","status":"CLOSED_COMMITTED"' in text
+    assert '"after_commit_next_eligible":"88P"' in text
     assert '"stage_id":"88P"' not in text
+    assert '"stage_id":"89P"' not in text
     assert '"status":"NEXT_ELIGIBLE"' not in text
