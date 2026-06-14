@@ -4,7 +4,7 @@
 
 This document materializes the maintainer-approved forward-looking roadmap for Roboticxs.
 
-It is the controlling roadmap for future stage sequencing after Stage 91P closeout. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
+It is the controlling roadmap for future stage sequencing after Stage 92P implementation pending review. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
 
 ## Source of authority
 
@@ -13,7 +13,7 @@ The forward sequence comes from explicit maintainer direction in the maintainer-
 ```json canonical-roadmap-authority
 {
   "authority_source":"maintainer_approved_chatgpt_web_planning_thread",
-  "local_evidence_scope":"stages_61P_through_91P",
+  "local_evidence_scope":"stages_61P_through_92P",
   "forward_sequence_source":"explicit_maintainer_direction",
   "runtime_truth_source":"local_repo",
   "roadmap_inclusion_authorizes_implementation":false
@@ -56,8 +56,9 @@ The repository confirms these fixed baselines:
 - 89P adds Roboticxs Automation Blueprints v0 as documentation/spec/test installable routine templates with portable Agent Skills packaging and explicit authority boundaries.
 - 90P adds Roboticxs Command Surface Policy v0 as documentation/spec/test command surface governance for consumer-safe aliases, raw Hermes command blocking, Action Packet approval requirements, and operator-only command boundaries.
 - 91P adds Skill Activation Scope Guard v0 as documentation/spec/test governance for active skill scope decisions, redirects, upgrade offers, safe refusals, and prohibited-action blocking.
+- 92P adds Hermes Tool Authority Guard v0 as documentation/spec/test governance for action classification, tool authority decisions, Action Packet requirements, and sensitive-action blocking after skill activation and before execution.
 
-No local implementation evidence is claimed for any stage after 91P. Stage 89P - Roboticxs Automation Blueprints v0 - is closed committed. Stage 90P - Roboticxs Command Surface Policy v0 - is closed committed. Stage 91P - Skill Activation Scope Guard v0 - is closed committed. Stage 92P - Hermes Tool Authority Guard v0 - is next eligible for story/spec work only and is not implemented. Stage 93P and later are not authorized.
+No local implementation evidence is claimed for any stage after 92P. Stage 89P - Roboticxs Automation Blueprints v0 - is closed committed. Stage 90P - Roboticxs Command Surface Policy v0 - is closed committed. Stage 91P - Skill Activation Scope Guard v0 - is closed committed. Stage 92P - Hermes Tool Authority Guard v0 - is implemented pending review. Stage 93P and later are not authorized.
 
 ## Canonical stage registry
 
@@ -94,7 +95,8 @@ No local implementation evidence is claimed for any stage after 91P. Stage 89P -
   {"stage_id":"88P","stage_name":"Routine Wake Gate / Zero-Token Preflight v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"590305394f57ccfbc729b895b446b052adbc4e6e","commit_message":"docs: add routine wake gate baseline","paths":["docs/reference/ROBOTICXS_ROUTINE_WAKE_GATE_v0_1.md","docs/reference/ROBOTICXS_ROUTINE_COST_POLICY_v0_1.md","docs/reference/ROBOTICXS_SCRIPT_ONLY_ROUTINES_v0_1.md","runtime/hermes/scripts/examples/file_change_gate.py","runtime/hermes/scripts/examples/http_diff_gate.py","runtime/hermes/scripts/examples/external_flag_gate.py","tests/test_routine_wake_gate.py","tests/test_routine_no_agent_mode.py","tests/test_routine_budget_skip.py","tests/test_routine_context_payload.py","tests/test_routine_silent_is_not_cost_control.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the Routine Wake Gate and Zero-Token Preflight baseline. 89P - Roboticxs Automation Blueprints v0 - is closed committed; do not infer 90P implementation, 91P, or NEXT_ELIGIBLE from this status."},
   {"stage_id":"89P","stage_name":"Roboticxs Automation Blueprints v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"dc53ef24f2d15ba1d35ce93ec82555e8290dc565","commit_message":"docs: add roboticxs automation blueprints","paths":["docs/reference/ROBOTICXS_AUTOMATION_BLUEPRINTS_v0_1.md","docs/reference/ROBOTICXS_BLUEPRINT_AUTHORITY_BOUNDARIES_v0_1.md","docs/reference/ROBOTICXS_BLUEPRINT_INSTALLATION_CONTRACT_v0_1.md","runtime/hermes/skills/roboticxs-daily-brief/SKILL.md","runtime/hermes/skills/roboticxs-research-radar/SKILL.md","runtime/hermes/skills/roboticxs-caregiver-routine/SKILL.md","tests/test_roboticxs_blueprint_manifest.py","tests/test_roboticxs_blueprint_authority.py","tests/test_roboticxs_blueprint_no_silent_schedule.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the Automation Blueprints baseline. 90P - Roboticxs Command Surface Policy v0 - is closed committed; do not infer 91P implementation, 92P, or NEXT_ELIGIBLE from this status."},
   {"stage_id":"90P","stage_name":"Roboticxs Command Surface Policy v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"970e6e9014ec6e7b3031a7d3d412004fdebea815","commit_message":"docs: add roboticxs command surface policy","paths":["docs/reference/ROBOTICXS_COMMAND_SURFACE_POLICY_v0_1.md","docs/reference/ROBOTICXS_CONSUMER_COMMAND_ALIASES_v0_1.md","docs/reference/ROBOTICXS_HERMES_RAW_COMMAND_BLOCKLIST_v0_1.md","tests/test_command_surface_policy.py","tests/test_forbidden_hermes_commands.py","tests/test_consumer_command_aliases.py","tests/test_approval_command_packets.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the Command Surface Policy baseline. 91P - Skill Activation Scope Guard v0 - is closed committed; do not infer 92P implementation, 93P, or NEXT_ELIGIBLE from this status."},
-  {"stage_id":"91P","stage_name":"Skill Activation Scope Guard v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"0f786def035d0c6380f6f511c03313b4d9db3756","commit_message":"docs: add skill activation scope guard","paths":["docs/reference/ROBOTICXS_SKILL_ACTIVATION_SCOPE_GUARD_v0_1.md","docs/reference/ROBOTICXS_SKILL_SCOPE_DECISIONS_v0_1.md","docs/reference/ROBOTICXS_SKILL_UPGRADE_AND_REDIRECT_POLICY_v0_1.md","tests/test_skill_activation_scope_guard.py","tests/test_skill_scope_decisions.py","tests/test_skill_redirect_upgrade_policy.py","tests/test_skill_scope_guard_blocks_prohibited_actions.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the Skill Activation Scope Guard baseline. 92P - Hermes Tool Authority Guard v0 - is next eligible for story/spec work only and is not implemented; do not infer 93P or NEXT_ELIGIBLE from this status."}
+  {"stage_id":"91P","stage_name":"Skill Activation Scope Guard v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"0f786def035d0c6380f6f511c03313b4d9db3756","commit_message":"docs: add skill activation scope guard","paths":["docs/reference/ROBOTICXS_SKILL_ACTIVATION_SCOPE_GUARD_v0_1.md","docs/reference/ROBOTICXS_SKILL_SCOPE_DECISIONS_v0_1.md","docs/reference/ROBOTICXS_SKILL_UPGRADE_AND_REDIRECT_POLICY_v0_1.md","tests/test_skill_activation_scope_guard.py","tests/test_skill_scope_decisions.py","tests/test_skill_redirect_upgrade_policy.py","tests/test_skill_scope_guard_blocks_prohibited_actions.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the Skill Activation Scope Guard baseline. 92P - Hermes Tool Authority Guard v0 - is implemented pending review; do not infer 93P or NEXT_ELIGIBLE from this status."},
+  {"stage_id":"92P","stage_name":"Hermes Tool Authority Guard v0","status":"IMPLEMENTED_PENDING_REVIEW","authority_source":"local_repo_evidence","local_evidence":{"commit":"pending_92P_review","commit_message":"docs: add hermes tool authority guard","paths":["docs/reference/ROBOTICXS_HERMES_TOOL_AUTHORITY_GUARD_v0_1.md","docs/reference/ROBOTICXS_TOOL_ACTION_CLASSIFICATION_v0_1.md","docs/reference/ROBOTICXS_ACTION_PACKET_CONTRACT_v0_1.md","docs/reference/ROBOTICXS_TOOL_AUTHORITY_DECISIONS_v0_1.md","tests/test_hermes_tool_authority_guard.py","tests/test_tool_action_classification.py","tests/test_action_packet_contract.py","tests/test_tool_authority_blocks_sensitive_actions.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Review 92P docs/tests only. 93P and later are not authorized; do not infer runtime interception, gateway changes, production enforcement, MCP/plugin activation, UI, or NEXT_ELIGIBLE from this status."}
 ]
 ```
 
@@ -598,7 +600,7 @@ The stage registry records the 90P committed closeout state. Stage 91P - Skill A
 
 ## Stage 91P closeout transition
 
-The stage registry records the 91P committed closeout state. Stage 92P - Hermes Tool Authority Guard v0 - is next eligible for story/spec work only and is not implemented. Stage 93P and later are not authorized.
+The stage registry records the 91P committed closeout state. Stage 92P - Hermes Tool Authority Guard v0 - is implemented pending review. Stage 93P and later are not authorized.
 
 ```json stage-91p-closeout-transition
 {
@@ -607,14 +609,33 @@ The stage registry records the 91P committed closeout state. Stage 92P - Hermes 
   "commit_message":"docs: add skill activation scope guard",
   "after_commit_next_eligible":"92P",
   "next_eligible_stage_name":"Hermes Tool Authority Guard v0",
-  "next_eligible_implementation_status":"NOT_IMPLEMENTED",
+  "next_eligible_implementation_status":"IMPLEMENTED_PENDING_REVIEW",
   "stage_93p_and_later_authorized":false,
   "transition_requires_commit":false,
   "implementation_authorized":false
 }
 ```
 
-91P defines the Skill Activation Scope Guard contract. It decides whether a request should be answered by the active skill, clarified, redirected to another enabled skill, offered as an upgrade, refused as out-of-scope, or blocked as prohibited. Roboticxs SkillManifest remains canonical for scope, package, plan, confirmation, blocked actions, escalation, fallback, and upgrade paths. Agent Skills `description` helps discovery but does not decide authority. Hermes skill activation is runtime capability, not product permission. Disabled paid-skill requests return `OFFER_UPGRADE`, requests belonging to another enabled skill return `REDIRECT`, ambiguous in-scope requests return `CLARIFY`, safe out-of-scope requests return `REFUSE_SCOPE`, and prohibited/sensitive actions return `BLOCK` or defer to Zaubern-lite authority rules. 91P does not authorize live runtime routing, gateway changes, production enforcement code, payment/subscription logic, Tool Authority Guard implementation, UI, 92P implementation, 93P, or `NEXT_ELIGIBLE`.
+91P defines the Skill Activation Scope Guard contract. It decides whether a request should be answered by the active skill, clarified, redirected to another enabled skill, offered as an upgrade, refused as out-of-scope, or blocked as prohibited. Roboticxs SkillManifest remains canonical for scope, package, plan, confirmation, blocked actions, escalation, fallback, and upgrade paths. Agent Skills `description` helps discovery but does not decide authority. Hermes skill activation is runtime capability, not product permission. Disabled paid-skill requests return `OFFER_UPGRADE`, requests belonging to another enabled skill return `REDIRECT`, ambiguous in-scope requests return `CLARIFY`, safe out-of-scope requests return `REFUSE_SCOPE`, and prohibited/sensitive actions return `BLOCK` or defer to Zaubern-lite authority rules. 91P does not authorize live runtime routing, gateway changes, production enforcement code, payment/subscription logic, UI, 93P, or `NEXT_ELIGIBLE`.
+
+## Stage 92P implementation pending review
+
+The stage registry records the 92P implemented pending review state. Stage 93P and later are not authorized.
+
+```json stage-92p-implementation-transition
+{
+  "closeout_status":"IMPLEMENTED_PENDING_REVIEW",
+  "commit":"pending_92P_review",
+  "commit_message":"docs: add hermes tool authority guard",
+  "after_commit_next_eligible":null,
+  "next_eligible_stage_name":null,
+  "stage_93p_and_later_authorized":false,
+  "transition_requires_commit":true,
+  "implementation_authorized":false
+}
+```
+
+92P defines the Hermes Tool Authority Guard contract. It classifies and gates proposed Hermes tool calls and actions after skill activation but before execution. Hermes tool availability is capability, not permission. Agent Skills instructions are not authority. Scope Guard does not authorize execution; it only decides skill participation. Safe read/search/summarize/classify/draft actions may be `ALLOW` when within enabled scope and budget. External sends, writes, publishing, third-party scheduling, CRM modification, and visual signatures require `ASK_CONFIRMATION` or stronger and every `ASK_CONFIRMATION` must produce an Action Packet. Payments, refunds, credential changes, permission changes, legal acceptance, production deploys, destructive actions, and professional decisions default to `BLOCK` unless a future explicitly authorized policy says otherwise. Medication ambiguity, dosage, missed dose, duplicate dose, side effects, or contradiction must `ESCALATE` or `BLOCK` under caregiver boundary. Cost Governor remains spend/wake authority, Memory Center remains canonical memory, and Zaubern-lite remains authority layer. 92P does not authorize live Hermes interception, gateway changes, production enforcement code, MCP/plugin activation, UI, 93P, or `NEXT_ELIGIBLE`.
 
 ## Sequencing and authorization rules
 
@@ -635,8 +656,8 @@ The stage registry records the 91P committed closeout state. Stage 92P - Hermes 
   "stage_89P_is_closed_committed_after_automation_blueprints_closeout",
   "stage_90P_is_closed_committed_after_command_surface_policy_closeout",
   "stage_91P_is_closed_committed_after_skill_activation_scope_guard_closeout",
-  "stage_92P_is_next_eligible_for_story_spec_only_after_91P_closeout",
-  "do_not_implement_92P_without_explicit_maintainer_direction_in_repo_evidence",
+  "stage_92P_is_implemented_pending_review_after_tool_authority_guard_work",
+  "stage_93P_is_not_authorized_after_92P_pending_review",
   "do_not_invent_93P_without_explicit_maintainer_direction_in_repo_evidence",
   "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
   "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence"

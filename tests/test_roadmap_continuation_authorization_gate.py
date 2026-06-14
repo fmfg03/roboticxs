@@ -235,7 +235,12 @@ def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
     assert '"after_commit_next_eligible":"91P"' in roadmap_text
     assert '"stage_id":"91P","stage_name":"Skill Activation Scope Guard v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"after_commit_next_eligible":"92P"' in roadmap_text
-    assert '"stage_id":"92P"' not in roadmap_text
+    assert (
+        '"stage_id":"92P","stage_name":"Hermes Tool Authority Guard v0","status":"IMPLEMENTED_PENDING_REVIEW"'
+        in roadmap_text
+    )
+    assert "stage-92p-implementation-transition" in roadmap_text
+    assert '"stage_93p_and_later_authorized":false' in roadmap_text
     assert '"stage_id":"93P"' not in roadmap_text
     assert '"status":"NEXT_ELIGIBLE"' not in roadmap_text
 
