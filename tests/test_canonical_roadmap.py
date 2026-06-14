@@ -53,7 +53,7 @@ REQUIRED_DEFERRED_IDS = {
     "voxcpm",
 }
 REQUIRED_SEQUENCE_RULES = {
-    "no_stage_is_next_eligible_after_92P_without_explicit_maintainer_direction",
+    "no_stage_is_next_eligible_after_93P_without_explicit_maintainer_direction",
     "eligibility_permits_story_drafting_only",
     "roadmap_inclusion_never_authorizes_implementation",
     "every_stage_requires_story_approval",
@@ -68,9 +68,10 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_89P_is_closed_committed_after_automation_blueprints_closeout",
     "stage_90P_is_closed_committed_after_command_surface_policy_closeout",
     "stage_91P_is_closed_committed_after_skill_activation_scope_guard_closeout",
-    "stage_92P_is_implemented_pending_review_after_tool_authority_guard_work",
-    "stage_93P_is_not_authorized_after_92P_pending_review",
-    "do_not_invent_93P_without_explicit_maintainer_direction_in_repo_evidence",
+    "stage_92P_is_closed_committed_after_tool_authority_guard_closeout",
+    "stage_93P_is_next_eligible_for_story_spec_only_after_92P_closeout",
+    "do_not_implement_93P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_94P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -102,7 +103,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "89P": ("CLOSED_COMMITTED", "Roboticxs Automation Blueprints v0"),
     "90P": ("CLOSED_COMMITTED", "Roboticxs Command Surface Policy v0"),
     "91P": ("CLOSED_COMMITTED", "Skill Activation Scope Guard v0"),
-    "92P": ("IMPLEMENTED_PENDING_REVIEW", "Hermes Tool Authority Guard v0"),
+    "92P": ("CLOSED_COMMITTED", "Hermes Tool Authority Guard v0"),
 }
 
 
@@ -313,7 +314,7 @@ def test_no_future_sequence_entries_claim_local_evidence_or_authorization():
     assert stages_by_id["89P"]["status"] == "CLOSED_COMMITTED"
     assert stages_by_id["90P"]["status"] == "CLOSED_COMMITTED"
     assert stages_by_id["91P"]["status"] == "CLOSED_COMMITTED"
-    assert stages_by_id["92P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert stages_by_id["92P"]["status"] == "CLOSED_COMMITTED"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
@@ -1314,7 +1315,7 @@ def test_90p_closeout_selects_91p_without_implementation_authorization():
     }
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
     assert stages_by_id["91P"]["status"] == "CLOSED_COMMITTED"
-    assert stages_by_id["92P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert stages_by_id["92P"]["status"] == "CLOSED_COMMITTED"
 
 
 def test_91p_is_skill_activation_scope_guard_closed_committed_and_self_referenced():
@@ -1342,13 +1343,13 @@ def test_91p_is_skill_activation_scope_guard_closed_committed_and_self_reference
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the Skill Activation Scope Guard baseline. 92P - Hermes Tool Authority Guard v0 - is implemented pending review; do not infer 93P or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the Skill Activation Scope Guard baseline. 92P - Hermes Tool Authority Guard v0 - is closed committed; do not infer 93P implementation, 94P, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["91P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 
-def test_91p_closeout_selects_92p_pending_review_without_implementation_authorization():
+def test_91p_closeout_selects_92p_closed_committed_without_implementation_authorization():
     transition = load_json_block("stage-91p-closeout-transition")
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
@@ -1358,26 +1359,28 @@ def test_91p_closeout_selects_92p_pending_review_without_implementation_authoriz
         "commit_message": "docs: add skill activation scope guard",
         "after_commit_next_eligible": "92P",
         "next_eligible_stage_name": "Hermes Tool Authority Guard v0",
-        "next_eligible_implementation_status": "IMPLEMENTED_PENDING_REVIEW",
-        "stage_93p_and_later_authorized": False,
+        "next_eligible_implementation_status": "CLOSED_COMMITTED",
+        "stage_93p_next_eligible_after_92p_closeout": True,
+        "stage_93p_implemented": False,
+        "stage_94p_and_later_authorized": False,
         "transition_requires_commit": False,
         "implementation_authorized": False,
     }
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
-    assert stages_by_id["92P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert stages_by_id["92P"]["status"] == "CLOSED_COMMITTED"
     assert "93P" not in stages_by_id
 
 
-def test_92p_is_hermes_tool_authority_guard_pending_review_and_self_referenced():
+def test_92p_is_hermes_tool_authority_guard_closed_committed_and_self_referenced():
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
     assert stages_by_id["92P"] == {
         "stage_id": "92P",
         "stage_name": "Hermes Tool Authority Guard v0",
-        "status": "IMPLEMENTED_PENDING_REVIEW",
+        "status": "CLOSED_COMMITTED",
         "authority_source": "local_repo_evidence",
         "local_evidence": {
-            "commit": "pending_92P_review",
+            "commit": "ac6d5c4d775367ea9b1774cfe985fedeee7a49cf",
             "commit_message": "docs: add hermes tool authority guard",
             "paths": [
                 "docs/reference/ROBOTICXS_HERMES_TOOL_AUTHORITY_GUARD_v0_1.md",
@@ -1394,28 +1397,30 @@ def test_92p_is_hermes_tool_authority_guard_pending_review_and_self_referenced()
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Review 92P docs/tests only. 93P and later are not authorized; do not infer runtime interception, gateway changes, production enforcement, MCP/plugin activation, UI, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the Hermes Tool Authority Guard baseline. 93P - Roboticxs Memory Center Bridge v0 - is next eligible for story/spec work only and is not implemented; do not infer 94P or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["92P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 
-def test_92p_pending_review_does_not_authorize_93p_or_next_eligible():
-    transition = load_json_block("stage-92p-implementation-transition")
+def test_92p_closeout_selects_93p_without_implementation_authorization():
+    transition = load_json_block("stage-92p-closeout-transition")
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
     assert transition == {
-        "closeout_status": "IMPLEMENTED_PENDING_REVIEW",
-        "commit": "pending_92P_review",
+        "closeout_status": "CLOSED_COMMITTED",
+        "commit": "ac6d5c4d775367ea9b1774cfe985fedeee7a49cf",
         "commit_message": "docs: add hermes tool authority guard",
-        "after_commit_next_eligible": None,
-        "next_eligible_stage_name": None,
-        "stage_93p_and_later_authorized": False,
-        "transition_requires_commit": True,
+        "after_commit_next_eligible": "93P",
+        "next_eligible_stage_name": "Roboticxs Memory Center Bridge v0",
+        "next_eligible_implementation_status": "NOT_IMPLEMENTED",
+        "stage_94p_and_later_authorized": False,
+        "transition_requires_commit": False,
         "implementation_authorized": False,
     }
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
     assert "93P" not in stages_by_id
+    assert "94P" not in stages_by_id
 
 
 def test_sequencing_rules_preserve_story_spec_build_and_validation_gates():

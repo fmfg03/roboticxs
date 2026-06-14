@@ -236,7 +236,9 @@ def test_roadmap_marks_76p_complete_and_later_gates_without_inventing_86p():
     assert '"after_commit_next_eligible":"91P"' in text
     assert '"stage_id":"91P","stage_name":"Skill Activation Scope Guard v0","status":"CLOSED_COMMITTED"' in text
     assert '"after_commit_next_eligible":"92P"' in text
-    assert '"stage_id":"92P","stage_name":"Hermes Tool Authority Guard v0","status":"IMPLEMENTED_PENDING_REVIEW"' in text
+    assert '"stage_id":"92P","stage_name":"Hermes Tool Authority Guard v0","status":"CLOSED_COMMITTED"' in text
+    assert '"after_commit_next_eligible":"93P"' in text
+    assert '"next_eligible_stage_name":"Roboticxs Memory Center Bridge v0"' in text
     assert '"stage_id":"93P"' not in text
-    assert '"stage_id":"93P"' not in text
+    assert '"stage_id":"94P"' not in text
     assert '"status":"NEXT_ELIGIBLE"' not in text
