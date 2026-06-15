@@ -53,7 +53,7 @@ REQUIRED_DEFERRED_IDS = {
     "voxcpm",
 }
 REQUIRED_SEQUENCE_RULES = {
-    "no_stage_is_next_eligible_after_94P_without_explicit_maintainer_direction",
+    "no_stage_is_next_eligible_after_95P_without_explicit_maintainer_direction",
     "eligibility_permits_story_drafting_only",
     "roadmap_inclusion_never_authorizes_implementation",
     "every_stage_requires_story_approval",
@@ -71,7 +71,8 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_92P_is_closed_committed_after_tool_authority_guard_closeout",
     "stage_93P_is_closed_committed_after_memory_center_bridge_closeout",
     "stage_94P_is_closed_committed_after_telegram_hermes_gateway_mvp_closeout",
-    "do_not_invent_95P_without_explicit_maintainer_direction_in_repo_evidence",
+    "stage_95P_is_implemented_pending_review_after_explicit_maintainer_authorization",
+    "do_not_invent_96P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -106,6 +107,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "92P": ("CLOSED_COMMITTED", "Hermes Tool Authority Guard v0"),
     "93P": ("CLOSED_COMMITTED", "Roboticxs Memory Center Bridge v0"),
     "94P": ("CLOSED_COMMITTED", "Telegram MVP on Hermes Gateway v0"),
+    "95P": ("IMPLEMENTED_PENDING_REVIEW", "Telegram-Hermes Policy Chain Runtime Skeleton v0"),
 }
 
 
@@ -128,7 +130,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_94P",
+        "local_evidence_scope": "stages_61P_through_95P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -140,7 +142,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 95)
+        f"{number}P" for number in range(67, 96)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -1506,13 +1508,13 @@ def test_94p_is_telegram_hermes_gateway_mvp_closed_committed_and_self_referenced
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the Telegram MVP on Hermes Gateway story/spec/test contract. 95P and later are not authorized; do not infer runtime gateway startup, production Telegram messaging, credentials, UI, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the Telegram MVP on Hermes Gateway story/spec/test contract. 95P is implemented pending review; do not infer runtime gateway startup, production Telegram messaging, credentials, UI, 96P, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["94P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 
-def test_94p_closeout_transition_blocks_95p_runtime_and_credentials():
+def test_94p_closeout_transition_records_later_95p_authorization_without_live_runtime_or_credentials():
     transition = load_json_block("stage-94p-closeout-transition")
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
@@ -1522,15 +1524,69 @@ def test_94p_closeout_transition_blocks_95p_runtime_and_credentials():
         "commit_message": "docs: add telegram hermes gateway mvp",
         "closed_stage": "94P",
         "closed_stage_name": "Telegram MVP on Hermes Gateway v0",
-        "stage_95p_and_later_authorized": False,
-        "next_eligible_stage": None,
+        "stage_95p_authorized_later": True,
+        "stage_96p_and_later_authorized": False,
+        "next_eligible_stage": "95P",
         "runtime_gateway_start_authorized": False,
         "production_messaging_authorized": False,
         "telegram_credentials_authorized": False,
         "implementation_authorized": False,
     }
     assert stages_by_id["94P"]["status"] == "CLOSED_COMMITTED"
-    assert "95P" not in stages_by_id
+    assert stages_by_id["95P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_95p_is_telegram_hermes_policy_chain_runtime_skeleton_pending_review():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["95P"] == {
+        "stage_id": "95P",
+        "stage_name": "Telegram-Hermes Policy Chain Runtime Skeleton v0",
+        "status": "IMPLEMENTED_PENDING_REVIEW",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_95P_implementation",
+            "commit_message": "feat: add telegram hermes policy chain runtime skeleton",
+            "paths": [
+                "app/telegram_policy_chain.py",
+                "app/main.py",
+                "docs/reference/TELEGRAM_HERMES_POLICY_CHAIN_RUNTIME_SKELETON_95P_v0_1.md",
+                "tests/test_telegram_policy_chain_95p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Telegram-Hermes policy-chain runtime skeleton baseline. 96P and later are not authorized; do not infer caregiver behavior, live Telegram sends, live Hermes Gateway startup, live cron scheduling, connector activation, external writes, payments, publishing, browser/email/WhatsApp execution, production credentials, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["95P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_95p_transition_blocks_96p_and_external_runtime_surfaces():
+    transition = load_json_block("stage-95p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "IMPLEMENTED_PENDING_REVIEW",
+        "stage": "95P",
+        "stage_name": "Telegram-Hermes Policy Chain Runtime Skeleton v0",
+        "implementation_commit": "same_commit_as_95P_implementation",
+        "stage_96p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "caregiver_behavior_authorized": False,
+        "live_telegram_sends_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_scheduling_authorized": False,
+        "connector_activation_authorized": False,
+        "external_writes_authorized": False,
+        "payments_authorized": False,
+        "publishing_authorized": False,
+        "browser_email_whatsapp_execution_authorized": False,
+        "production_credentials_authorized": False,
+    }
+    assert stages_by_id["95P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 

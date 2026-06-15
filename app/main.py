@@ -12,6 +12,10 @@ from app.telegram_runtime import (
     build_telegram_conversation_webhook_response,
     run_telegram_conversation_loop,
 )
+from app.telegram_policy_chain import (
+    serialize_policy_chain_result,
+    run_telegram_policy_chain,
+)
 
 
 def create_app() -> FastAPI:
@@ -39,6 +43,12 @@ def create_app() -> FastAPI:
         with app.state.db.session() as session:
             result = run_telegram_conversation_loop(update=update, settings=app.state.settings, session=session)
         return build_telegram_conversation_webhook_response(result)
+
+    @app.post("/api/telegram/policy-chain/webhook")
+    async def telegram_policy_chain_webhook(update: dict) -> dict:
+        with app.state.db.session() as session:
+            result = run_telegram_policy_chain(update=update, settings=app.state.settings, session=session)
+        return serialize_policy_chain_result(result)
 
     return app
 
