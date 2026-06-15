@@ -9,6 +9,12 @@ from sqlalchemy.orm import Session
 
 from app.config import Settings
 from app.memory_control import list_active_memories
+from app.memory_center_projection import (
+    MemoryCenterItem,
+    MemoryProjectionRequest,
+    MemoryProjectionResult,
+    project_memory,
+)
 from app.models import MemoryItem, Robot, User
 from app.telegram_runtime import (
     TelegramRuntimeError,
@@ -91,6 +97,7 @@ class MemoryContextBlock:
     projections: tuple[MemoryProjection, ...]
     tool_action_authorization: bool
     permission_expansion_authorized: bool
+    projection_result: MemoryProjectionResult | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -139,6 +146,9 @@ def run_telegram_policy_chain(
     update: dict,
     settings: Settings,
     session: Session,
+    memory_actor_role: str = "owner_admin",
+    memory_target_scope: str = "telegram",
+    memory_allowed_use: str = "telegram_context",
 ) -> TelegramPolicyChainResult:
     del settings  # 95P must not use credentials or production configuration.
     try:
@@ -171,7 +181,15 @@ def run_telegram_policy_chain(
     user, robot = _resolve_user_and_robot(session=session, message=message)
     command_policy = evaluate_command_policy(message.text)
     if command_policy.decision == "BLOCK_CONSUMER":
-        memory_context = project_memory_context(session=session, user=user, robot=robot, request_scope="blocked")
+        memory_context = project_memory_context(
+            session=session,
+            user=user,
+            robot=robot,
+            request_scope="blocked",
+            actor_role=memory_actor_role,
+            target_scope=memory_target_scope,
+            allowed_use=memory_allowed_use,
+        )
         adapter = _blocked_adapter_result("Command policy blocked the request before Hermes adapter.")
         return _result(
             message=message,
@@ -188,7 +206,15 @@ def run_telegram_policy_chain(
 
     skill_scope_policy = evaluate_skill_scope_policy(message.text, command_policy=command_policy)
     if skill_scope_policy.decision == "BLOCK":
-        memory_context = project_memory_context(session=session, user=user, robot=robot, request_scope="blocked")
+        memory_context = project_memory_context(
+            session=session,
+            user=user,
+            robot=robot,
+            request_scope="blocked",
+            actor_role=memory_actor_role,
+            target_scope=memory_target_scope,
+            allowed_use=memory_allowed_use,
+        )
         adapter = _blocked_adapter_result("Skill scope policy blocked the request before Hermes adapter.")
         return _result(
             message=message,
@@ -209,6 +235,9 @@ def run_telegram_policy_chain(
         user=user,
         robot=robot,
         request_scope=skill_scope_policy.decision.lower(),
+        actor_role=memory_actor_role,
+        target_scope=memory_target_scope,
+        allowed_use=memory_allowed_use,
     )
 
     if tool_authority_policy.decision == "BLOCK":
@@ -473,22 +502,48 @@ def project_memory_context(
     user: User,
     robot: Robot,
     request_scope: str,
+    actor_role: str = "owner_admin",
+    target_scope: str = "telegram",
+    allowed_use: str = "telegram_context",
 ) -> MemoryContextBlock:
     memories = list_active_memories(session=session, user_id=user.id, robot_id=robot.id)
-    allowed = [_projection_for_memory(memory) for memory in memories if _memory_is_projectable(memory)]
-    projections = tuple(sorted(allowed, key=_projection_priority)[:3])
+    projection_result = project_memory(
+        request=MemoryProjectionRequest(
+            request_id=f"95p:{user.id}:{robot.id}:{request_scope}:{target_scope}",
+            actor_id=user.id,
+            actor_role=actor_role,
+            owner_id=user.id,
+            robot_id=robot.id,
+            target_scope=target_scope,
+            allowed_use=allowed_use,
+            max_items=3,
+            max_summary_chars=160,
+        ),
+        items=tuple(_memory_center_item(memory) for memory in memories),
+    )
+    projections = tuple(
+        MemoryProjection(
+            memory_id=summary.item_id,
+            memory_type=summary.memory_kind,
+            content=summary.summary,
+            source=summary.source,
+            allowed_use=summary.allowed_use,
+        )
+        for summary in projection_result.summaries
+    )
     return MemoryContextBlock(
         packet_type="MemoryContextBlock",
         status="NON_AUTHORITY_RUNTIME_CONTEXT",
         stage=POLICY_CHAIN_STAGE,
         source_of_truth="Roboticxs Memory Center",
         runtime_target="Hermes Gateway adapter stub",
-        projection_policy_id="memory_projection_policy_v0_1",
+        projection_policy_id="memory_center_projection_runtime_99p_v0",
         request_scope=request_scope,
         active_skill_id="basic_assistant",
         projections=projections,
         tool_action_authorization=False,
         permission_expansion_authorized=False,
+        projection_result=projection_result,
     )
 
 
@@ -541,6 +596,17 @@ def serialize_policy_chain_result(result: TelegramPolicyChainResult) -> dict[str
             "active_skill_id": result.memory_context.active_skill_id,
             "tool_action_authorization": result.memory_context.tool_action_authorization,
             "permission_expansion_authorized": result.memory_context.permission_expansion_authorized,
+            "projection_trace": []
+            if result.memory_context.projection_result is None
+            else [
+                {
+                    "item_id": trace.item_id,
+                    "decision": trace.decision,
+                    "reason_code": trace.reason_code,
+                    "decisional": trace.decisional,
+                }
+                for trace in result.memory_context.projection_result.trace
+            ],
             "projections": [
                 {
                     "memory_id": projection.memory_id,
@@ -633,27 +699,43 @@ def _resolve_user_and_robot(*, session: Session, message) -> tuple[User, Robot]:
     return user, robot
 
 
-def _projection_for_memory(memory: MemoryItem) -> MemoryProjection:
-    return MemoryProjection(
-        memory_id=memory.id,
-        memory_type=memory.memory_type,
-        content=memory.content[:160],
+def _memory_center_item(memory: MemoryItem) -> MemoryCenterItem:
+    sensitive_types = {"CREDENTIAL", "SECRET", "MEDICAL_DECISION", "OWNER_PRIVATE", "UNRELATED_OWNER_MEMORY"}
+    status = "active" if memory.status == "ACTIVE" else "revoked"
+    sensitivity = "credential_like" if memory.memory_type in {"CREDENTIAL", "SECRET"} else (
+        "medical" if memory.memory_type == "MEDICAL_DECISION" else (
+            "personal" if memory.memory_type in {"OWNER_PRIVATE", "UNRELATED_OWNER_MEMORY"} else "ordinary"
+        )
+    )
+    scopes, allowed_uses = _legacy_projection_policy(memory.memory_type)
+    return MemoryCenterItem(
+        item_id=memory.id,
+        owner_id=memory.user_id,
+        robot_id=memory.robot_id,
+        memory_kind=memory.memory_type,
+        status=status,
+        scopes=scopes,
+        sensitivity=sensitivity,
+        allowed_uses=allowed_uses,
+        skill_ids=(),
+        content=memory.content,
+        bounded_summary=None,
         source=memory.source,
-        allowed_use="answer_personalization_or_boundary_context_only",
+        is_boundary=memory.memory_type == "BOUNDARY_MEMORY",
+        is_preference="PREFERENCE" in memory.memory_type,
     )
 
 
-def _memory_is_projectable(memory: MemoryItem) -> bool:
-    if memory.status != "ACTIVE":
-        return False
-    if memory.memory_type in {"CREDENTIAL", "SECRET", "MEDICAL_DECISION"}:
-        return False
-    return True
-
-
-def _projection_priority(projection: MemoryProjection) -> tuple[int, str]:
-    priority = 0 if projection.memory_type == "BOUNDARY_MEMORY" else 1
-    return (priority, projection.memory_id)
+def _legacy_projection_policy(memory_type: str) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    scopes = ["general", "telegram", "hermes_os"]
+    allowed_uses = ["answer_personalization", "telegram_context", "hermes_os_context"]
+    if memory_type == "BOUNDARY_MEMORY":
+        scopes.extend(("caregiver", "routine"))
+        allowed_uses.extend(("boundary_enforcement", "caregiver_context", "routine_context"))
+    elif memory_type == "WORK_PREFERENCE":
+        scopes.append("routine")
+        allowed_uses.append("routine_context")
+    return tuple(scopes), tuple(allowed_uses)
 
 
 def _empty_memory_context() -> MemoryContextBlock:

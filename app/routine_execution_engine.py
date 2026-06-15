@@ -159,7 +159,14 @@ def execute_routine_locally(
             policy_chain_routed=False,
         )
 
-    policy_result = run_telegram_policy_chain(update=update, settings=settings, session=session)
+    policy_result = run_telegram_policy_chain(
+        update=update,
+        settings=settings,
+        session=session,
+        memory_actor_role="routine",
+        memory_target_scope="routine",
+        memory_allowed_use="routine_context",
+    )
     hermes_os_contract = build_hermes_os_runtime_contract(policy_result=policy_result, routine_requested=True)
     caregiver_result = (
         run_caregiver_telegram_mvp(

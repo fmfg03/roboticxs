@@ -129,7 +129,14 @@ def run_caregiver_telegram_mvp(
     routine_label: str = "approved morning routine",
     current_step_index: int = 0,
 ) -> CaregiverTelegramMVPResult:
-    policy_result = run_telegram_policy_chain(update=update, settings=settings, session=session)
+    policy_result = run_telegram_policy_chain(
+        update=update,
+        settings=settings,
+        session=session,
+        memory_actor_role="care_recipient",
+        memory_target_scope="caregiver",
+        memory_allowed_use="caregiver_context",
+    )
     text = _extract_text(update)
     actors = _actors_from_policy_result(policy_result)
     routine_packet = build_guided_routine_packet(

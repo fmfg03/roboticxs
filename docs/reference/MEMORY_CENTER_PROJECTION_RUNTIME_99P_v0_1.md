@@ -1,8 +1,8 @@
 # Memory Center Projection Runtime Slice v0
 
-Status: 99P user story approved; technical specification proposed for human approval only.
+Status: 99P closed committed.
 
-Implementation is not authorized. This document does not authorize runtime code, migrations, UI, endpoints, live Telegram or Hermes behavior, cron, connectors, providers, external actions, medical behavior, automatic caregiver alerts, production credentials, or 100P+.
+99P implements a deterministic local runtime skeleton only. This document does not authorize migrations, canonical memory writes, UI, endpoints, live Telegram or Hermes behavior, cron, connectors, providers, external actions, medical behavior, automatic caregiver alerts, production credentials, or 100P+.
 
 ## User Story
 
@@ -14,7 +14,7 @@ Recommend 99P as a **deterministic local runtime skeleton** after separate techn
 
 A spec-only stage would not prove the actor and scope isolation behavior against the existing 95P-98P local runtime. A broader implementation slice would create unnecessary migration, persistence, endpoint, and live-runtime risk. The recommended skeleton should operate on typed local inputs, produce typed local data-only results and traces, and integrate only with the existing deterministic local 95P-98P paths.
 
-This recommendation does not authorize implementation.
+The approved implementation remains limited to this deterministic local runtime skeleton.
 
 ## Scope
 
@@ -447,9 +447,19 @@ For a future approved local skeleton:
 - 96P: `CLOSED_COMMITTED`
 - 97P: `CLOSED_COMMITTED`
 - 98P: `CLOSED_COMMITTED`
-- 99P user story: approved for technical specification only
-- 99P technical specification: proposed; requires explicit human approval before any implementation
-- 99P implementation: not authorized
+- 99P user story and technical specification: approved
+- 99P implementation: closed committed as a deterministic local runtime skeleton
 - 100P and later: unauthorized
 
-No implementation, staging, commit, roadmap-status promotion, or future-stage authority is granted by this document.
+No migration, canonical memory write, UI, endpoint, live runtime, external effect, medical behavior, automatic caregiver alert, or future-stage authority is granted by this closeout.
+
+## Closeout Evidence
+
+- implementation commit: `same_commit_as_99P_closeout`
+- typed local contracts: `MemoryCenterItem`, `MemoryProjectionRequest`, `MemoryProjectionResult`, `ProjectedMemorySummary`, `ProjectionTraceRecord`
+- deterministic actor, scope, status, sensitivity, allowed-use, optional-skill, conflict, bounds, and trace behavior
+- bounded 95P consumption and non-authority 96P binding
+- 97P caregiver isolation preserved
+- 98P projection only after successful preflight; preflight-stopped routines do not invoke 99P or Hermes adapter
+- no migrations, canonical memory writes, UI, endpoints, live runtime, external effects, medical behavior, or automatic caregiver alerts
+- 100P and later: unauthorized
