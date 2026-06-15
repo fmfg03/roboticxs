@@ -4,7 +4,7 @@
 
 This document materializes the maintainer-approved forward-looking roadmap for Roboticxs.
 
-It is the controlling roadmap for future stage sequencing after Stage 97P implementation. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
+It is the controlling roadmap for future stage sequencing after Stage 98P implementation. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
 
 ## Source of authority
 
@@ -13,7 +13,7 @@ The forward sequence comes from explicit maintainer direction in the maintainer-
 ```json canonical-roadmap-authority
 {
   "authority_source":"maintainer_approved_chatgpt_web_planning_thread",
-  "local_evidence_scope":"stages_61P_through_97P",
+  "local_evidence_scope":"stages_61P_through_98P",
   "forward_sequence_source":"explicit_maintainer_direction",
   "runtime_truth_source":"local_repo",
   "roadmap_inclusion_authorizes_implementation":false
@@ -62,8 +62,9 @@ The repository confirms these fixed baselines:
 - 95P adds Telegram-Hermes Policy Chain Runtime Skeleton v0 as a deterministic local runtime skeleton proving Telegram input passes through 90P command policy, 91P skill scope policy, 92P tool authority policy, 93P memory projection policy, Action Packet binding, and a local Hermes Gateway adapter stub without external side effects.
 - 96P adds Hermes OS Runtime Contract v0 as a deterministic local contract layer defining how Roboticxs represents RobotConstitution, GoalPacket, RoutinePacket, SkillActivationPacket, MemoryProjectionPacket, ToolRequestPacket, ActionPacket binding, PolicyTrace, and TaskRunRecord when Hermes operates as persistent runtime substrate.
 - 97P adds Caregiver Telegram MVP v0 as a deterministic local caregiver routine slice over the 95P Telegram-Hermes policy chain and 96P Hermes OS runtime contract, with distinct actors, guided routine steps, simple confirmations, confusion-safe fallback, approval-required escalation drafts, bounded memory projection, no medical decision behavior, and no live delivery.
+- 98P adds Routine Execution Engine Skeleton v0 as a deterministic local routine execution layer with RoutineDefinition, RoutineRun, wake and budget preflight placeholders, bounded memory projection, 95P policy routing, 96P TaskRunRecord binding, 97P caregiver compatibility, local delivery objects, and no external side effects.
 
-No local implementation evidence is claimed for any stage after 97P. Stage 89P - Roboticxs Automation Blueprints v0 - is closed committed. Stage 90P - Roboticxs Command Surface Policy v0 - is closed committed. Stage 91P - Skill Activation Scope Guard v0 - is closed committed. Stage 92P - Hermes Tool Authority Guard v0 - is closed committed. Stage 93P - Roboticxs Memory Center Bridge v0 - is closed committed. Stage 94P - Telegram MVP on Hermes Gateway v0 - is closed committed as story/spec/test work only. Stage 95P - Telegram-Hermes Policy Chain Runtime Skeleton v0 - is closed committed. Stage 96P - Hermes OS Runtime Contract v0 - is closed committed. Stage 97P - Caregiver Telegram MVP v0 - is closed committed. Stage 98P and later are not authorized.
+No local implementation evidence is claimed for any stage after 98P. Stage 89P - Roboticxs Automation Blueprints v0 - is closed committed. Stage 90P - Roboticxs Command Surface Policy v0 - is closed committed. Stage 91P - Skill Activation Scope Guard v0 - is closed committed. Stage 92P - Hermes Tool Authority Guard v0 - is closed committed. Stage 93P - Roboticxs Memory Center Bridge v0 - is closed committed. Stage 94P - Telegram MVP on Hermes Gateway v0 - is closed committed as story/spec/test work only. Stage 95P - Telegram-Hermes Policy Chain Runtime Skeleton v0 - is closed committed. Stage 96P - Hermes OS Runtime Contract v0 - is closed committed. Stage 97P - Caregiver Telegram MVP v0 - is closed committed. Stage 98P - Routine Execution Engine Skeleton v0 - is closed committed. Stage 99P and later are not authorized.
 
 ## Canonical stage registry
 
@@ -106,7 +107,8 @@ No local implementation evidence is claimed for any stage after 97P. Stage 89P -
   {"stage_id":"94P","stage_name":"Telegram MVP on Hermes Gateway v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"97777ca68e0443e17236e9858ce350f68ed77864","commit_message":"docs: add telegram hermes gateway mvp","paths":["docs/reference/ROBOTICXS_TELEGRAM_HERMES_GATEWAY_MVP_v0_1.md","docs/reference/ROBOTICXS_TELEGRAM_GATEWAY_BOUNDARY_v0_1.md","docs/reference/ROBOTICXS_TELEGRAM_ACTION_PACKET_FLOW_v0_1.md","docs/reference/ROBOTICXS_TELEGRAM_MEMORY_ROUTINE_FLOW_v0_1.md","tests/test_telegram_hermes_gateway_mvp.py","tests/test_telegram_gateway_boundary.py","tests/test_telegram_action_packet_flow.py","tests/test_telegram_memory_routine_flow.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the Telegram MVP on Hermes Gateway story/spec/test contract. 95P and 96P are closed committed; do not infer runtime gateway startup, production Telegram messaging, credentials, UI, 97P, or NEXT_ELIGIBLE from this status."},
   {"stage_id":"95P","stage_name":"Telegram-Hermes Policy Chain Runtime Skeleton v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"699f5e8953227bb16164b5ee7c8749f662b6d731","commit_message":"feat: add telegram hermes policy chain runtime skeleton","paths":["app/telegram_policy_chain.py","app/main.py","docs/reference/TELEGRAM_HERMES_POLICY_CHAIN_RUNTIME_SKELETON_95P_v0_1.md","tests/test_telegram_policy_chain_95p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Telegram-Hermes policy-chain runtime skeleton baseline. 96P is closed committed; do not infer caregiver behavior, live Telegram sends, live Hermes Gateway startup, live cron scheduling, connector activation, external writes, payments, publishing, browser/email/WhatsApp execution, production credentials, 97P, or NEXT_ELIGIBLE from this status."},
   {"stage_id":"96P","stage_name":"Hermes OS Runtime Contract v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"d2aa97d","commit_message":"feat: add hermes os runtime contract","paths":["app/hermes_os_contract.py","docs/reference/HERMES_OS_RUNTIME_CONTRACT_96P_v0_1.md","tests/test_hermes_os_runtime_contract_96p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Hermes OS runtime contract baseline. 97P is closed committed; do not infer live Hermes startup, live cron execution, live Telegram sends, connector activation, model provider calls, auto skill install, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, 98P, or NEXT_ELIGIBLE from this status."},
-  {"stage_id":"97P","stage_name":"Caregiver Telegram MVP v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_97P_closeout","commit_message":"feat: add caregiver telegram mvp slice","paths":["app/caregiver_telegram_mvp.py","app/telegram_policy_chain.py","app/main.py","docs/reference/CAREGIVER_TELEGRAM_MVP_97P_v0_1.md","tests/test_caregiver_telegram_mvp_97p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic caregiver Telegram MVP slice. 98P and later are not authorized; do not infer live Telegram sends, automatic caregiver alerts, live Hermes startup, live cron execution, connector activation, model provider calls, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, medical decisions, medication changes, emergency monitoring, destructive actions, or NEXT_ELIGIBLE from this status."}
+  {"stage_id":"97P","stage_name":"Caregiver Telegram MVP v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_97P_closeout","commit_message":"feat: add caregiver telegram mvp slice","paths":["app/caregiver_telegram_mvp.py","app/telegram_policy_chain.py","app/main.py","docs/reference/CAREGIVER_TELEGRAM_MVP_97P_v0_1.md","tests/test_caregiver_telegram_mvp_97p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic caregiver Telegram MVP slice. 98P is closed committed; do not infer live Telegram sends, automatic caregiver alerts, live Hermes startup, live cron execution, connector activation, model provider calls, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, medical decisions, medication changes, emergency monitoring, destructive actions, 99P, or NEXT_ELIGIBLE from this status."},
+  {"stage_id":"98P","stage_name":"Routine Execution Engine Skeleton v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_98P_closeout","commit_message":"feat: add routine execution engine skeleton","paths":["app/routine_execution_engine.py","app/main.py","docs/reference/ROUTINE_EXECUTION_ENGINE_98P_v0_1.md","tests/test_routine_execution_engine_98p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic routine execution engine skeleton. 99P and later are not authorized; do not infer live scheduler, live cron, live Telegram sends, automatic delivery, automatic caregiver alerts, live Hermes startup, connector activation, model provider calls, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, medical decisions, medication changes, emergency monitoring, destructive actions, or NEXT_ELIGIBLE from this status."}
 ]
 ```
 
@@ -756,7 +758,7 @@ The stage registry records the 96P closed committed state. Stage 97P was later e
 
 ## Stage 97P implementation transition
 
-The stage registry records the 97P closed committed state. Stage 98P and later are not authorized. No stage is next eligible after 97P without explicit maintainer direction.
+The stage registry records the 97P closed committed state. Stage 98P was later explicitly authorized by the maintainer for a deterministic local routine execution engine skeleton only. Stage 99P and later are not authorized. No stage is next eligible after 98P without explicit maintainer direction.
 
 ```json stage-97p-implementation-transition
 {
@@ -764,8 +766,9 @@ The stage registry records the 97P closed committed state. Stage 98P and later a
   "stage":"97P",
   "stage_name":"Caregiver Telegram MVP v0",
   "implementation_commit":"same_commit_as_97P_closeout",
-  "stage_98p_and_later_authorized":false,
-  "next_eligible_stage":null,
+  "stage_98p_authorized_later":true,
+  "stage_99p_and_later_authorized":false,
+  "next_eligible_stage":"98P",
   "live_telegram_sends_authorized":false,
   "automatic_caregiver_alerts_authorized":false,
   "live_hermes_start_authorized":false,
@@ -786,11 +789,45 @@ The stage registry records the 97P closed committed state. Stage 98P and later a
 
 97P implements a deterministic local caregiver routine slice for `POST /api/telegram/caregiver-mvp/webhook`. The slice routes Telegram text through the 95P policy chain, binds the result into the 96P Hermes OS runtime contract, builds a local `CaregiverRoutinePacket`, supports guided routine steps and simple confirmations, repeats safely on confusion, prepares approval-required escalation drafts, and exposes `PolicyTrace` and `TaskRunRecord` evidence. It does not send Telegram messages, start Hermes, schedule cron, activate connectors, call model providers, perform external actions, make medical decisions, change medication, or claim emergency monitoring.
 
+## Stage 98P implementation transition
+
+The stage registry records the 98P closed committed state. Stage 99P and later are not authorized. No stage is next eligible after 98P without explicit maintainer direction.
+
+```json stage-98p-implementation-transition
+{
+  "implementation_status":"CLOSED_COMMITTED",
+  "stage":"98P",
+  "stage_name":"Routine Execution Engine Skeleton v0",
+  "implementation_commit":"same_commit_as_98P_closeout",
+  "stage_99p_and_later_authorized":false,
+  "next_eligible_stage":null,
+  "live_scheduler_authorized":false,
+  "live_cron_authorized":false,
+  "live_telegram_sends_authorized":false,
+  "automatic_delivery_authorized":false,
+  "automatic_caregiver_alerts_authorized":false,
+  "live_hermes_start_authorized":false,
+  "connector_activation_authorized":false,
+  "model_provider_calls_authorized":false,
+  "production_credentials_authorized":false,
+  "external_writes_authorized":false,
+  "payments_authorized":false,
+  "publishing_authorized":false,
+  "browser_email_whatsapp_execution_authorized":false,
+  "medical_decisions_authorized":false,
+  "medication_changes_authorized":false,
+  "emergency_monitoring_authorized":false,
+  "destructive_actions_authorized":false
+}
+```
+
+98P implements a deterministic local routine execution skeleton. The engine represents routines as `RoutineDefinition` and `RoutineRun`, supports pending/running/completed/skipped/needs_confirmation/blocked/failed state vocabulary, performs wake and budget preflight placeholders, routes through 95P before 96P packet binding, supports 97P caregiver compatibility, emits a local delivery object only, and preserves inspectable policy trace/audit trail evidence. It does not install or run routines silently and does not create live scheduling, cron, delivery, external action, medical, emergency-monitoring, or caregiver-alert authority.
+
 ## Sequencing and authorization rules
 
 ```json roadmap-sequencing-rules
 [
-  "no_stage_is_next_eligible_after_97P_without_explicit_maintainer_direction",
+  "no_stage_is_next_eligible_after_98P_without_explicit_maintainer_direction",
   "eligibility_permits_story_drafting_only",
   "roadmap_inclusion_never_authorizes_implementation",
   "every_stage_requires_story_approval",
@@ -811,7 +848,8 @@ The stage registry records the 97P closed committed state. Stage 98P and later a
   "stage_95P_is_closed_committed_after_telegram_hermes_policy_chain_runtime_skeleton",
   "stage_96P_is_closed_committed_after_hermes_os_runtime_contract_closeout",
   "stage_97P_is_closed_committed_after_caregiver_telegram_mvp_closeout",
-  "do_not_invent_98P_without_explicit_maintainer_direction_in_repo_evidence",
+  "stage_98P_is_closed_committed_after_routine_execution_engine_skeleton_closeout",
+  "do_not_invent_99P_without_explicit_maintainer_direction_in_repo_evidence",
   "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
   "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence"
 ]
