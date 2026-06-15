@@ -204,7 +204,7 @@ def test_96p_reference_doc_and_roadmap_register_contract_stage():
     doc = DOC_PATH.read_text()
     roadmap = ROADMAP_PATH.read_text()
 
-    assert "Status: 96P implemented pending review." in doc
+    assert "Status: 96P closed committed." in doc
     for packet_name in [
         "RobotConstitution",
         "GoalPacket",
@@ -220,4 +220,4 @@ def test_96p_reference_doc_and_roadmap_register_contract_stage():
     assert "Hermes is runtime substrate, not authority layer." in doc
     assert "no live Hermes startup" in doc
     assert "no caregiver workflows" in doc
-    assert '"stage_id":"96P","stage_name":"Hermes OS Runtime Contract v0","status":"IMPLEMENTED_PENDING_REVIEW"' in roadmap
+    assert '"stage_id":"96P","stage_name":"Hermes OS Runtime Contract v0","status":"CLOSED_COMMITTED"' in roadmap

@@ -72,7 +72,7 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_93P_is_closed_committed_after_memory_center_bridge_closeout",
     "stage_94P_is_closed_committed_after_telegram_hermes_gateway_mvp_closeout",
     "stage_95P_is_closed_committed_after_telegram_hermes_policy_chain_runtime_skeleton",
-    "stage_96P_is_implemented_pending_review_after_explicit_maintainer_authorization",
+    "stage_96P_is_closed_committed_after_hermes_os_runtime_contract_closeout",
     "do_not_invent_97P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
@@ -109,7 +109,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "93P": ("CLOSED_COMMITTED", "Roboticxs Memory Center Bridge v0"),
     "94P": ("CLOSED_COMMITTED", "Telegram MVP on Hermes Gateway v0"),
     "95P": ("CLOSED_COMMITTED", "Telegram-Hermes Policy Chain Runtime Skeleton v0"),
-    "96P": ("IMPLEMENTED_PENDING_REVIEW", "Hermes OS Runtime Contract v0"),
+    "96P": ("CLOSED_COMMITTED", "Hermes OS Runtime Contract v0"),
 }
 
 
@@ -1510,7 +1510,7 @@ def test_94p_is_telegram_hermes_gateway_mvp_closed_committed_and_self_referenced
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the Telegram MVP on Hermes Gateway story/spec/test contract. 95P is closed committed and 96P is implemented pending review; do not infer runtime gateway startup, production Telegram messaging, credentials, UI, 97P, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the Telegram MVP on Hermes Gateway story/spec/test contract. 95P and 96P are closed committed; do not infer runtime gateway startup, production Telegram messaging, credentials, UI, 97P, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["94P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -1560,7 +1560,7 @@ def test_95p_is_telegram_hermes_policy_chain_runtime_skeleton_closed_committed()
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local Telegram-Hermes policy-chain runtime skeleton baseline. 96P is implemented pending review; do not infer caregiver behavior, live Telegram sends, live Hermes Gateway startup, live cron scheduling, connector activation, external writes, payments, publishing, browser/email/WhatsApp execution, production credentials, 97P, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local Telegram-Hermes policy-chain runtime skeleton baseline. 96P is closed committed; do not infer caregiver behavior, live Telegram sends, live Hermes Gateway startup, live cron scheduling, connector activation, external writes, payments, publishing, browser/email/WhatsApp execution, production credentials, 97P, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["95P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -1590,20 +1590,20 @@ def test_95p_transition_records_later_96p_authorization_and_blocks_external_runt
         "production_credentials_authorized": False,
     }
     assert stages_by_id["95P"]["status"] == "CLOSED_COMMITTED"
-    assert stages_by_id["96P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert stages_by_id["96P"]["status"] == "CLOSED_COMMITTED"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
-def test_96p_is_hermes_os_runtime_contract_pending_review_and_self_referenced():
+def test_96p_is_hermes_os_runtime_contract_closed_committed_and_self_referenced():
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
     assert stages_by_id["96P"] == {
         "stage_id": "96P",
         "stage_name": "Hermes OS Runtime Contract v0",
-        "status": "IMPLEMENTED_PENDING_REVIEW",
+        "status": "CLOSED_COMMITTED",
         "authority_source": "explicit_maintainer_authorization",
         "local_evidence": {
-            "commit": "same_commit_as_96P_implementation",
+            "commit": "d2aa97d",
             "commit_message": "feat: add hermes os runtime contract",
             "paths": [
                 "app/hermes_os_contract.py",
@@ -1625,10 +1625,10 @@ def test_96p_transition_blocks_97p_and_external_runtime_surfaces():
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
     assert transition == {
-        "implementation_status": "IMPLEMENTED_PENDING_REVIEW",
+        "implementation_status": "CLOSED_COMMITTED",
         "stage": "96P",
         "stage_name": "Hermes OS Runtime Contract v0",
-        "implementation_commit": "same_commit_as_96P_implementation",
+        "implementation_commit": "d2aa97d",
         "stage_97p_and_later_authorized": False,
         "next_eligible_stage": None,
         "caregiver_workflows_authorized": False,
@@ -1645,7 +1645,7 @@ def test_96p_transition_blocks_97p_and_external_runtime_surfaces():
         "browser_email_whatsapp_execution_authorized": False,
         "destructive_actions_authorized": False,
     }
-    assert stages_by_id["96P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert stages_by_id["96P"]["status"] == "CLOSED_COMMITTED"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 

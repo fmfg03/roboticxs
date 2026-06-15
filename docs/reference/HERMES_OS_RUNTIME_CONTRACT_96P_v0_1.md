@@ -1,6 +1,6 @@
 # Hermes OS Runtime Contract 96P v0.1
 
-Status: 96P implemented pending review.
+Status: 96P closed committed.
 
 This stage defines deterministic local packet contracts for treating Hermes as a persistent OS-like runtime substrate for Roboticxs. It does not implement caregiver behavior, live Hermes startup, live Telegram sends, live cron execution, connector activation, model provider calls, auto skill install, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, or destructive actions.
 
@@ -93,7 +93,7 @@ All Hermes OS packets remain downstream of:
 {
   "stage":"96P",
   "stage_name":"Hermes OS Runtime Contract v0",
-  "implementation_status":"IMPLEMENTED_PENDING_REVIEW",
+  "implementation_status":"CLOSED_COMMITTED",
   "scope_completed":[
     "RobotConstitution",
     "GoalPacket",
