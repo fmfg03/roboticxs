@@ -3,6 +3,11 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 from app.config import get_settings
+from app.caregiver_telegram_mvp import (
+    CAREGIVER_TELEGRAM_MVP_WEBHOOK_PATH,
+    run_caregiver_telegram_mvp,
+    serialize_caregiver_telegram_mvp_result,
+)
 from app.db import init_db
 from app.orchestrator import process_telegram_message
 from app.schemas import HealthResponse, TelegramWebhookResponse
@@ -49,6 +54,12 @@ def create_app() -> FastAPI:
         with app.state.db.session() as session:
             result = run_telegram_policy_chain(update=update, settings=app.state.settings, session=session)
         return serialize_policy_chain_result(result)
+
+    @app.post(CAREGIVER_TELEGRAM_MVP_WEBHOOK_PATH)
+    async def caregiver_telegram_mvp_webhook(update: dict) -> dict:
+        with app.state.db.session() as session:
+            result = run_caregiver_telegram_mvp(update=update, settings=app.state.settings, session=session)
+        return serialize_caregiver_telegram_mvp_result(result)
 
     return app
 

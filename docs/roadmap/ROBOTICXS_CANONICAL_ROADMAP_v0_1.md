@@ -4,7 +4,7 @@
 
 This document materializes the maintainer-approved forward-looking roadmap for Roboticxs.
 
-It is the controlling roadmap for future stage sequencing after Stage 96P implementation. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
+It is the controlling roadmap for future stage sequencing after Stage 97P implementation. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
 
 ## Source of authority
 
@@ -13,7 +13,7 @@ The forward sequence comes from explicit maintainer direction in the maintainer-
 ```json canonical-roadmap-authority
 {
   "authority_source":"maintainer_approved_chatgpt_web_planning_thread",
-  "local_evidence_scope":"stages_61P_through_96P",
+  "local_evidence_scope":"stages_61P_through_97P",
   "forward_sequence_source":"explicit_maintainer_direction",
   "runtime_truth_source":"local_repo",
   "roadmap_inclusion_authorizes_implementation":false
@@ -61,8 +61,9 @@ The repository confirms these fixed baselines:
 - 94P adds Telegram MVP on Hermes Gateway v0 as documentation/spec/test governance for using Hermes Gateway capability behind the Roboticxs Telegram command surface, scope guard, tool authority guard, memory projection boundary, routine policy, and Action Packet confirmation model.
 - 95P adds Telegram-Hermes Policy Chain Runtime Skeleton v0 as a deterministic local runtime skeleton proving Telegram input passes through 90P command policy, 91P skill scope policy, 92P tool authority policy, 93P memory projection policy, Action Packet binding, and a local Hermes Gateway adapter stub without external side effects.
 - 96P adds Hermes OS Runtime Contract v0 as a deterministic local contract layer defining how Roboticxs represents RobotConstitution, GoalPacket, RoutinePacket, SkillActivationPacket, MemoryProjectionPacket, ToolRequestPacket, ActionPacket binding, PolicyTrace, and TaskRunRecord when Hermes operates as persistent runtime substrate.
+- 97P adds Caregiver Telegram MVP v0 as a deterministic local caregiver routine slice over the 95P Telegram-Hermes policy chain and 96P Hermes OS runtime contract, with distinct actors, guided routine steps, simple confirmations, confusion-safe fallback, approval-required escalation drafts, bounded memory projection, no medical decision behavior, and no live delivery.
 
-No local implementation evidence is claimed for any stage after 96P. Stage 89P - Roboticxs Automation Blueprints v0 - is closed committed. Stage 90P - Roboticxs Command Surface Policy v0 - is closed committed. Stage 91P - Skill Activation Scope Guard v0 - is closed committed. Stage 92P - Hermes Tool Authority Guard v0 - is closed committed. Stage 93P - Roboticxs Memory Center Bridge v0 - is closed committed. Stage 94P - Telegram MVP on Hermes Gateway v0 - is closed committed as story/spec/test work only. Stage 95P - Telegram-Hermes Policy Chain Runtime Skeleton v0 - is closed committed. Stage 96P - Hermes OS Runtime Contract v0 - is closed committed. Stage 97P and later are not authorized.
+No local implementation evidence is claimed for any stage after 97P. Stage 89P - Roboticxs Automation Blueprints v0 - is closed committed. Stage 90P - Roboticxs Command Surface Policy v0 - is closed committed. Stage 91P - Skill Activation Scope Guard v0 - is closed committed. Stage 92P - Hermes Tool Authority Guard v0 - is closed committed. Stage 93P - Roboticxs Memory Center Bridge v0 - is closed committed. Stage 94P - Telegram MVP on Hermes Gateway v0 - is closed committed as story/spec/test work only. Stage 95P - Telegram-Hermes Policy Chain Runtime Skeleton v0 - is closed committed. Stage 96P - Hermes OS Runtime Contract v0 - is closed committed. Stage 97P - Caregiver Telegram MVP v0 - is closed committed. Stage 98P and later are not authorized.
 
 ## Canonical stage registry
 
@@ -104,7 +105,8 @@ No local implementation evidence is claimed for any stage after 96P. Stage 89P -
   {"stage_id":"93P","stage_name":"Roboticxs Memory Center Bridge v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"65ac8c03fc3305548627ca3162fb71191fcdcbb7","commit_message":"docs: add memory center bridge","paths":["docs/reference/ROBOTICXS_MEMORY_CENTER_BRIDGE_v0_1.md","docs/reference/ROBOTICXS_MEMORY_PROJECTION_POLICY_v0_1.md","docs/reference/ROBOTICXS_MEMORY_WRITEBACK_BOUNDARY_v0_1.md","docs/reference/ROBOTICXS_MEMORY_CONTEXT_INJECTION_CONTRACT_v0_1.md","tests/test_memory_center_bridge.py","tests/test_memory_projection_policy.py","tests/test_memory_writeback_boundary.py","tests/test_memory_context_injection_contract.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the Memory Center Bridge baseline. 94P - Telegram MVP on Hermes Gateway v0 - is closed committed as story/spec/test work only; do not infer 95P or NEXT_ELIGIBLE from this status."},
   {"stage_id":"94P","stage_name":"Telegram MVP on Hermes Gateway v0","status":"CLOSED_COMMITTED","authority_source":"local_repo_evidence","local_evidence":{"commit":"97777ca68e0443e17236e9858ce350f68ed77864","commit_message":"docs: add telegram hermes gateway mvp","paths":["docs/reference/ROBOTICXS_TELEGRAM_HERMES_GATEWAY_MVP_v0_1.md","docs/reference/ROBOTICXS_TELEGRAM_GATEWAY_BOUNDARY_v0_1.md","docs/reference/ROBOTICXS_TELEGRAM_ACTION_PACKET_FLOW_v0_1.md","docs/reference/ROBOTICXS_TELEGRAM_MEMORY_ROUTINE_FLOW_v0_1.md","tests/test_telegram_hermes_gateway_mvp.py","tests/test_telegram_gateway_boundary.py","tests/test_telegram_action_packet_flow.py","tests/test_telegram_memory_routine_flow.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the Telegram MVP on Hermes Gateway story/spec/test contract. 95P and 96P are closed committed; do not infer runtime gateway startup, production Telegram messaging, credentials, UI, 97P, or NEXT_ELIGIBLE from this status."},
   {"stage_id":"95P","stage_name":"Telegram-Hermes Policy Chain Runtime Skeleton v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"699f5e8953227bb16164b5ee7c8749f662b6d731","commit_message":"feat: add telegram hermes policy chain runtime skeleton","paths":["app/telegram_policy_chain.py","app/main.py","docs/reference/TELEGRAM_HERMES_POLICY_CHAIN_RUNTIME_SKELETON_95P_v0_1.md","tests/test_telegram_policy_chain_95p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Telegram-Hermes policy-chain runtime skeleton baseline. 96P is closed committed; do not infer caregiver behavior, live Telegram sends, live Hermes Gateway startup, live cron scheduling, connector activation, external writes, payments, publishing, browser/email/WhatsApp execution, production credentials, 97P, or NEXT_ELIGIBLE from this status."},
-  {"stage_id":"96P","stage_name":"Hermes OS Runtime Contract v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"d2aa97d","commit_message":"feat: add hermes os runtime contract","paths":["app/hermes_os_contract.py","docs/reference/HERMES_OS_RUNTIME_CONTRACT_96P_v0_1.md","tests/test_hermes_os_runtime_contract_96p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Hermes OS runtime contract baseline. 97P and later are not authorized; do not infer caregiver workflows, live Hermes startup, live cron execution, live Telegram sends, connector activation, model provider calls, auto skill install, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, or NEXT_ELIGIBLE from this status."}
+  {"stage_id":"96P","stage_name":"Hermes OS Runtime Contract v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"d2aa97d","commit_message":"feat: add hermes os runtime contract","paths":["app/hermes_os_contract.py","docs/reference/HERMES_OS_RUNTIME_CONTRACT_96P_v0_1.md","tests/test_hermes_os_runtime_contract_96p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Hermes OS runtime contract baseline. 97P is closed committed; do not infer live Hermes startup, live cron execution, live Telegram sends, connector activation, model provider calls, auto skill install, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, 98P, or NEXT_ELIGIBLE from this status."},
+  {"stage_id":"97P","stage_name":"Caregiver Telegram MVP v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_97P_closeout","commit_message":"feat: add caregiver telegram mvp slice","paths":["app/caregiver_telegram_mvp.py","app/telegram_policy_chain.py","app/main.py","docs/reference/CAREGIVER_TELEGRAM_MVP_97P_v0_1.md","tests/test_caregiver_telegram_mvp_97p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic caregiver Telegram MVP slice. 98P and later are not authorized; do not infer live Telegram sends, automatic caregiver alerts, live Hermes startup, live cron execution, connector activation, model provider calls, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, medical decisions, medication changes, emergency monitoring, destructive actions, or NEXT_ELIGIBLE from this status."}
 ]
 ```
 
@@ -723,7 +725,7 @@ The stage registry records the 95P closed committed state. Stage 96P was later e
 
 ## Stage 96P implementation transition
 
-The stage registry records the 96P closed committed state. Stage 97P and later are not authorized. No stage is next eligible after 96P without explicit maintainer direction.
+The stage registry records the 96P closed committed state. Stage 97P was later explicitly authorized by the maintainer for a deterministic local caregiver Telegram MVP slice only. Stage 98P and later are not authorized. No stage is next eligible after 97P without explicit maintainer direction.
 
 ```json stage-96p-implementation-transition
 {
@@ -731,9 +733,10 @@ The stage registry records the 96P closed committed state. Stage 97P and later a
   "stage":"96P",
   "stage_name":"Hermes OS Runtime Contract v0",
   "implementation_commit":"d2aa97d",
-  "stage_97p_and_later_authorized":false,
-  "next_eligible_stage":null,
-  "caregiver_workflows_authorized":false,
+  "stage_97p_authorized_later":true,
+  "stage_98p_and_later_authorized":false,
+  "next_eligible_stage":"97P",
+  "caregiver_workflows_authorized":"local_deterministic_97p_slice_only",
   "live_hermes_start_authorized":false,
   "live_cron_execution_authorized":false,
   "live_telegram_sends_authorized":false,
@@ -749,13 +752,45 @@ The stage registry records the 96P closed committed state. Stage 97P and later a
 }
 ```
 
-96P defines deterministic local packet contracts for representing Hermes as a persistent OS-like runtime substrate. The contract includes RobotConstitution, GoalPacket, RoutinePacket, SkillActivationPacket, MemoryProjectionPacket, ToolRequestPacket, ActionPacket binding, PolicyTrace, and TaskRunRecord. Hermes remains downstream of command policy, skill scope policy, tool authority policy, memory projection policy, budget authority where applicable, Action Packet confirmation, and blocked-action policy. 96P does not authorize caregiver workflows, live Hermes startup, live cron execution, live Telegram sends, external tools/connectors, model provider calls, auto skill install, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, 97P, or `NEXT_ELIGIBLE`.
+96P defines deterministic local packet contracts for representing Hermes as a persistent OS-like runtime substrate. The contract includes RobotConstitution, GoalPacket, RoutinePacket, SkillActivationPacket, MemoryProjectionPacket, ToolRequestPacket, ActionPacket binding, PolicyTrace, and TaskRunRecord. Hermes remains downstream of command policy, skill scope policy, tool authority policy, memory projection policy, budget authority where applicable, Action Packet confirmation, and blocked-action policy. 96P did not authorize live Hermes startup, live cron execution, live Telegram sends, external tools/connectors, model provider calls, auto skill install, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, 98P, or `NEXT_ELIGIBLE`.
+
+## Stage 97P implementation transition
+
+The stage registry records the 97P closed committed state. Stage 98P and later are not authorized. No stage is next eligible after 97P without explicit maintainer direction.
+
+```json stage-97p-implementation-transition
+{
+  "implementation_status":"CLOSED_COMMITTED",
+  "stage":"97P",
+  "stage_name":"Caregiver Telegram MVP v0",
+  "implementation_commit":"same_commit_as_97P_closeout",
+  "stage_98p_and_later_authorized":false,
+  "next_eligible_stage":null,
+  "live_telegram_sends_authorized":false,
+  "automatic_caregiver_alerts_authorized":false,
+  "live_hermes_start_authorized":false,
+  "live_cron_execution_authorized":false,
+  "connector_activation_authorized":false,
+  "model_provider_calls_authorized":false,
+  "production_credentials_authorized":false,
+  "external_writes_authorized":false,
+  "payments_authorized":false,
+  "publishing_authorized":false,
+  "browser_email_whatsapp_execution_authorized":false,
+  "medical_decisions_authorized":false,
+  "medication_changes_authorized":false,
+  "emergency_monitoring_authorized":false,
+  "destructive_actions_authorized":false
+}
+```
+
+97P implements a deterministic local caregiver routine slice for `POST /api/telegram/caregiver-mvp/webhook`. The slice routes Telegram text through the 95P policy chain, binds the result into the 96P Hermes OS runtime contract, builds a local `CaregiverRoutinePacket`, supports guided routine steps and simple confirmations, repeats safely on confusion, prepares approval-required escalation drafts, and exposes `PolicyTrace` and `TaskRunRecord` evidence. It does not send Telegram messages, start Hermes, schedule cron, activate connectors, call model providers, perform external actions, make medical decisions, change medication, or claim emergency monitoring.
 
 ## Sequencing and authorization rules
 
 ```json roadmap-sequencing-rules
 [
-  "no_stage_is_next_eligible_after_96P_without_explicit_maintainer_direction",
+  "no_stage_is_next_eligible_after_97P_without_explicit_maintainer_direction",
   "eligibility_permits_story_drafting_only",
   "roadmap_inclusion_never_authorizes_implementation",
   "every_stage_requires_story_approval",
@@ -775,7 +810,8 @@ The stage registry records the 96P closed committed state. Stage 97P and later a
   "stage_94P_is_closed_committed_after_telegram_hermes_gateway_mvp_closeout",
   "stage_95P_is_closed_committed_after_telegram_hermes_policy_chain_runtime_skeleton",
   "stage_96P_is_closed_committed_after_hermes_os_runtime_contract_closeout",
-  "do_not_invent_97P_without_explicit_maintainer_direction_in_repo_evidence",
+  "stage_97P_is_closed_committed_after_caregiver_telegram_mvp_closeout",
+  "do_not_invent_98P_without_explicit_maintainer_direction_in_repo_evidence",
   "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
   "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence"
 ]

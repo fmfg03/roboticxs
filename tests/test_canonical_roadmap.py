@@ -53,7 +53,7 @@ REQUIRED_DEFERRED_IDS = {
     "voxcpm",
 }
 REQUIRED_SEQUENCE_RULES = {
-    "no_stage_is_next_eligible_after_96P_without_explicit_maintainer_direction",
+    "no_stage_is_next_eligible_after_97P_without_explicit_maintainer_direction",
     "eligibility_permits_story_drafting_only",
     "roadmap_inclusion_never_authorizes_implementation",
     "every_stage_requires_story_approval",
@@ -73,7 +73,8 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_94P_is_closed_committed_after_telegram_hermes_gateway_mvp_closeout",
     "stage_95P_is_closed_committed_after_telegram_hermes_policy_chain_runtime_skeleton",
     "stage_96P_is_closed_committed_after_hermes_os_runtime_contract_closeout",
-    "do_not_invent_97P_without_explicit_maintainer_direction_in_repo_evidence",
+    "stage_97P_is_closed_committed_after_caregiver_telegram_mvp_closeout",
+    "do_not_invent_98P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -110,6 +111,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "94P": ("CLOSED_COMMITTED", "Telegram MVP on Hermes Gateway v0"),
     "95P": ("CLOSED_COMMITTED", "Telegram-Hermes Policy Chain Runtime Skeleton v0"),
     "96P": ("CLOSED_COMMITTED", "Hermes OS Runtime Contract v0"),
+    "97P": ("CLOSED_COMMITTED", "Caregiver Telegram MVP v0"),
 }
 
 
@@ -132,7 +134,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_96P",
+        "local_evidence_scope": "stages_61P_through_97P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -144,7 +146,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 97)
+        f"{number}P" for number in range(67, 98)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -323,6 +325,9 @@ def test_no_future_sequence_entries_claim_local_evidence_or_authorization():
     assert stages_by_id["92P"]["status"] == "CLOSED_COMMITTED"
     assert stages_by_id["93P"]["status"] == "CLOSED_COMMITTED"
     assert stages_by_id["94P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["95P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["96P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["97P"]["status"] == "CLOSED_COMMITTED"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
@@ -1614,13 +1619,13 @@ def test_96p_is_hermes_os_runtime_contract_closed_committed_and_self_referenced(
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local Hermes OS runtime contract baseline. 97P and later are not authorized; do not infer caregiver workflows, live Hermes startup, live cron execution, live Telegram sends, connector activation, model provider calls, auto skill install, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local Hermes OS runtime contract baseline. 97P is closed committed; do not infer live Hermes startup, live cron execution, live Telegram sends, connector activation, model provider calls, auto skill install, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, 98P, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["96P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 
-def test_96p_transition_blocks_97p_and_external_runtime_surfaces():
+def test_96p_transition_records_later_97p_authorization_and_blocks_external_runtime_surfaces():
     transition = load_json_block("stage-96p-implementation-transition")
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
@@ -1629,9 +1634,10 @@ def test_96p_transition_blocks_97p_and_external_runtime_surfaces():
         "stage": "96P",
         "stage_name": "Hermes OS Runtime Contract v0",
         "implementation_commit": "d2aa97d",
-        "stage_97p_and_later_authorized": False,
-        "next_eligible_stage": None,
-        "caregiver_workflows_authorized": False,
+        "stage_97p_authorized_later": True,
+        "stage_98p_and_later_authorized": False,
+        "next_eligible_stage": "97P",
+        "caregiver_workflows_authorized": "local_deterministic_97p_slice_only",
         "live_hermes_start_authorized": False,
         "live_cron_execution_authorized": False,
         "live_telegram_sends_authorized": False,
@@ -1646,6 +1652,66 @@ def test_96p_transition_blocks_97p_and_external_runtime_surfaces():
         "destructive_actions_authorized": False,
     }
     assert stages_by_id["96P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["97P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_97p_is_caregiver_telegram_mvp_closed_committed_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["97P"] == {
+        "stage_id": "97P",
+        "stage_name": "Caregiver Telegram MVP v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_97P_closeout",
+            "commit_message": "feat: add caregiver telegram mvp slice",
+            "paths": [
+                "app/caregiver_telegram_mvp.py",
+                "app/telegram_policy_chain.py",
+                "app/main.py",
+                "docs/reference/CAREGIVER_TELEGRAM_MVP_97P_v0_1.md",
+                "tests/test_caregiver_telegram_mvp_97p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic caregiver Telegram MVP slice. 98P and later are not authorized; do not infer live Telegram sends, automatic caregiver alerts, live Hermes startup, live cron execution, connector activation, model provider calls, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, medical decisions, medication changes, emergency monitoring, destructive actions, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["97P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_97p_transition_blocks_98p_and_external_runtime_surfaces():
+    transition = load_json_block("stage-97p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "97P",
+        "stage_name": "Caregiver Telegram MVP v0",
+        "implementation_commit": "same_commit_as_97P_closeout",
+        "stage_98p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "live_telegram_sends_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+        "live_hermes_start_authorized": False,
+        "live_cron_execution_authorized": False,
+        "connector_activation_authorized": False,
+        "model_provider_calls_authorized": False,
+        "production_credentials_authorized": False,
+        "external_writes_authorized": False,
+        "payments_authorized": False,
+        "publishing_authorized": False,
+        "browser_email_whatsapp_execution_authorized": False,
+        "medical_decisions_authorized": False,
+        "medication_changes_authorized": False,
+        "emergency_monitoring_authorized": False,
+        "destructive_actions_authorized": False,
+    }
+    assert stages_by_id["97P"]["status"] == "CLOSED_COMMITTED"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
