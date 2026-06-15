@@ -57,6 +57,19 @@ def run_routine(session, text: str, routine: RoutineDefinition | None = None, us
     )
 
 
+def assert_preflight_stopped_audit(run) -> None:
+    assert run.preflight.policy_chain_routed is False
+    assert run.policy_result.hermes_adapter.called is False
+    assert run.task_run_record.packet_type == "TaskRunRecord"
+    assert run.task_run_record.hermes_adapter_called is False
+    assert run.task_run_record.status == "STOPPED_BEFORE_HERMES"
+    assert run.hermes_os_contract.policy_trace.complete is False
+    assert [decision.policy for decision in run.policy_result.policy_trace] == ["routine_preflight_98p"]
+    assert ("policy_chain_skipped", "routine_preflight_98p") in [
+        (event.event, event.detail) for event in run.audit_trail
+    ]
+
+
 @pytest.mark.anyio
 async def test_routine_happy_path_local_execution(client):
     with client.app.state.db.session() as session:
@@ -69,6 +82,7 @@ async def test_routine_happy_path_local_execution(client):
     assert run.preflight.budget_allowed is True
     assert run.task_run_record.packet_type == "TaskRunRecord"
     assert run.task_run_record.stage == "96P"
+    assert run.task_run_record.hermes_adapter_called is True
     assert run.delivery.channel == "local_only"
     assert run.delivery.automatic_delivery_authorized is False
     assert run.live_cron_authorized is False
@@ -93,6 +107,7 @@ async def test_wake_gate_skip(client):
     assert run.state == "skipped"
     assert run.error_code == "routine_wake_gate_skipped"
     assert run.delivery.external_side_effect_authorized is False
+    assert_preflight_stopped_audit(run)
 
 
 @pytest.mark.anyio
@@ -107,6 +122,7 @@ async def test_budget_block_placeholder(client):
     assert run.state == "blocked"
     assert run.error_code == "routine_budget_preflight_blocked"
     assert ("budget_preflight", "block_placeholder") in [(event.event, event.detail) for event in run.audit_trail]
+    assert_preflight_stopped_audit(run)
 
 
 @pytest.mark.anyio
@@ -212,6 +228,7 @@ async def test_no_silent_scheduling_or_execution(client):
     assert run.error_code == "routine_silent_execution_blocked"
     assert run.live_scheduler_authorized is False
     assert run.live_cron_authorized is False
+    assert_preflight_stopped_audit(run)
 
 
 def test_definition_rejects_live_schedule_authority():
@@ -228,6 +245,7 @@ async def test_failed_routine_produces_auditable_failed_state(client):
     assert run.error_code == "routine_local_failure"
     assert ("state_selected", "failed") in [(event.event, event.detail) for event in run.audit_trail]
     assert run.delivery.external_side_effect_authorized is False
+    assert_preflight_stopped_audit(run)
 
 
 @pytest.mark.anyio

@@ -10,8 +10,11 @@ from app.caregiver_telegram_mvp import CaregiverTelegramMVPResult, run_caregiver
 from app.config import Settings
 from app.hermes_os_contract import HermesOSRuntimeContract, TaskRunRecord, build_hermes_os_runtime_contract
 from app.telegram_policy_chain import (
+    HermesGatewayAdapterStubResult,
     LocalActionPacket,
+    MemoryContextBlock,
     MemoryProjection,
+    PolicyDecision,
     TelegramPolicyChainResult,
     run_telegram_policy_chain,
 )
@@ -141,6 +144,21 @@ def execute_routine_locally(
     session: Session,
     force_failure: bool = False,
 ) -> RoutineRun:
+    preflight_stop = _preflight_stop(definition=definition, force_failure=force_failure)
+    if preflight_stop is not None:
+        state, error_code = preflight_stop
+        policy_result = _preflight_stopped_policy_result(update=update, state=state, error_code=error_code)
+        hermes_os_contract = build_hermes_os_runtime_contract(policy_result=policy_result, routine_requested=True)
+        return _build_routine_run(
+            definition=definition,
+            state=state,
+            error_code=error_code,
+            policy_result=policy_result,
+            hermes_os_contract=hermes_os_contract,
+            caregiver_result=None,
+            policy_chain_routed=False,
+        )
+
     policy_result = run_telegram_policy_chain(update=update, settings=settings, session=session)
     hermes_os_contract = build_hermes_os_runtime_contract(policy_result=policy_result, routine_requested=True)
     caregiver_result = (
@@ -153,12 +171,31 @@ def execute_routine_locally(
         if definition.kind == "caregiver"
         else None
     )
-    state, error_code = _state_for_inputs(
-        definition=definition,
+    state, error_code = _state_for_policy_result(
         policy_result=policy_result,
         caregiver_result=caregiver_result,
-        force_failure=force_failure,
     )
+    return _build_routine_run(
+        definition=definition,
+        state=state,
+        error_code=error_code,
+        policy_result=policy_result,
+        hermes_os_contract=hermes_os_contract,
+        caregiver_result=caregiver_result,
+        policy_chain_routed=True,
+    )
+
+
+def _build_routine_run(
+    *,
+    definition: RoutineDefinition,
+    state: RoutineState,
+    error_code: str | None,
+    policy_result: TelegramPolicyChainResult,
+    hermes_os_contract: HermesOSRuntimeContract,
+    caregiver_result: CaregiverTelegramMVPResult | None,
+    policy_chain_routed: bool,
+) -> RoutineRun:
     action_packet = caregiver_result.action_packet if caregiver_result and caregiver_result.action_packet else policy_result.action_packet
     delivery = LocalRoutineDelivery(
         delivery_id=_stable_id("routine_delivery", definition.routine_id, policy_result.user_id, state),
@@ -179,7 +216,7 @@ def execute_routine_locally(
             budget_allowed=definition.budget_preflight_allowed,
             explicit_user_approved=definition.explicit_user_approved,
             manual_start_required=definition.manual_start_required,
-            policy_chain_routed=True,
+            policy_chain_routed=policy_chain_routed,
         ),
         policy_result=policy_result,
         hermes_os_contract=hermes_os_contract,
@@ -194,6 +231,7 @@ def execute_routine_locally(
             policy_result=policy_result,
             action_packet=action_packet,
             error_code=error_code,
+            policy_chain_routed=policy_chain_routed,
         ),
         error_code=error_code,
         live_scheduler_authorized=False,
@@ -269,13 +307,11 @@ def serialize_routine_run(run: RoutineRun) -> dict[str, object]:
     }
 
 
-def _state_for_inputs(
+def _preflight_stop(
     *,
     definition: RoutineDefinition,
-    policy_result: TelegramPolicyChainResult,
-    caregiver_result: CaregiverTelegramMVPResult | None,
     force_failure: bool,
-) -> tuple[RoutineState, str | None]:
+) -> tuple[RoutineState, str] | None:
     if force_failure:
         return "failed", "routine_local_failure"
     if not definition.explicit_user_approved or not definition.manual_start_required:
@@ -284,11 +320,85 @@ def _state_for_inputs(
         return "skipped", "routine_wake_gate_skipped"
     if not definition.budget_preflight_allowed:
         return "blocked", "routine_budget_preflight_blocked"
+    return None
+
+
+def _state_for_policy_result(
+    *,
+    policy_result: TelegramPolicyChainResult,
+    caregiver_result: CaregiverTelegramMVPResult | None,
+) -> tuple[RoutineState, str | None]:
     if policy_result.action_packet is not None or (caregiver_result is not None and caregiver_result.action_packet is not None):
         return "needs_confirmation", "routine_action_packet_required"
     if not policy_result.ok or not (caregiver_result.ok if caregiver_result is not None else True):
         return "blocked", policy_result.error_code or (caregiver_result.error_code if caregiver_result else None)
     return "completed", None
+
+
+def _preflight_stopped_policy_result(
+    *,
+    update: dict,
+    state: RoutineState,
+    error_code: str,
+) -> TelegramPolicyChainResult:
+    message = update.get("message", {}) if isinstance(update, dict) else {}
+    chat = message.get("chat", {}) if isinstance(message, dict) else {}
+    sender = message.get("from", {}) if isinstance(message, dict) else {}
+    chat_id = chat.get("id") if isinstance(chat.get("id"), int) else None
+    user_id = sender.get("id") if isinstance(sender.get("id"), int) else None
+    decision = PolicyDecision(
+        policy="routine_preflight_98p",
+        decision="STOPPED",
+        reason=error_code,
+        metadata={"routine_state": state},
+    )
+    skipped_tool_authority = PolicyDecision(
+        policy="routine_preflight_98p",
+        decision="SKIPPED",
+        reason="Routine preflight stopped execution before the 95P tool-authority policy.",
+        metadata={"routine_state": state, "action_class": "ROUTE"},
+    )
+    memory_context = MemoryContextBlock(
+        packet_type="MemoryContextBlock",
+        status="PREFLIGHT_STOPPED_LOCAL_AUDIT",
+        stage=ROUTINE_EXECUTION_STAGE,
+        source_of_truth="Roboticxs Memory Center",
+        runtime_target="none_preflight_stopped",
+        projection_policy_id="routine_preflight_no_projection_v0_1",
+        request_scope="preflight_stopped",
+        active_skill_id="none",
+        projections=(),
+        tool_action_authorization=False,
+        permission_expansion_authorized=False,
+    )
+    hermes_adapter = HermesGatewayAdapterStubResult(
+        called=False,
+        status="preflight_stopped",
+        response_text="Routine stopped by local preflight before policy-chain or Hermes adapter execution.",
+        request_text=None,
+        memory_projection_count=0,
+    )
+    return TelegramPolicyChainResult(
+        ok=False,
+        stage=ROUTINE_EXECUTION_STAGE,
+        chat_id=chat_id,
+        user_id=user_id,
+        response_text=hermes_adapter.response_text,
+        command_policy=decision,
+        skill_scope_policy=decision,
+        tool_authority_policy=skipped_tool_authority,
+        memory_context=memory_context,
+        action_packet=None,
+        hermes_adapter=hermes_adapter,
+        policy_trace=(decision,),
+        local_response={
+            "network_call": False,
+            "policy_chain_routed": False,
+            "hermes_adapter_called": False,
+            "external_side_effect": False,
+        },
+        error_code=error_code,
+    )
 
 
 def _bounded_routine_memory_projection(policy_result: TelegramPolicyChainResult) -> tuple[MemoryProjection, ...]:
@@ -325,10 +435,14 @@ def _audit_trail(
     policy_result: TelegramPolicyChainResult,
     action_packet: LocalActionPacket | None,
     error_code: str | None,
+    policy_chain_routed: bool,
 ) -> tuple[RoutineAuditEvent, ...]:
     events = [
         RoutineAuditEvent("routine_defined", definition.routine_id),
-        RoutineAuditEvent("policy_chain_routed", ",".join(decision.policy for decision in policy_result.policy_trace)),
+        RoutineAuditEvent(
+            "policy_chain_routed" if policy_chain_routed else "policy_chain_skipped",
+            ",".join(decision.policy for decision in policy_result.policy_trace),
+        ),
         RoutineAuditEvent("wake_preflight", "allow" if definition.wake_signal_present else "skip"),
         RoutineAuditEvent("budget_preflight", "allow" if definition.budget_preflight_allowed else "block_placeholder"),
         RoutineAuditEvent("state_selected", state),
