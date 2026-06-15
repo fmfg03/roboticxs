@@ -228,4 +228,4 @@ def test_95p_reference_doc_and_roadmap_register_stage():
     assert "no live Telegram sends" in doc
     assert "no live Hermes Gateway startup" in doc
     assert "no external side effects" in doc
-    assert '"stage_id":"95P","stage_name":"Telegram-Hermes Policy Chain Runtime Skeleton v0","status":"IMPLEMENTED_PENDING_REVIEW"' in roadmap
+    assert '"stage_id":"95P","stage_name":"Telegram-Hermes Policy Chain Runtime Skeleton v0","status":"CLOSED_COMMITTED"' in roadmap
