@@ -10,6 +10,7 @@ MemoryStatus = Literal["proposed", "approved", "active", "stale", "revoked", "co
 ActorRole = Literal["owner_admin", "caregiver", "care_recipient", "robot", "routine"]
 ProjectionScope = Literal["general", "caregiver", "routine", "telegram", "hermes_os", "skill_specific"]
 Sensitivity = Literal["ordinary", "personal", "caregiver", "credential_like", "medical", "legal", "financial", "safety_critical"]
+ActorVisibility = Literal["owner_private", "caregiver_private", "care_recipient_facing", "runtime_only"]
 AllowedUse = Literal[
     "answer_personalization",
     "boundary_enforcement",
@@ -40,6 +41,7 @@ ALLOWED_USES = frozenset(
 )
 SUPPORTED_ACTIVE_SKILL_IDS = frozenset({"basic_assistant"})
 SENSITIVE = frozenset({"personal", "caregiver", "medical", "legal", "financial", "safety_critical"})
+ACTOR_VISIBILITIES = frozenset({"owner_private", "caregiver_private", "care_recipient_facing", "runtime_only"})
 MAX_ITEMS_CAP = 20
 MAX_SUMMARY_CHARS_CAP = 500
 
@@ -58,6 +60,8 @@ class MemoryCenterItem:
     content: str
     bounded_summary: str | None
     source: str
+    authorized_actor_ids: tuple[object, ...] = ()
+    actor_visibility: str = "owner_private"
     conflict_group: str | None = None
     is_boundary: bool = False
     is_preference: bool = False
@@ -65,6 +69,8 @@ class MemoryCenterItem:
     def __post_init__(self) -> None:
         if not self.item_id or not self.owner_id or not self.robot_id:
             raise ValueError("MemoryCenterItem requires item, owner, and robot identifiers.")
+        if self.actor_visibility not in ACTOR_VISIBILITIES:
+            raise ValueError("MemoryCenterItem requires a known actor visibility.")
         if self.is_boundary and self.is_preference:
             raise ValueError("MemoryCenterItem cannot be both boundary and preference memory.")
         if "skill_specific" in self.scopes and not self.skill_ids:
@@ -263,8 +269,9 @@ def _exclusion_reason(
         return "excluded_unknown_sensitivity"
     if any(use not in ALLOWED_USES for use in item.allowed_uses):
         return "excluded_unknown_allowed_use"
-    if request.actor_role in {"caregiver", "care_recipient"} and request.target_scope != "caregiver":
-        return "excluded_actor_isolation"
+    actor_reason = _actor_authorization_reason(request, item)
+    if actor_reason is not None:
+        return actor_reason
     if request.actor_role == "routine" and request.target_scope != "routine":
         return "excluded_actor_isolation"
     if request.target_scope not in item.scopes:
@@ -290,11 +297,54 @@ def _exclusion_reason(
     return None
 
 
+def _actor_authorization_reason(request: MemoryProjectionRequest, item: MemoryCenterItem) -> str | None:
+    if request.actor_role == "owner_admin" and request.actor_id != request.owner_id:
+        return "excluded_actor_isolation"
+    if request.actor_role == "caregiver":
+        if request.target_scope != "caregiver":
+            return "excluded_actor_isolation"
+        if request.actor_id not in item.authorized_actor_ids:
+            return "excluded_actor_isolation"
+    if request.actor_role == "care_recipient":
+        if request.target_scope != "caregiver":
+            return "excluded_actor_isolation"
+        if request.actor_id not in item.authorized_actor_ids and not _legacy_owner_boundary_is_care_recipient_facing(
+            request, item
+        ):
+            return "excluded_actor_isolation"
+        if item.actor_visibility != "care_recipient_facing" and not _legacy_owner_boundary_is_care_recipient_facing(
+            request, item
+        ):
+            return "excluded_actor_isolation"
+    if request.actor_role in {"robot", "routine"} and item.actor_visibility in {"caregiver_private", "care_recipient_facing"}:
+        if request.actor_id not in item.authorized_actor_ids:
+            return "excluded_actor_isolation"
+    return None
+
+
+def _legacy_owner_boundary_is_care_recipient_facing(request: MemoryProjectionRequest, item: MemoryCenterItem) -> bool:
+    return (
+        request.actor_id == item.owner_id
+        and item.is_boundary
+        and item.sensitivity == "ordinary"
+        and item.actor_visibility == "owner_private"
+    )
+
+
 def _summary_for(request: MemoryProjectionRequest, item: MemoryCenterItem) -> tuple[str | None, bool]:
     if item.sensitivity == "ordinary":
         return item.bounded_summary or item.content, False
     if item.sensitivity in SENSITIVE:
         explicitly_scoped = request.target_scope in item.scopes and request.allowed_use in item.allowed_uses
+        explicitly_actor_authorized = request.actor_id == request.owner_id or request.actor_id in item.authorized_actor_ids
+        if not explicitly_actor_authorized:
+            return None, False
+        if (
+            request.actor_role == "care_recipient"
+            and item.actor_visibility != "care_recipient_facing"
+            and not _legacy_owner_boundary_is_care_recipient_facing(request, item)
+        ):
+            return None, False
         if explicitly_scoped and item.bounded_summary and request.actor_role not in {"caregiver", "care_recipient"}:
             return item.bounded_summary, True
         if explicitly_scoped and item.bounded_summary and request.target_scope == "caregiver":

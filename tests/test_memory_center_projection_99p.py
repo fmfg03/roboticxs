@@ -37,6 +37,8 @@ def item(item_id: str, **overrides) -> MemoryCenterItem:
         "content": f"content-{item_id}",
         "bounded_summary": None,
         "source": "test",
+        "authorized_actor_ids": (),
+        "actor_visibility": "owner_private",
     }
     values.update(overrides)
     return MemoryCenterItem(**values)
@@ -103,8 +105,11 @@ def test_sensitive_memory_is_redacted_or_excluded_without_leaking_trace_content(
         allowed_uses=("caregiver_context",),
         content="raw-medical-secret",
         bounded_summary="Approved routine safety boundary.",
+        authorized_actor_ids=("caregiver-1",),
+        actor_visibility="caregiver_private",
     )
     caregiver_request = request(
+        actor_id="caregiver-1",
         actor_role="caregiver",
         target_scope="caregiver",
         allowed_use="caregiver_context",
@@ -114,6 +119,179 @@ def test_sensitive_memory_is_redacted_or_excluded_without_leaking_trace_content(
     assert [summary.summary for summary in result.summaries] == ["Approved routine safety boundary."]
     assert result.summaries[0].redacted is True
     assert "raw-medical-secret" not in repr(result.trace)
+
+
+def test_unrelated_caregiver_actor_id_cannot_see_caregiver_private_memory():
+    private = item(
+        "caregiver-private",
+        scopes=("caregiver",),
+        sensitivity="caregiver",
+        allowed_uses=("caregiver_context",),
+        content="caregiver-private-raw-content",
+        bounded_summary="Bounded caregiver-only summary.",
+        authorized_actor_ids=("caregiver-authorized",),
+        actor_visibility="caregiver_private",
+    )
+
+    result = project_memory(
+        items=(private,),
+        request=request(
+            actor_id="caregiver-unrelated",
+            actor_role="caregiver",
+            target_scope="caregiver",
+            allowed_use="caregiver_context",
+        ),
+    )
+
+    assert result.summaries == ()
+    assert result.trace[0].reason_code == "excluded_actor_isolation"
+    assert "caregiver-private-raw-content" not in repr(result.trace)
+    assert "Bounded caregiver-only summary." not in repr(result.trace)
+
+
+def test_care_recipient_cannot_see_caregiver_private_memory():
+    private = item(
+        "caregiver-private",
+        scopes=("caregiver",),
+        sensitivity="caregiver",
+        allowed_uses=("caregiver_context",),
+        content="private-caregiver-note",
+        bounded_summary="Caregiver-only bounded summary.",
+        authorized_actor_ids=("recipient-1", "caregiver-1"),
+        actor_visibility="caregiver_private",
+    )
+
+    result = project_memory(
+        items=(private,),
+        request=request(
+            actor_id="recipient-1",
+            actor_role="care_recipient",
+            target_scope="caregiver",
+            allowed_use="caregiver_context",
+        ),
+    )
+
+    assert result.summaries == ()
+    assert result.trace[0].reason_code == "excluded_actor_isolation"
+    assert "private-caregiver-note" not in repr(result.trace)
+    assert "Caregiver-only bounded summary." not in repr(result.trace)
+
+
+def test_authorized_caregiver_receives_only_explicit_bounded_summary():
+    private = item(
+        "caregiver-private",
+        scopes=("caregiver",),
+        sensitivity="caregiver",
+        allowed_uses=("caregiver_context",),
+        content="raw caregiver note with sensitive detail",
+        bounded_summary="Bounded caregiver summary.",
+        authorized_actor_ids=("caregiver-1",),
+        actor_visibility="caregiver_private",
+    )
+
+    result = project_memory(
+        items=(private,),
+        request=request(
+            actor_id="caregiver-1",
+            actor_role="caregiver",
+            target_scope="caregiver",
+            allowed_use="caregiver_context",
+        ),
+    )
+
+    assert [summary.summary for summary in result.summaries] == ["Bounded caregiver summary."]
+    assert result.summaries[0].redacted is True
+    assert "raw caregiver note" not in repr(result)
+
+
+def test_care_recipient_receives_only_care_recipient_facing_memory():
+    recipient_facing = item(
+        "recipient-facing",
+        scopes=("caregiver",),
+        sensitivity="personal",
+        allowed_uses=("caregiver_context",),
+        content="raw recipient-facing detail",
+        bounded_summary="Care-recipient-facing bounded summary.",
+        authorized_actor_ids=("recipient-1",),
+        actor_visibility="care_recipient_facing",
+    )
+    caregiver_private = item(
+        "caregiver-private",
+        scopes=("caregiver",),
+        sensitivity="caregiver",
+        allowed_uses=("caregiver_context",),
+        content="private caregiver detail",
+        bounded_summary="Caregiver-private bounded summary.",
+        authorized_actor_ids=("recipient-1",),
+        actor_visibility="caregiver_private",
+    )
+
+    result = project_memory(
+        items=(recipient_facing, caregiver_private),
+        request=request(
+            actor_id="recipient-1",
+            actor_role="care_recipient",
+            target_scope="caregiver",
+            allowed_use="caregiver_context",
+        ),
+    )
+
+    assert [summary.item_id for summary in result.summaries] == ["recipient-facing"]
+    assert result.summaries[0].summary == "Care-recipient-facing bounded summary."
+    assert "private caregiver detail" not in repr(result.trace)
+    assert "Caregiver-private bounded summary." not in repr(result.trace)
+
+
+def test_actor_role_alone_never_grants_sensitive_caregiver_access():
+    private = item(
+        "caregiver-private",
+        scopes=("caregiver",),
+        sensitivity="caregiver",
+        allowed_uses=("caregiver_context",),
+        content="role-only raw private note",
+        bounded_summary="Role-only should not see this.",
+        actor_visibility="caregiver_private",
+    )
+
+    result = project_memory(
+        items=(private,),
+        request=request(
+            actor_id="caregiver-with-role-only",
+            actor_role="caregiver",
+            target_scope="caregiver",
+            allowed_use="caregiver_context",
+        ),
+    )
+
+    assert result.summaries == ()
+    assert result.trace[0].reason_code == "excluded_actor_isolation"
+    assert "role-only raw private note" not in repr(result.trace)
+    assert "Role-only should not see this." not in repr(result.trace)
+
+
+def test_robot_and_routine_do_not_receive_caregiver_private_memory_without_explicit_scope():
+    private = item(
+        "caregiver-private",
+        scopes=("routine",),
+        sensitivity="caregiver",
+        allowed_uses=("routine_context",),
+        content="caregiver private routine detail",
+        bounded_summary="Caregiver-private routine summary.",
+        actor_visibility="caregiver_private",
+    )
+
+    routine_result = project_memory(
+        items=(private,),
+        request=request(actor_id="routine-1", actor_role="routine", target_scope="routine", allowed_use="routine_context"),
+    )
+    robot_result = project_memory(
+        items=(private,),
+        request=request(actor_id="robot-1", actor_role="robot", target_scope="routine", allowed_use="routine_context"),
+    )
+
+    assert routine_result.summaries == ()
+    assert robot_result.summaries == ()
+    assert {trace.reason_code for trace in routine_result.trace + robot_result.trace} == {"excluded_actor_isolation"}
 
 
 def test_caregiver_cannot_see_unrelated_owner_memory():

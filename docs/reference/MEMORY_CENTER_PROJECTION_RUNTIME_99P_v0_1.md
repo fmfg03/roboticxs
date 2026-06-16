@@ -1,6 +1,6 @@
 # Memory Center Projection Runtime Slice v0
 
-Status: 99P closed committed.
+Status: 99P implemented; remediation pending review and closeout.
 
 99P implements a deterministic local runtime skeleton only. This document does not authorize migrations, canonical memory writes, UI, endpoints, live Telegram or Hermes behavior, cron, connectors, providers, external actions, medical behavior, automatic caregiver alerts, production credentials, or 100P+.
 
@@ -100,6 +100,8 @@ Canonical item input read from Memory Center.
 | `content` | `str` | Canonical raw content; not projected by default when sensitive. |
 | `bounded_summary` | `str | None` | Explicit runtime-safe summary when one exists. |
 | `source` | `str` | Preserved provenance label. |
+| `authorized_actor_ids` | `tuple[str, ...]` | Local no-migration actor authorization fixture for this projection slice. |
+| `actor_visibility` | `str` | Local visibility policy: `owner_private`, `caregiver_private`, `care_recipient_facing`, or `runtime_only`. |
 | `conflict_group` | `str | None` | Groups known conflicting records. |
 | `is_boundary` | `bool` | Boundary records take precedence. |
 | `is_preference` | `bool` | Preference records remain subordinate to boundaries. |
@@ -110,6 +112,7 @@ Invariants:
 - `is_boundary` and `is_preference` must not both be true.
 - `skill_specific` scope requires at least one `skill_id`.
 - A bounded summary is data, not authority, and must not contain raw secrets or credentials.
+- Caregiver and care-recipient projection requires explicit actor authorization via local typed policy data; role, scope, and allowed use alone are insufficient.
 
 ### MemoryProjectionRequest
 
@@ -202,12 +205,13 @@ Rejected requests contain no summaries and include only a request-level rejectio
 | Actor | Default projection boundary |
 | --- | --- |
 | `owner_admin` | May receive owner-bound records allowed for the requested scope/use; sensitive data still requires explicit bounded-summary policy. |
-| `caregiver` | May receive only explicitly caregiver-scoped records relevant to the care recipient/context; unrelated owner memory is excluded. |
-| `care_recipient` | May receive only records explicitly allowed for the care-recipient-facing context; unrelated owner or caregiver-private memory is excluded. |
+| `caregiver` | May receive only explicitly caregiver-scoped records relevant to the care recipient/context when `actor_id` is explicitly authorized for the item; unrelated owner memory and role-only access are excluded. |
+| `care_recipient` | May receive only explicitly authorized `care_recipient_facing` records; unrelated owner memory and caregiver-private memory are excluded even when scope/use match. |
 | `robot` | May receive only owner/robot-bound records allowed for the target runtime scope and use. |
 | `routine` | May receive only routine-scoped records after successful 98P preflight. |
 
 Actor role alone never grants access. Owner/admin does not bypass sensitivity, scope, allowed-use, or status filters.
+Caregiver-private memory must not project to unrelated caregiver actors, care recipients, robots, or routines unless a local typed authorization record explicitly permits the actor and the requested use.
 
 ## Scope and Skill Rules
 
@@ -254,7 +258,7 @@ Actor role alone never grants access. Owner/admin does not bypass sensitivity, s
 1. Validate request actor, scope, allowed use, bounds, audit/decision combination, optional skill requirement, and non-authority invariant.
 2. Reject the entire request if it attempts authority expansion.
 3. Evaluate owner and robot isolation.
-4. Evaluate actor isolation.
+4. Evaluate actor isolation, including explicit `actor_id` authorization for caregiver and care-recipient contexts.
 5. Evaluate explicit target scope and optional skill.
 6. Evaluate status.
 7. Evaluate allowed use.
@@ -388,18 +392,24 @@ Future implementation tests must prove:
 5. `never-use-for-decisions` is excluded from decision context.
 6. Sensitive memory is redacted or excluded for an unauthorized caregiver or care recipient.
 7. Actor isolation prevents a caregiver from seeing unrelated owner memory.
-8. Routine projection includes only routine-scoped memory.
-9. Valid boundary memory overrides conflicting preference memory.
-10. Projection cannot expand tool authority.
-11. Projection result includes inspectable trace and audit data without leaking excluded sensitive content.
-12. 95P receives bounded memory only and does not consume audit-only records as decision context.
-13. 96P binding is non-authority-expanding.
-14. 97P caregiver isolation remains intact.
-15. A 98P preflight-stopped routine does not invoke projection and does not call the Hermes adapter.
-16. Unknown actor, scope, status, sensitivity, and allowed-use values follow the specified reject/exclude paths.
-17. Credential-like data never projects.
-18. Bounds and ordering are deterministic.
-19. 100P+ remains unauthorized.
+8. Unrelated caregiver `actor_id` values cannot see caregiver-private memory.
+9. Care recipients cannot see caregiver-private memory.
+10. Authorized caregiver `actor_id` values receive only explicitly permitted bounded summaries.
+11. Care recipients receive only care-recipient-facing bounded memory.
+12. Actor role alone never grants access.
+13. Trace records do not leak excluded sensitive content.
+14. Routine projection includes only routine-scoped memory.
+15. Valid boundary memory overrides conflicting preference memory.
+16. Projection cannot expand tool authority.
+17. Projection result includes inspectable trace and audit data without leaking excluded sensitive content.
+18. 95P receives bounded memory only and does not consume audit-only records as decision context.
+19. 96P binding is non-authority-expanding.
+20. 97P caregiver isolation remains intact.
+21. A 98P preflight-stopped routine does not invoke projection and does not call the Hermes adapter.
+22. Unknown actor, scope, status, sensitivity, and allowed-use values follow the specified reject/exclude paths.
+23. Credential-like data never projects.
+24. Bounds and ordering are deterministic.
+25. 100P+ remains unauthorized.
 
 Required future regression coverage:
 
@@ -448,14 +458,15 @@ For a future approved local skeleton:
 - 97P: `CLOSED_COMMITTED`
 - 98P: `CLOSED_COMMITTED`
 - 99P user story and technical specification: approved
-- 99P implementation: closed committed as a deterministic local runtime skeleton
+- 99P implementation: implemented with actor-isolation remediation pending review and closeout
 - 100P and later: unauthorized
 
-No migration, canonical memory write, UI, endpoint, live runtime, external effect, medical behavior, automatic caregiver alert, or future-stage authority is granted by this closeout.
+No migration, canonical memory write, UI, endpoint, live runtime, external effect, medical behavior, automatic caregiver alert, or future-stage authority is granted by this remediation.
 
 ## Closeout Evidence
 
-- implementation commit: `same_commit_as_99P_closeout`
+- implementation commit: `3f0036c`
+- remediation commit: pending
 - typed local contracts: `MemoryCenterItem`, `MemoryProjectionRequest`, `MemoryProjectionResult`, `ProjectedMemorySummary`, `ProjectionTraceRecord`
 - deterministic actor, scope, status, sensitivity, allowed-use, optional-skill, conflict, bounds, and trace behavior
 - bounded 95P consumption and non-authority 96P binding
