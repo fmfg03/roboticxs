@@ -8,6 +8,13 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import Settings
+from app.cost_governor import (
+    CostPreflightResult,
+    build_task_cost_request,
+    default_budget_policy,
+    evaluate_cost_preflight,
+    serialize_cost_preflight_result,
+)
 from app.memory_control import list_active_memories
 from app.memory_center_projection import (
     MemoryCenterItem,
@@ -134,6 +141,7 @@ class TelegramPolicyChainResult:
     skill_scope_policy: PolicyDecision
     tool_authority_policy: PolicyDecision
     memory_context: MemoryContextBlock
+    cost_preflight: CostPreflightResult | None
     action_packet: LocalActionPacket | None
     hermes_adapter: HermesGatewayAdapterStubResult
     policy_trace: tuple[PolicyDecision, ...]
@@ -171,6 +179,7 @@ def run_telegram_policy_chain(
             skill_scope_policy=_skipped_policy("skill_scope_policy"),
             tool_authority_policy=_skipped_policy("tool_authority_policy"),
             memory_context=empty_context,
+            cost_preflight=None,
             action_packet=None,
             hermes_adapter=adapter,
             policy_trace=(blocked,),
@@ -197,6 +206,7 @@ def run_telegram_policy_chain(
             skill_scope_policy=_skipped_policy("skill_scope_policy"),
             tool_authority_policy=_skipped_policy("tool_authority_policy"),
             memory_context=memory_context,
+            cost_preflight=None,
             action_packet=None,
             adapter=adapter,
             response_text="This raw Hermes command is not available in the Roboticxs Telegram surface.",
@@ -222,6 +232,7 @@ def run_telegram_policy_chain(
             skill_scope_policy=skill_scope_policy,
             tool_authority_policy=_skipped_policy("tool_authority_policy"),
             memory_context=memory_context,
+            cost_preflight=None,
             action_packet=None,
             adapter=adapter,
             response_text="I cannot do that in Roboticxs v0. I can help prepare a safe local draft or checklist.",
@@ -248,6 +259,7 @@ def run_telegram_policy_chain(
             skill_scope_policy=skill_scope_policy,
             tool_authority_policy=tool_authority_policy,
             memory_context=memory_context,
+            cost_preflight=None,
             action_packet=None,
             adapter=adapter,
             response_text="That action is blocked in Roboticxs v0. Nothing was executed.",
@@ -267,6 +279,7 @@ def run_telegram_policy_chain(
             skill_scope_policy=skill_scope_policy,
             tool_authority_policy=tool_authority_policy,
             memory_context=memory_context,
+            cost_preflight=None,
             action_packet=action_packet,
             adapter=adapter,
             response_text=(
@@ -275,6 +288,50 @@ def run_telegram_policy_chain(
             ),
             ok=False,
             error_code="action_packet_required",
+        )
+
+    cost_preflight = evaluate_cost_preflight(
+        request=build_task_cost_request(
+            request_id=f"100p:{user.id}:{robot.id}:{message.chat_id}:{message.user_id}",
+            owner_id=str(user.id),
+            robot_id=str(robot.id),
+            text=message.text,
+            memory_context_used=bool(memory_context.projections),
+            context_item_count=len(memory_context.projections),
+            active_skill_id=str(skill_scope_policy.metadata.get("active_skill_id", "basic_assistant")),
+            routine_requested=memory_actor_role == "routine",
+        ),
+        budget_policy=default_budget_policy(owner_id=str(user.id), robot_id=str(robot.id)),
+    )
+    if cost_preflight.blocked:
+        adapter = _blocked_adapter_result("100P cost preflight blocked the request before Hermes adapter.")
+        return _result(
+            message=message,
+            command_policy=command_policy,
+            skill_scope_policy=skill_scope_policy,
+            tool_authority_policy=tool_authority_policy,
+            memory_context=memory_context,
+            cost_preflight=cost_preflight,
+            action_packet=None,
+            adapter=adapter,
+            response_text="This request was blocked by the local cost governor before execution.",
+            ok=False,
+            error_code="cost_preflight_blocked",
+        )
+    if cost_preflight.confirmation_required:
+        adapter = _blocked_adapter_result("100P cost preflight requires confirmation before Hermes adapter.")
+        return _result(
+            message=message,
+            command_policy=command_policy,
+            skill_scope_policy=skill_scope_policy,
+            tool_authority_policy=tool_authority_policy,
+            memory_context=memory_context,
+            cost_preflight=cost_preflight,
+            action_packet=None,
+            adapter=adapter,
+            response_text="This request needs explicit approval because the local cost governor flagged it as expensive.",
+            ok=False,
+            error_code="cost_confirmation_required",
         )
 
     hermes_request = build_hermes_request_from_telegram(message)
@@ -288,6 +345,7 @@ def run_telegram_policy_chain(
         skill_scope_policy=skill_scope_policy,
         tool_authority_policy=tool_authority_policy,
         memory_context=memory_context,
+        cost_preflight=cost_preflight,
         action_packet=None,
         adapter=adapter,
         response_text=adapter.response_text,
@@ -629,6 +687,7 @@ def serialize_policy_chain_result(result: TelegramPolicyChainResult) -> dict[str
             "confirmation_command": result.action_packet.confirmation_command,
             "external_effect_authorized": result.action_packet.external_effect_authorized,
         },
+        "cost_preflight": serialize_cost_preflight_result(result.cost_preflight),
         "hermes_adapter": {
             "called": result.hermes_adapter.called,
             "status": result.hermes_adapter.status,
@@ -651,6 +710,7 @@ def _result(
     skill_scope_policy: PolicyDecision,
     tool_authority_policy: PolicyDecision,
     memory_context: MemoryContextBlock,
+    cost_preflight: CostPreflightResult | None,
     action_packet: LocalActionPacket | None,
     adapter: HermesGatewayAdapterStubResult,
     response_text: str,
@@ -672,6 +732,7 @@ def _result(
         skill_scope_policy=skill_scope_policy,
         tool_authority_policy=tool_authority_policy,
         memory_context=memory_context,
+        cost_preflight=cost_preflight,
         action_packet=action_packet,
         hermes_adapter=adapter,
         policy_trace=trace,

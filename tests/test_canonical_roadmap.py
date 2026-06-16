@@ -53,7 +53,7 @@ REQUIRED_DEFERRED_IDS = {
     "voxcpm",
 }
 REQUIRED_SEQUENCE_RULES = {
-    "no_stage_is_next_eligible_after_99P_without_explicit_maintainer_direction",
+    "no_stage_is_next_eligible_after_100P_without_explicit_maintainer_direction",
     "eligibility_permits_story_drafting_only",
     "roadmap_inclusion_never_authorizes_implementation",
     "every_stage_requires_story_approval",
@@ -76,7 +76,8 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_97P_is_closed_committed_after_caregiver_telegram_mvp_closeout",
     "stage_98P_is_closed_committed_after_routine_execution_engine_skeleton_closeout",
     "stage_99P_is_closed_committed_after_memory_center_projection_runtime_remediation_validation",
-    "do_not_invent_100P_without_explicit_maintainer_direction_in_repo_evidence",
+    "stage_100P_is_closed_committed_after_cost_governor_model_routing_runtime_closeout",
+    "do_not_invent_101P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -116,6 +117,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "97P": ("CLOSED_COMMITTED", "Caregiver Telegram MVP v0"),
     "98P": ("CLOSED_COMMITTED", "Routine Execution Engine Skeleton v0"),
     "99P": ("CLOSED_COMMITTED", "Memory Center Projection Runtime Slice v0"),
+    "100P": ("CLOSED_COMMITTED", "Cost Governor / Model Routing Runtime v0"),
 }
 
 
@@ -138,7 +140,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_99P",
+        "local_evidence_scope": "stages_61P_through_100P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -150,7 +152,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 100)
+        f"{number}P" for number in range(67, 101)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -1743,7 +1745,7 @@ def test_98p_is_routine_execution_engine_closed_committed_and_self_referenced():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic routine execution engine skeleton. 99P is closed committed; do not infer live scheduler, live cron, live Telegram sends, automatic delivery, automatic caregiver alerts, live Hermes startup, connector activation, model provider calls, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, medical decisions, medication changes, emergency monitoring, destructive actions, 100P, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic routine execution engine skeleton. 99P and 100P are closed committed; do not infer live scheduler, live cron, live Telegram sends, automatic delivery, automatic caregiver alerts, live Hermes startup, connector activation, model provider calls, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, medical decisions, medication changes, emergency monitoring, destructive actions, 101P, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["98P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -1779,6 +1781,93 @@ def test_98p_transition_blocks_99p_and_external_runtime_surfaces():
         "destructive_actions_authorized": False,
     }
     assert stages_by_id["98P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_99p_transition_records_later_100p_authorization_and_keeps_101p_blocked():
+    transition = load_json_block("stage-99p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "99P",
+        "stage_name": "Memory Center Projection Runtime Slice v0",
+        "implementation_commit": "same_commit_as_99P_closeout",
+        "stage_100p_authorized_later": True,
+        "stage_101p_and_later_authorized": False,
+        "next_eligible_stage": "100P",
+        "database_migrations_authorized": False,
+        "canonical_memory_writes_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "live_telegram_or_hermes_authorized": False,
+        "live_cron_authorized": False,
+        "connector_or_provider_calls_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["99P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["100P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_100p_is_cost_governor_model_routing_runtime_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["100P"] == {
+        "stage_id": "100P",
+        "stage_name": "Cost Governor / Model Routing Runtime v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_100P_closeout",
+            "commit_message": "feat: add cost governor model routing runtime",
+            "paths": [
+                "app/cost_governor.py",
+                "app/telegram_policy_chain.py",
+                "app/hermes_os_contract.py",
+                "app/routine_execution_engine.py",
+                "docs/reference/COST_GOVERNOR_MODEL_ROUTING_RUNTIME_100P_v0_1.md",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_cost_governor_model_routing_100p.py",
+                "tests/test_routine_execution_engine_98p.py",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic cost governor and model-routing runtime baseline. 101P and later remain unauthorized; do not infer Action Packet approval loop changes, async delegation dispatch, live Telegram sends, live Hermes startup, live cron scheduling, connectors, provider calls, billing, credential checks, migrations, UI, endpoints, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, medical decisions, emergency monitoring, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["100P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_100p_transition_blocks_101p_and_external_runtime_surfaces():
+    transition = load_json_block("stage-100p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "100P",
+        "stage_name": "Cost Governor / Model Routing Runtime v0",
+        "implementation_commit": "same_commit_as_100P_closeout",
+        "stage_101p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "action_packet_approval_loop_authorized": False,
+        "async_delegation_dispatch_authorized": False,
+        "live_telegram_sends_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "provider_calls_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["100P"]["status"] == "CLOSED_COMMITTED"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 

@@ -1,8 +1,8 @@
 # Cost Governor / Model Routing Runtime v0
 
-Status: 100P technical spec proposed for human approval only.
+Status: 100P technical spec approved and implemented locally pending review.
 
-100P implementation is not authorized.
+100P implementation was explicitly authorized before build.
 
 101P and later remain unauthorized.
 
@@ -19,15 +19,15 @@ The stage exists to prove that Roboticxs can:
 - require confirmation for expensive-but-otherwise-allowed work; and
 - preserve cost authority as data-only policy output rather than execution authority.
 
-This specification does not authorize runtime implementation, live providers, billing, credential validation, async delegation, multi-model execution, or 101P+.
+This specification does not authorize live providers, billing, credential validation, async delegation dispatch, multi-model execution, or 101P+.
 
 ## User Story Basis
 
 This technical specification is derived from the approved 100P user story and acceptance criteria supplied by the maintainer on 2026-06-17.
 
-The story is approved for technical specification only.
+The story and technical specification were approved before implementation.
 
-Implementation remains a separate future approval step.
+Implementation authorization was granted as a separate explicit maintainer step before the local 100P build.
 
 ## Recommendation
 
@@ -42,8 +42,8 @@ A spec-only stage would not be enough to prove the interaction boundaries with 9
 - 97P: closed committed
 - 98P: closed committed
 - 99P: closed committed
-- 100P: technical specification proposed only
-- 100P implementation: not authorized
+- 100P: technical specification approved
+- 100P implementation: authorized and implemented locally pending review
 - 101P and later: unauthorized
 
 No part of this document authorizes:
@@ -129,7 +129,7 @@ Unknown enum values are invalid and must produce a blocking result with trace.
 
 ## Typed Local Contracts
 
-The following contracts are normative for a later scoped implementation. This specification does not create runtime code.
+The following contracts are normative for the local 100P implementation and any later revisions. This specification now has matching runtime code.
 
 ### BudgetPolicy
 
@@ -508,7 +508,7 @@ All authority flags remain false in 100P.
 
 ## Test Plan For Later Approved Implementation
 
-This section is planning only. 100P does not create tests in the current turn.
+This section is now materially covered by the local 100P implementation and tests.
 
 ### Unit Coverage
 
@@ -559,7 +559,7 @@ The later scoped implementation would likely touch only a narrow, local set of f
 - `tests/test_cost_governor_100p.py`
 - existing 95P/96P/98P roadmap or contract tests only as needed
 
-This file list is planning guidance, not implementation approval.
+This file list is now substantially realized in the local 100P implementation.
 
 ## Rollback And Compatibility Notes
 
@@ -582,9 +582,9 @@ This file list is planning guidance, not implementation approval.
 
 ## Approval Gate
 
-This document is a proposal for human approval only.
+This document was approved before implementation and remains the normative contract for the local 100P build.
 
-Before any 100P implementation work begins, the repo must have:
+At build time, the repo had:
 
 1. explicit human approval of this technical specification;
 2. explicit authorization to implement 100P;

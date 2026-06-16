@@ -4,7 +4,7 @@
 
 This document materializes the maintainer-approved forward-looking roadmap for Roboticxs.
 
-It is the controlling roadmap for future stage sequencing after Stage 99P implementation remediation. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
+It is the controlling roadmap for future stage sequencing after Stage 100P implementation closeout. It does not authorize implementation, replace runtime truth, or claim that future sequence entries are implemented locally.
 
 ## Source of authority
 
@@ -13,7 +13,7 @@ The forward sequence comes from explicit maintainer direction in the maintainer-
 ```json canonical-roadmap-authority
 {
   "authority_source":"maintainer_approved_chatgpt_web_planning_thread",
-  "local_evidence_scope":"stages_61P_through_99P",
+  "local_evidence_scope":"stages_61P_through_100P",
   "forward_sequence_source":"explicit_maintainer_direction",
   "runtime_truth_source":"local_repo",
   "roadmap_inclusion_authorizes_implementation":false
@@ -64,8 +64,9 @@ The repository confirms these fixed baselines:
 - 97P adds Caregiver Telegram MVP v0 as a deterministic local caregiver routine slice over the 95P Telegram-Hermes policy chain and 96P Hermes OS runtime contract, with distinct actors, guided routine steps, simple confirmations, confusion-safe fallback, approval-required escalation drafts, bounded memory projection, no medical decision behavior, and no live delivery.
 - 98P adds Routine Execution Engine Skeleton v0 as a deterministic local routine execution layer with RoutineDefinition, RoutineRun, wake and budget preflight placeholders, bounded memory projection, 95P policy routing, 96P TaskRunRecord binding, 97P caregiver compatibility, local delivery objects, and no external side effects.
 - 99P adds Memory Center Projection Runtime Slice v0 as a deterministic local actor-aware, scope-aware, bounded, traceable, non-authority memory projection layer integrated with 95P through 98P.
+- 100P adds Cost Governor / Model Routing Runtime v0 as a deterministic local cost/model-routing preflight layer integrated with 95P through 99P while preserving non-authority execution boundaries.
 
-No local implementation evidence is claimed for any stage after 99P. Stage 89P - Roboticxs Automation Blueprints v0 - is closed committed. Stage 90P - Roboticxs Command Surface Policy v0 - is closed committed. Stage 91P - Skill Activation Scope Guard v0 - is closed committed. Stage 92P - Hermes Tool Authority Guard v0 - is closed committed. Stage 93P - Roboticxs Memory Center Bridge v0 - is closed committed. Stage 94P - Telegram MVP on Hermes Gateway v0 - is closed committed as story/spec/test work only. Stage 95P - Telegram-Hermes Policy Chain Runtime Skeleton v0 - is closed committed. Stage 96P - Hermes OS Runtime Contract v0 - is closed committed. Stage 97P - Caregiver Telegram MVP v0 - is closed committed. Stage 98P - Routine Execution Engine Skeleton v0 - is closed committed. Stage 99P - Memory Center Projection Runtime Slice v0 - is implemented pending review and closeout. Stage 100P and later are not authorized.
+No local implementation evidence is claimed for any stage after 100P. Stage 89P - Roboticxs Automation Blueprints v0 - is closed committed. Stage 90P - Roboticxs Command Surface Policy v0 - is closed committed. Stage 91P - Skill Activation Scope Guard v0 - is closed committed. Stage 92P - Hermes Tool Authority Guard v0 - is closed committed. Stage 93P - Roboticxs Memory Center Bridge v0 - is closed committed. Stage 94P - Telegram MVP on Hermes Gateway v0 - is closed committed as story/spec/test work only. Stage 95P - Telegram-Hermes Policy Chain Runtime Skeleton v0 - is closed committed. Stage 96P - Hermes OS Runtime Contract v0 - is closed committed. Stage 97P - Caregiver Telegram MVP v0 - is closed committed. Stage 98P - Routine Execution Engine Skeleton v0 - is closed committed. Stage 99P - Memory Center Projection Runtime Slice v0 - is closed committed. Stage 100P - Cost Governor / Model Routing Runtime v0 - is closed committed. 101P and later remain unauthorized.
 
 ## Canonical stage registry
 
@@ -109,8 +110,9 @@ No local implementation evidence is claimed for any stage after 99P. Stage 89P -
   {"stage_id":"95P","stage_name":"Telegram-Hermes Policy Chain Runtime Skeleton v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"699f5e8953227bb16164b5ee7c8749f662b6d731","commit_message":"feat: add telegram hermes policy chain runtime skeleton","paths":["app/telegram_policy_chain.py","app/main.py","docs/reference/TELEGRAM_HERMES_POLICY_CHAIN_RUNTIME_SKELETON_95P_v0_1.md","tests/test_telegram_policy_chain_95p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Telegram-Hermes policy-chain runtime skeleton baseline. 96P is closed committed; do not infer caregiver behavior, live Telegram sends, live Hermes Gateway startup, live cron scheduling, connector activation, external writes, payments, publishing, browser/email/WhatsApp execution, production credentials, 97P, or NEXT_ELIGIBLE from this status."},
   {"stage_id":"96P","stage_name":"Hermes OS Runtime Contract v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"d2aa97d","commit_message":"feat: add hermes os runtime contract","paths":["app/hermes_os_contract.py","docs/reference/HERMES_OS_RUNTIME_CONTRACT_96P_v0_1.md","tests/test_hermes_os_runtime_contract_96p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Hermes OS runtime contract baseline. 97P is closed committed; do not infer live Hermes startup, live cron execution, live Telegram sends, connector activation, model provider calls, auto skill install, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, 98P, or NEXT_ELIGIBLE from this status."},
   {"stage_id":"97P","stage_name":"Caregiver Telegram MVP v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_97P_closeout","commit_message":"feat: add caregiver telegram mvp slice","paths":["app/caregiver_telegram_mvp.py","app/telegram_policy_chain.py","app/main.py","docs/reference/CAREGIVER_TELEGRAM_MVP_97P_v0_1.md","tests/test_caregiver_telegram_mvp_97p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic caregiver Telegram MVP slice. 98P is closed committed; do not infer live Telegram sends, automatic caregiver alerts, live Hermes startup, live cron execution, connector activation, model provider calls, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, medical decisions, medication changes, emergency monitoring, destructive actions, 99P, or NEXT_ELIGIBLE from this status."},
-  {"stage_id":"98P","stage_name":"Routine Execution Engine Skeleton v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_98P_closeout","commit_message":"feat: add routine execution engine skeleton","paths":["app/routine_execution_engine.py","app/main.py","docs/reference/ROUTINE_EXECUTION_ENGINE_98P_v0_1.md","tests/test_routine_execution_engine_98p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic routine execution engine skeleton. 99P is closed committed; do not infer live scheduler, live cron, live Telegram sends, automatic delivery, automatic caregiver alerts, live Hermes startup, connector activation, model provider calls, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, medical decisions, medication changes, emergency monitoring, destructive actions, 100P, or NEXT_ELIGIBLE from this status."},
-  {"stage_id":"99P","stage_name":"Memory Center Projection Runtime Slice v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_99P_closeout","commit_message":"docs: close memory center projection runtime slice","paths":["app/memory_center_projection.py","app/telegram_policy_chain.py","app/caregiver_telegram_mvp.py","app/routine_execution_engine.py","docs/reference/MEMORY_CENTER_PROJECTION_RUNTIME_99P_v0_1.md","tests/test_memory_center_projection_99p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic memory center projection runtime slice. 100P and later are not authorized; do not infer migrations, canonical memory writes, UI, endpoints, live Telegram or Hermes, cron, connectors, providers, model calls, external effects, medical behavior, automatic caregiver alerts, or NEXT_ELIGIBLE from this status."}
+  {"stage_id":"98P","stage_name":"Routine Execution Engine Skeleton v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_98P_closeout","commit_message":"feat: add routine execution engine skeleton","paths":["app/routine_execution_engine.py","app/main.py","docs/reference/ROUTINE_EXECUTION_ENGINE_98P_v0_1.md","tests/test_routine_execution_engine_98p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic routine execution engine skeleton. 99P and 100P are closed committed; do not infer live scheduler, live cron, live Telegram sends, automatic delivery, automatic caregiver alerts, live Hermes startup, connector activation, model provider calls, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, medical decisions, medication changes, emergency monitoring, destructive actions, 101P, or NEXT_ELIGIBLE from this status."},
+  {"stage_id":"99P","stage_name":"Memory Center Projection Runtime Slice v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_99P_closeout","commit_message":"docs: close memory center projection runtime slice","paths":["app/memory_center_projection.py","app/telegram_policy_chain.py","app/caregiver_telegram_mvp.py","app/routine_execution_engine.py","docs/reference/MEMORY_CENTER_PROJECTION_RUNTIME_99P_v0_1.md","tests/test_memory_center_projection_99p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic memory center projection runtime slice. 100P is closed committed and 101P and later remain unauthorized; do not infer migrations, canonical memory writes, UI, endpoints, live Telegram or Hermes, cron, connectors, providers, model calls, external effects, medical behavior, automatic caregiver alerts, or NEXT_ELIGIBLE from this status."},
+  {"stage_id":"100P","stage_name":"Cost Governor / Model Routing Runtime v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_100P_closeout","commit_message":"feat: add cost governor model routing runtime","paths":["app/cost_governor.py","app/telegram_policy_chain.py","app/hermes_os_contract.py","app/routine_execution_engine.py","docs/reference/COST_GOVERNOR_MODEL_ROUTING_RUNTIME_100P_v0_1.md","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_cost_governor_model_routing_100p.py","tests/test_routine_execution_engine_98p.py","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic cost governor and model-routing runtime baseline. 101P and later remain unauthorized; do not infer Action Packet approval loop changes, async delegation dispatch, live Telegram sends, live Hermes startup, live cron scheduling, connectors, provider calls, billing, credential checks, migrations, UI, endpoints, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, medical decisions, emergency monitoring, or NEXT_ELIGIBLE from this status."}
 ]
 ```
 
@@ -827,7 +829,7 @@ The stage registry records the 98P closed committed state. Stage 99P and later a
 
 ## Stage 99P implementation transition
 
-The stage registry records the 99P closed committed state. Stage 100P and later are not authorized. No stage is next eligible after 99P without explicit maintainer direction.
+The stage registry records the 99P closed committed state. Stage 100P was later explicitly authorized by the maintainer for a deterministic local cost governor and model-routing runtime only. 101P and later remain unauthorized. No stage is next eligible after 100P without explicit maintainer direction.
 
 ```json stage-99p-implementation-transition
 {
@@ -835,8 +837,9 @@ The stage registry records the 99P closed committed state. Stage 100P and later 
   "stage":"99P",
   "stage_name":"Memory Center Projection Runtime Slice v0",
   "implementation_commit":"same_commit_as_99P_closeout",
-  "stage_100p_and_later_authorized":false,
-  "next_eligible_stage":null,
+  "stage_100p_authorized_later":true,
+  "stage_101p_and_later_authorized":false,
+  "next_eligible_stage":"100P",
   "database_migrations_authorized":false,
   "canonical_memory_writes_authorized":false,
   "ui_or_endpoints_authorized":false,
@@ -849,13 +852,44 @@ The stage registry records the 99P closed committed state. Stage 100P and later 
 }
 ```
 
-99P implements deterministic local typed contracts and projection filtering for actor id, role, scope, status, sensitivity, allowed use, and optional skill. It produces bounded data-only summaries and inspectable traces, preserves boundary-memory precedence and caregiver isolation, binds non-authority projection through 95P and 96P, and restricts 98P routine projection to the post-preflight path. Preflight-stopped routines do not invoke 99P and do not call the Hermes adapter. Actor-id isolation remediation is validated, 99P is closed committed, and 100P and later remain unauthorized.
+99P implements deterministic local typed contracts and projection filtering for actor id, role, scope, status, sensitivity, allowed use, and optional skill. It produces bounded data-only summaries and inspectable traces, preserves boundary-memory precedence and caregiver isolation, binds non-authority projection through 95P and 96P, and restricts 98P routine projection to the post-preflight path. Preflight-stopped routines do not invoke 99P and do not call the Hermes adapter. Actor-id isolation remediation is validated, 99P is closed committed, 100P was later explicitly authorized and implemented locally, and 101P and later remain unauthorized.
+
+## Stage 100P implementation transition
+
+The stage registry records the 100P closed committed state. 101P and later remain unauthorized. No stage is next eligible after 100P without explicit maintainer direction.
+
+```json stage-100p-implementation-transition
+{
+  "implementation_status":"CLOSED_COMMITTED",
+  "stage":"100P",
+  "stage_name":"Cost Governor / Model Routing Runtime v0",
+  "implementation_commit":"same_commit_as_100P_closeout",
+  "stage_101p_and_later_authorized":false,
+  "next_eligible_stage":null,
+  "action_packet_approval_loop_authorized":false,
+  "async_delegation_dispatch_authorized":false,
+  "live_telegram_sends_authorized":false,
+  "live_hermes_gateway_start_authorized":false,
+  "live_cron_authorized":false,
+  "connector_activation_authorized":false,
+  "provider_calls_authorized":false,
+  "billing_or_token_reconciliation_authorized":false,
+  "credential_checks_authorized":false,
+  "database_migrations_authorized":false,
+  "ui_or_endpoints_authorized":false,
+  "external_effects_authorized":false,
+  "medical_behavior_authorized":false,
+  "automatic_caregiver_alerts_authorized":false
+}
+```
+
+100P implements deterministic local typed contracts for BudgetPolicy, TaskCostRequest, TokenUsageEstimate, ModelCatalogEntry, ModelRouteDecision, CostTraceRecord, and CostPreflightResult. It adds local token/cost estimation, fixture-backed model filtering, deterministic route selection, downgrade and confirmation handling, and non-authority trace output before any 95P/96P/98P path could reach the Hermes adapter or a future provider/async surface. 95P consumes the result as bounded non-authority context, 96P binds it as runtime evidence only, 98P preserves the preflight-before-Hermes invariant for routines, and 99P remains separate from cost authority. 100P does not authorize Action Packet approval loop changes, async delegation dispatch, live Telegram sends, live Hermes startup, cron scheduling, connectors, provider calls, billing APIs, credential checks, migrations, UI, endpoints, external effects, medical behavior, or 101P and later.
 
 ## Sequencing and authorization rules
 
 ```json roadmap-sequencing-rules
 [
-  "no_stage_is_next_eligible_after_99P_without_explicit_maintainer_direction",
+  "no_stage_is_next_eligible_after_100P_without_explicit_maintainer_direction",
   "eligibility_permits_story_drafting_only",
   "roadmap_inclusion_never_authorizes_implementation",
   "every_stage_requires_story_approval",
@@ -878,7 +912,8 @@ The stage registry records the 99P closed committed state. Stage 100P and later 
   "stage_97P_is_closed_committed_after_caregiver_telegram_mvp_closeout",
   "stage_98P_is_closed_committed_after_routine_execution_engine_skeleton_closeout",
   "stage_99P_is_closed_committed_after_memory_center_projection_runtime_remediation_validation",
-  "do_not_invent_100P_without_explicit_maintainer_direction_in_repo_evidence",
+  "stage_100P_is_closed_committed_after_cost_governor_model_routing_runtime_closeout",
+  "do_not_invent_101P_without_explicit_maintainer_direction_in_repo_evidence",
   "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
   "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence"
 ]

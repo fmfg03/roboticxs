@@ -589,7 +589,7 @@ async def test_preflight_stopped_routine_does_not_invoke_99p_or_hermes_adapter(c
     assert run.task_run_record.hermes_adapter_called is False
 
 
-def test_runtime_has_no_network_or_external_execution_imports_and_100p_is_unauthorized():
+def test_runtime_has_no_network_or_external_execution_imports_and_101p_and_later_remain_unauthorized():
     runtime = RUNTIME_PATH.read_text()
     spec = SPEC_PATH.read_text()
     roadmap = ROADMAP_PATH.read_text()
@@ -597,4 +597,4 @@ def test_runtime_has_no_network_or_external_execution_imports_and_100p_is_unauth
     for forbidden in ["import requests", "import httpx", "import urllib", "import socket", "import subprocess"]:
         assert forbidden not in runtime
     assert "100P and later: unauthorized" in spec
-    assert '"stage_100p_and_later_authorized":false' in roadmap
+    assert '"stage_101p_and_later_authorized":false' in roadmap

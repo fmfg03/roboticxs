@@ -277,6 +277,8 @@ def serialize_routine_run(run: RoutineRun) -> dict[str, object]:
             "stage": run.task_run_record.stage,
             "status": run.task_run_record.status,
             "hermes_adapter_called": run.task_run_record.hermes_adapter_called,
+            "cost_preflight_decision": run.task_run_record.cost_preflight_decision,
+            "selected_model_id": run.task_run_record.selected_model_id,
             "network_call": run.task_run_record.network_call,
             "external_side_effect": run.task_run_record.external_side_effect,
         },
@@ -335,6 +337,8 @@ def _state_for_policy_result(
     policy_result: TelegramPolicyChainResult,
     caregiver_result: CaregiverTelegramMVPResult | None,
 ) -> tuple[RoutineState, str | None]:
+    if policy_result.cost_preflight is not None and policy_result.cost_preflight.confirmation_required:
+        return "needs_confirmation", "routine_cost_confirmation_required"
     if policy_result.action_packet is not None or (caregiver_result is not None and caregiver_result.action_packet is not None):
         return "needs_confirmation", "routine_action_packet_required"
     if not policy_result.ok or not (caregiver_result.ok if caregiver_result is not None else True):
@@ -395,6 +399,7 @@ def _preflight_stopped_policy_result(
         skill_scope_policy=decision,
         tool_authority_policy=skipped_tool_authority,
         memory_context=memory_context,
+        cost_preflight=None,
         action_packet=None,
         hermes_adapter=hermes_adapter,
         policy_trace=(decision,),
@@ -452,6 +457,10 @@ def _audit_trail(
         ),
         RoutineAuditEvent("wake_preflight", "allow" if definition.wake_signal_present else "skip"),
         RoutineAuditEvent("budget_preflight", "allow" if definition.budget_preflight_allowed else "block_placeholder"),
+        RoutineAuditEvent(
+            "cost_preflight",
+            "not_run" if policy_result.cost_preflight is None else policy_result.cost_preflight.decision,
+        ),
         RoutineAuditEvent("state_selected", state),
     ]
     if action_packet is not None:

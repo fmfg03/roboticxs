@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from uuid import NAMESPACE_URL, uuid5
 
+from app.cost_governor import CostPreflightResult
 from app.telegram_policy_chain import (
     LocalActionPacket,
     MemoryContextBlock,
@@ -206,6 +207,8 @@ class TaskRunRecord:
     policy_trace: PolicyTrace
     status: str
     hermes_adapter_called: bool
+    cost_preflight_decision: str | None
+    selected_model_id: str | None
     live_hermes_started: bool
     network_call: bool
     external_side_effect: bool
@@ -226,6 +229,7 @@ class HermesOSRuntimeContract:
     memory_projection_packet: MemoryProjectionPacket
     tool_request_packet: ToolRequestPacket
     action_packet_binding: ActionPacketBinding
+    cost_preflight_result: CostPreflightResult | None
     policy_trace: PolicyTrace
     task_run_record: TaskRunRecord
     live_hermes_start_authorized: bool
@@ -363,6 +367,10 @@ def build_hermes_os_runtime_contract(
         policy_trace=policy_trace,
         status=_task_run_status(policy_result),
         hermes_adapter_called=reaches_adapter,
+        cost_preflight_decision=None if policy_result.cost_preflight is None else policy_result.cost_preflight.decision,
+        selected_model_id=None
+        if policy_result.cost_preflight is None or policy_result.cost_preflight.route_decision is None
+        else policy_result.cost_preflight.route_decision.selected_model_id,
         live_hermes_started=False,
         network_call=False,
         external_side_effect=False,
@@ -377,6 +385,7 @@ def build_hermes_os_runtime_contract(
         memory_projection_packet=memory_projection_packet,
         tool_request_packet=tool_request_packet,
         action_packet_binding=action_packet_binding,
+        cost_preflight_result=policy_result.cost_preflight,
         policy_trace=policy_trace,
         task_run_record=task_run_record,
         live_hermes_start_authorized=False,

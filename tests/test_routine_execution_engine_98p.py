@@ -91,6 +91,7 @@ async def test_routine_happy_path_local_execution(client):
         "policy_chain_routed",
         "wake_preflight",
         "budget_preflight",
+        "cost_preflight",
         "state_selected",
     ]
 

@@ -245,6 +245,11 @@ def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
     assert '"stage_95p_and_later_authorized":false' in roadmap_text
     assert '"stage_id":"93P","stage_name":"Roboticxs Memory Center Bridge v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"stage_id":"94P","stage_name":"Telegram MVP on Hermes Gateway v0","status":"CLOSED_COMMITTED"' in roadmap_text
+    assert (
+        '"stage_id":"100P","stage_name":"Cost Governor / Model Routing Runtime v0","status":"CLOSED_COMMITTED"'
+        in roadmap_text
+    )
+    assert "101P and later remain unauthorized" in roadmap_text
     assert '"status":"NEXT_ELIGIBLE"' not in roadmap_text
 
 
