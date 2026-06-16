@@ -75,7 +75,7 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_96P_is_closed_committed_after_hermes_os_runtime_contract_closeout",
     "stage_97P_is_closed_committed_after_caregiver_telegram_mvp_closeout",
     "stage_98P_is_closed_committed_after_routine_execution_engine_skeleton_closeout",
-    "stage_99P_is_implemented_pending_review_after_memory_center_projection_runtime_remediation",
+    "stage_99P_is_closed_committed_after_memory_center_projection_runtime_remediation_validation",
     "do_not_invent_100P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
@@ -115,7 +115,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "96P": ("CLOSED_COMMITTED", "Hermes OS Runtime Contract v0"),
     "97P": ("CLOSED_COMMITTED", "Caregiver Telegram MVP v0"),
     "98P": ("CLOSED_COMMITTED", "Routine Execution Engine Skeleton v0"),
-    "99P": ("IMPLEMENTED_PENDING_REVIEW", "Memory Center Projection Runtime Slice v0"),
+    "99P": ("CLOSED_COMMITTED", "Memory Center Projection Runtime Slice v0"),
 }
 
 
@@ -1743,7 +1743,7 @@ def test_98p_is_routine_execution_engine_closed_committed_and_self_referenced():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic routine execution engine skeleton. 99P is implemented pending review and closeout; do not infer live scheduler, live cron, live Telegram sends, automatic delivery, automatic caregiver alerts, live Hermes startup, connector activation, model provider calls, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, medical decisions, medication changes, emergency monitoring, destructive actions, 100P, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic routine execution engine skeleton. 99P is closed committed; do not infer live scheduler, live cron, live Telegram sends, automatic delivery, automatic caregiver alerts, live Hermes startup, connector activation, model provider calls, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, medical decisions, medication changes, emergency monitoring, destructive actions, 100P, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["98P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()

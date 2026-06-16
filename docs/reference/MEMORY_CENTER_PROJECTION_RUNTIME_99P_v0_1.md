@@ -1,6 +1,6 @@
 # Memory Center Projection Runtime Slice v0
 
-Status: 99P implemented; remediation pending review and closeout.
+Status: 99P closed committed.
 
 99P implements a deterministic local runtime skeleton only. This document does not authorize migrations, canonical memory writes, UI, endpoints, live Telegram or Hermes behavior, cron, connectors, providers, external actions, medical behavior, automatic caregiver alerts, production credentials, or 100P+.
 
