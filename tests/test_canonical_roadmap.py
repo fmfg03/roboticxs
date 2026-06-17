@@ -117,7 +117,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "97P": ("CLOSED_COMMITTED", "Caregiver Telegram MVP v0"),
     "98P": ("CLOSED_COMMITTED", "Routine Execution Engine Skeleton v0"),
     "99P": ("CLOSED_COMMITTED", "Memory Center Projection Runtime Slice v0"),
-    "100P": ("IMPLEMENTED_PENDING_REVIEW", "Cost Governor / Model Routing Runtime v0"),
+    "100P": ("CLOSED_COMMITTED", "Cost Governor / Model Routing Runtime v0"),
 }
 
 
@@ -1807,20 +1807,20 @@ def test_99p_transition_records_later_100p_authorization_and_keeps_101p_blocked(
         "automatic_caregiver_alerts_authorized": False,
     }
     assert stages_by_id["99P"]["status"] == "CLOSED_COMMITTED"
-    assert stages_by_id["100P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert stages_by_id["100P"]["status"] == "CLOSED_COMMITTED"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
-def test_100p_is_cost_governor_model_routing_runtime_pending_review():
+def test_100p_is_cost_governor_model_routing_runtime_closed_committed():
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
     assert stages_by_id["100P"] == {
         "stage_id": "100P",
         "stage_name": "Cost Governor / Model Routing Runtime v0",
-        "status": "IMPLEMENTED_PENDING_REVIEW",
+        "status": "CLOSED_COMMITTED",
         "authority_source": "explicit_maintainer_authorization",
         "local_evidence": {
-            "commit": "23a19b3cf8bb47e96cfe588b7e3ae406e130d7a6",
+            "commit": "same_commit_as_100P_closeout",
             "commit_message": "feat: add cost governor model routing runtime",
             "paths": [
                 "app/cost_governor.py",
@@ -1836,7 +1836,7 @@ def test_100p_is_cost_governor_model_routing_runtime_pending_review():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic cost governor and model-routing runtime remediation baseline pending independent review and closeout. 101P and later remain unauthorized; do not infer Action Packet approval loop changes, async delegation dispatch, live Telegram sends, live Hermes startup, live cron scheduling, connectors, provider calls, billing, credential checks, migrations, UI, endpoints, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, medical decisions, emergency monitoring, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic cost governor and model-routing runtime baseline. 101P and later remain unauthorized; do not infer Action Packet approval loop changes, async delegation dispatch, live Telegram sends, live Hermes startup, live cron scheduling, connectors, provider calls, billing, credential checks, migrations, UI, endpoints, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, medical decisions, emergency monitoring, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["100P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -1847,10 +1847,10 @@ def test_100p_transition_blocks_101p_and_external_runtime_surfaces():
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
     assert transition == {
-        "implementation_status": "IMPLEMENTED_PENDING_REVIEW",
+        "implementation_status": "CLOSED_COMMITTED",
         "stage": "100P",
         "stage_name": "Cost Governor / Model Routing Runtime v0",
-        "implementation_commit": "23a19b3cf8bb47e96cfe588b7e3ae406e130d7a6",
+        "implementation_commit": "same_commit_as_100P_closeout",
         "stage_101p_and_later_authorized": False,
         "next_eligible_stage": None,
         "action_packet_approval_loop_authorized": False,
@@ -1868,7 +1868,7 @@ def test_100p_transition_blocks_101p_and_external_runtime_surfaces():
         "medical_behavior_authorized": False,
         "automatic_caregiver_alerts_authorized": False,
     }
-    assert stages_by_id["100P"]["status"] == "IMPLEMENTED_PENDING_REVIEW"
+    assert stages_by_id["100P"]["status"] == "CLOSED_COMMITTED"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 

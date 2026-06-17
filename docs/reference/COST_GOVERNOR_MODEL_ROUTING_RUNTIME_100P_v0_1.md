@@ -1,6 +1,6 @@
 # Cost Governor / Model Routing Runtime v0
 
-Status: 100P technical spec approved and implemented locally pending review.
+Status: 100P technical spec approved, remediation validated, and closed committed locally.
 
 100P implementation was explicitly authorized before build.
 
@@ -43,7 +43,7 @@ A spec-only stage would not be enough to prove the interaction boundaries with 9
 - 98P: closed committed
 - 99P: closed committed
 - 100P: technical specification approved
-- 100P implementation: authorized and implemented locally pending review
+- 100P implementation: authorized, remediated, reviewed, and closed committed locally
 - 101P and later: unauthorized
 
 No part of this document authorizes:
