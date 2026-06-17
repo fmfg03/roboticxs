@@ -249,7 +249,8 @@ def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
         '"stage_id":"100P","stage_name":"Cost Governor / Model Routing Runtime v0","status":"CLOSED_COMMITTED"'
         in roadmap_text
     )
-    assert "101P and later remain unauthorized" in roadmap_text
+    assert '"stage_id":"101P","stage_name":"Action Packet Approval Loop v0","status":"CLOSED_COMMITTED"' in roadmap_text
+    assert "102P and later remain unauthorized" in roadmap_text
     assert '"status":"NEXT_ELIGIBLE"' not in roadmap_text
 
 
