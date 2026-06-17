@@ -104,10 +104,13 @@ class ActionPacket:
     requested_by_actor_id: str
     requested_by_actor_role: str
     required_policy_trace: tuple[str, ...]
+    required_cost_preflight: dict[str, object] | None
     required_cost_preflight_request_id: str | None
     required_cost_preflight_decision: str | None
     required_selected_model_id: str | None
+    required_memory_projection: dict[str, object] | None
     required_memory_projection_request_id: str | None
+    required_routine_context: dict[str, object] | None
     required_routine_run_id: str | None
     action_payload: dict[str, object]
     review_expires_at: str | None
@@ -225,12 +228,15 @@ def create_action_packet(*, request: ActionPacketRequest, occurred_at: str, reas
         requested_by_actor_id=request.requested_by_actor_id,
         requested_by_actor_role=request.requested_by_actor_role,
         required_policy_trace=tuple(request.required_policy_trace),
+        required_cost_preflight=_snapshot_copy(request.required_cost_preflight),
         required_cost_preflight_request_id=_dict_str(request.required_cost_preflight, "request_id"),
         required_cost_preflight_decision=_dict_str(request.required_cost_preflight, "decision"),
         required_selected_model_id=_selected_model_id(request.required_cost_preflight),
+        required_memory_projection=_snapshot_copy(request.required_memory_projection),
         required_memory_projection_request_id=_dict_str(request.required_memory_projection, "request_id"),
+        required_routine_context=_snapshot_copy(request.required_routine_context),
         required_routine_run_id=_dict_str(request.required_routine_context, "run_id"),
-        action_payload=dict(request.action_payload),
+        action_payload=_dict_snapshot(request.action_payload),
         review_expires_at=request.review_expires_at,
         resume_scope=request.resume_scope,
         resume_token_id=None,
@@ -386,8 +392,8 @@ def action_packet_request_from_95p_result(
         raise ValueError("95P result must include an Action Packet for 101P binding.")
     if not policy_result.policy_trace:
         raise ValueError("95P result must include policy trace for 101P binding.")
-    owner_id = str(policy_result.user_id)
-    robot_id = _local_robot_id_for_user(policy_result.user_id)
+    owner_id = _upstream_owner_id(policy_result)
+    robot_id = _upstream_robot_id(policy_result)
     return ActionPacketRequest(
         request_id=policy_result.action_packet.packet_id,
         source_stage=policy_result.stage,
@@ -436,7 +442,10 @@ def action_packet_request_from_cost_confirmation(
         requested_by_actor_id=cost_confirmation.owner_id,
         requested_by_actor_role="owner_admin",
         required_policy_trace=required_policy_trace,
-        required_cost_preflight=_cost_preflight_snapshot(cost_preflight),
+        required_cost_preflight=_cost_preflight_snapshot(
+            cost_confirmation=cost_confirmation,
+            result=cost_preflight,
+        ),
         required_memory_projection=None,
         required_routine_context=None,
         action_payload={
@@ -461,15 +470,17 @@ def action_packet_request_from_routine_run(
     actor_role: str,
     review_expires_at: str | None = None,
 ) -> ActionPacketRequest:
+    owner_id = _upstream_owner_id(routine_run.policy_result)
+    robot_id = _upstream_robot_id(routine_run.policy_result)
     return ActionPacketRequest(
         request_id=routine_run.run_id,
         source_stage=routine_run.stage,
         action_type="routine_continuation",
-        owner_id=str(routine_run.policy_result.user_id),
-        robot_id=_local_robot_id_for_user(routine_run.policy_result.user_id),
+        owner_id=owner_id,
+        robot_id=robot_id,
         actor_id=actor_id,
         actor_role=actor_role,
-        requested_by_actor_id=str(routine_run.policy_result.user_id),
+        requested_by_actor_id=owner_id,
         requested_by_actor_role="owner_admin",
         required_policy_trace=tuple(step.policy for step in routine_run.policy_result.policy_trace),
         required_cost_preflight=None
@@ -482,6 +493,8 @@ def action_packet_request_from_routine_run(
         required_memory_projection=_routine_memory_snapshot(routine_run),
         required_routine_context={
             "run_id": routine_run.run_id,
+            "owner_id": owner_id,
+            "robot_id": robot_id,
             "preflight_policy_chain_routed": routine_run.preflight.policy_chain_routed,
             "wake_allowed": routine_run.preflight.wake_allowed,
             "budget_allowed": routine_run.preflight.budget_allowed,
@@ -531,12 +544,15 @@ def serialize_action_packet_approval_state(approval_state: ActionPacketApprovalS
             "actor_id": approval_state.packet.actor_id,
             "actor_role": approval_state.packet.actor_role,
             "required_policy_trace": list(approval_state.packet.required_policy_trace),
+            "required_cost_preflight": _snapshot_copy(approval_state.packet.required_cost_preflight),
             "required_cost_preflight_request_id": approval_state.packet.required_cost_preflight_request_id,
             "required_cost_preflight_decision": approval_state.packet.required_cost_preflight_decision,
             "required_selected_model_id": approval_state.packet.required_selected_model_id,
+            "required_memory_projection": _snapshot_copy(approval_state.packet.required_memory_projection),
             "required_memory_projection_request_id": approval_state.packet.required_memory_projection_request_id,
+            "required_routine_context": _snapshot_copy(approval_state.packet.required_routine_context),
             "required_routine_run_id": approval_state.packet.required_routine_run_id,
-            "action_payload": dict(approval_state.packet.action_payload),
+            "action_payload": _dict_snapshot(approval_state.packet.action_payload),
             "review_expires_at": approval_state.packet.review_expires_at,
             "resume_scope": approval_state.packet.resume_scope,
             "resume_token_id": approval_state.packet.resume_token_id,
@@ -689,12 +705,15 @@ def _edit_transition(
         requested_by_actor_id=current.requested_by_actor_id,
         requested_by_actor_role=current.requested_by_actor_role,
         required_policy_trace=current.required_policy_trace,
+        required_cost_preflight=_snapshot_copy(current.required_cost_preflight),
         required_cost_preflight_request_id=current.required_cost_preflight_request_id,
         required_cost_preflight_decision=current.required_cost_preflight_decision,
         required_selected_model_id=current.required_selected_model_id,
+        required_memory_projection=_snapshot_copy(current.required_memory_projection),
         required_memory_projection_request_id=current.required_memory_projection_request_id,
+        required_routine_context=_snapshot_copy(current.required_routine_context),
         required_routine_run_id=current.required_routine_run_id,
-        action_payload=dict(decision.edit_payload),
+        action_payload=_dict_snapshot(decision.edit_payload),
         review_expires_at=current.review_expires_at,
         resume_scope=current.resume_scope,
         resume_token_id=None,
@@ -910,6 +929,10 @@ def _decision_mismatch_reason(*, packet: ActionPacket, decision: ActionPacketDec
 
 
 def _request_block_reason(request: ActionPacketRequest) -> str | None:
+    if not request.owner_id:
+        return "blocked_missing_owner_id"
+    if not request.robot_id:
+        return "blocked_missing_robot_id"
     if request.action_type not in ACTION_TYPES:
         return "blocked_unknown_action_type"
     if request.resume_scope not in {
@@ -929,6 +952,10 @@ def _request_block_reason(request: ActionPacketRequest) -> str | None:
         return "blocked_missing_required_cost_preflight"
     if request.action_payload.get("cost_preflight_required") and request.required_cost_preflight is None:
         return "blocked_missing_required_cost_preflight"
+    if request.required_cost_preflight is not None:
+        preflight_reason = _cost_preflight_boundary_block_reason(request=request)
+        if preflight_reason is not None:
+            return preflight_reason
     if request.action_payload.get("memory_projection_required") and request.required_memory_projection is None:
         return "blocked_missing_required_memory_projection"
     if request.required_memory_projection is not None and request.required_memory_projection.get("bounded") is False:
@@ -975,22 +1002,104 @@ def _stable_id(prefix: str, *parts: object) -> str:
     return f"{prefix}_" + uuid5(NAMESPACE_URL, "|".join("" if part is None else str(part) for part in parts)).hex[:12]
 
 
-def _cost_preflight_snapshot(result: CostPreflightResult) -> dict[str, object]:
+def _cost_preflight_boundary_block_reason(*, request: ActionPacketRequest) -> str | None:
+    snapshot = request.required_cost_preflight
+    if snapshot is None:
+        return None
+    task_cost_request = snapshot.get("task_cost_request")
+    if isinstance(task_cost_request, dict):
+        if _dict_str(task_cost_request, "owner_id") != request.owner_id:
+            return "blocked_cost_preflight_owner_id_mismatch"
+        if _dict_str(task_cost_request, "robot_id") != request.robot_id:
+            return "blocked_cost_preflight_robot_id_mismatch"
+    budget_policy = snapshot.get("budget_policy")
+    if isinstance(budget_policy, dict):
+        if _dict_str(budget_policy, "owner_id") != request.owner_id:
+            return "blocked_budget_policy_owner_id_mismatch"
+        if _dict_str(budget_policy, "robot_id") != request.robot_id:
+            return "blocked_budget_policy_robot_id_mismatch"
+    return None
+
+
+def _cost_preflight_snapshot(
+    *,
+    cost_confirmation: LocalCostConfirmation,
+    result: CostPreflightResult,
+) -> dict[str, object]:
+    authority_flags = {
+        "authority_expanded": cost_confirmation.authority_expanded,
+        "external_effect_authorized": cost_confirmation.external_effect_authorized,
+        "provider_call_authorized": cost_confirmation.provider_call_authorized,
+        "execution_authorized": cost_confirmation.execution_authorized,
+        "async_delegation_allowed": cost_confirmation.budget_policy.get("async_delegation_allowed"),
+        "byok_allowed": cost_confirmation.budget_policy.get("byok_allowed"),
+    }
     return {
         "request_id": result.request_id,
+        "owner_id": cost_confirmation.owner_id,
+        "robot_id": cost_confirmation.robot_id,
+        "requester_actor_id": cost_confirmation.requester_actor_id,
         "decision": result.decision,
+        "reason_code": cost_confirmation.reason_code,
         "budget_policy_id": result.budget_policy_id,
+        "task_cost_request": _dict_snapshot(cost_confirmation.task_cost_request),
+        "budget_policy": _dict_snapshot(cost_confirmation.budget_policy),
+        "task_class": cost_confirmation.task_class,
+        "routing_mode": cost_confirmation.routing_mode,
+        "sensitivity": cost_confirmation.task_cost_request.get("sensitivity"),
+        "context_item_count": cost_confirmation.task_cost_request.get("context_item_count"),
+        "input_chars_estimate": cost_confirmation.task_cost_request.get("input_chars_estimate"),
+        "expected_output_chars": cost_confirmation.task_cost_request.get("expected_output_chars"),
+        "memory_context_used": cost_confirmation.task_cost_request.get("memory_context_used"),
+        "routine_requested": cost_confirmation.task_cost_request.get("routine_requested"),
+        "token_estimate": {
+            "estimated_input_tokens": result.token_estimate.estimated_input_tokens,
+            "estimated_output_tokens": result.token_estimate.estimated_output_tokens,
+            "estimated_total_tokens": result.token_estimate.estimated_total_tokens,
+            "estimation_basis": result.token_estimate.estimation_basis,
+            "long_context_applied": result.token_estimate.long_context_applied,
+        },
         "estimated_cost_usd": result.estimated_cost_usd,
+        "estimated_tokens": cost_confirmation.estimated_tokens,
         "selected_model_id": None if result.route_decision is None else result.route_decision.selected_model_id,
         "route_decision": None
         if result.route_decision is None
         else {
             "selected_model_id": result.route_decision.selected_model_id,
             "selected_provider_id": result.route_decision.selected_provider_id,
+            "selected_capability_tier": result.route_decision.selected_capability_tier,
+            "selected_trust_level": result.route_decision.selected_trust_level,
+            "candidate_models_considered": list(result.route_decision.candidate_models_considered),
+            "rejected_candidates": list(result.route_decision.rejected_candidates),
+            "downgrade_from_model_id": result.route_decision.downgrade_from_model_id,
             "decision_reason": result.route_decision.decision_reason,
         },
         "trace_reason_code": result.trace[-1].reason_code,
+        "trace": [
+            {
+                "request_id": trace.request_id,
+                "task_class": trace.task_class,
+                "routing_mode": trace.routing_mode,
+                "candidate_model_id": trace.candidate_model_id,
+                "selected_model_id": trace.selected_model_id,
+                "candidate_model_ids": list(trace.candidate_model_ids),
+                "decision": trace.decision,
+                "reason_code": trace.reason_code,
+                "estimated_input_tokens": trace.estimated_input_tokens,
+                "estimated_output_tokens": trace.estimated_output_tokens,
+                "estimated_cost_usd": trace.estimated_cost_usd,
+                "budget_state": trace.budget_state,
+                "authority_expanded": trace.authority_expanded,
+                "tool_action_authorized": trace.tool_action_authorized,
+                "memory_access_expanded": trace.memory_access_expanded,
+                "external_effect_authorized": trace.external_effect_authorized,
+                "model_provider_access_authorized": trace.model_provider_access_authorized,
+            }
+            for trace in result.trace
+        ],
         "confirmation_required": result.confirmation_required,
+        "blocked": result.blocked,
+        "authority_flags": authority_flags,
         "execution_authorized": result.execution_authorized,
     }
 
@@ -1017,5 +1126,24 @@ def _routine_memory_snapshot(routine_run: RoutineRun) -> dict[str, object]:
     }
 
 
-def _local_robot_id_for_user(user_id: int | None) -> str:
-    return _stable_id("robot", user_id)
+def _upstream_owner_id(policy_result: TelegramPolicyChainResult) -> str:
+    return "" if policy_result.owner_id is None else str(policy_result.owner_id)
+
+
+def _upstream_robot_id(policy_result: TelegramPolicyChainResult) -> str:
+    return "" if policy_result.robot_id is None else str(policy_result.robot_id)
+
+
+def _dict_snapshot(source: dict[str, object] | None) -> dict[str, object]:
+    copied = _snapshot_copy(source)
+    return {} if copied is None else copied
+
+
+def _snapshot_copy(value: object) -> object:
+    if isinstance(value, dict):
+        return {str(key): _snapshot_copy(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_snapshot_copy(item) for item in value]
+    if isinstance(value, tuple):
+        return [_snapshot_copy(item) for item in value]
+    return value

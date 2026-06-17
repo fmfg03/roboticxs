@@ -25,7 +25,7 @@ from app.hermes_os_contract import build_hermes_os_runtime_contract
 from app.memory_center_projection import MemoryCenterItem, MemoryProjectionRequest, project_memory
 from app.models import Robot, User
 from app.routine_execution_engine import RoutineDefinition, execute_routine_locally
-from app.telegram_policy_chain import build_cost_confirmation, run_telegram_policy_chain
+from app.telegram_policy_chain import run_telegram_policy_chain
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -355,6 +355,7 @@ async def test_100p_require_confirmation_converts_into_action_packet_compatible_
         robot = Robot(user_id=user.id, name="Cost Robot")
         session.add(robot)
         session.flush()
+        robot_id = str(robot.id)
         result = run_telegram_policy_chain(
             update=build_update("Premium research " + ("long context " * 700), user_id=101077),
             settings=Settings(),
@@ -373,6 +374,11 @@ async def test_100p_require_confirmation_converts_into_action_packet_compatible_
     assert packet_request.action_type == "cost_confirmation"
     assert packet_request.required_cost_preflight["decision"] == "require_confirmation"
     assert packet_request.action_payload["selected_model_id"] == result.cost_confirmation.selected_model_id
+    assert packet_request.required_cost_preflight["task_cost_request"] == result.cost_confirmation.task_cost_request
+    assert packet_request.required_cost_preflight["budget_policy"] == result.cost_confirmation.budget_policy
+    assert packet_request.required_cost_preflight["owner_id"] == owner_id
+    assert packet_request.required_cost_preflight["robot_id"] == robot_id
+    assert packet_request.required_cost_preflight["requester_actor_id"] == owner_id
 
 
 @pytest.mark.anyio
@@ -404,6 +410,12 @@ async def test_cost_confirmation_approval_preserves_selected_route_and_budget_co
     assert approved.packet.required_selected_model_id == result.cost_preflight.route_decision.selected_model_id
     assert approved.packet.required_cost_preflight_decision == "require_confirmation"
     assert approved.packet.action_payload["estimated_cost_usd"] == result.cost_confirmation.estimated_cost_usd
+    assert approved.packet.required_cost_preflight["route_decision"] == packet_request.required_cost_preflight["route_decision"]
+    assert approved.packet.required_cost_preflight["budget_policy"] == packet_request.required_cost_preflight["budget_policy"]
+    assert approved.packet.required_cost_preflight["authority_flags"]["authority_expanded"] is False
+    assert approved.packet.required_cost_preflight["authority_flags"]["external_effect_authorized"] is False
+    assert approved.packet.required_cost_preflight["authority_flags"]["provider_call_authorized"] is False
+    assert approved.packet.required_cost_preflight["authority_flags"]["execution_authorized"] is False
 
 
 @pytest.mark.anyio
@@ -462,6 +474,10 @@ async def test_95p_can_emit_or_bind_action_packet_approval_metadata_without_bypa
         "skill_scope_policy_91p",
         "tool_authority_policy_92p",
     )
+    assert packet_request.owner_id == result.owner_id
+    assert packet_request.robot_id == result.robot_id
+    assert packet_request.robot_id == approval_state.packet.robot_id
+    assert packet_request.robot_id.startswith("robot_") is False
     assert result.hermes_adapter.called is False
     assert approval_state.packet.execution_authorized is False
 
@@ -532,6 +548,9 @@ async def test_98p_routine_continuation_approval_does_not_bypass_routine_preflig
 
     assert create_action_packet(request=good_request, occurred_at="2026-06-17T10:00:00Z").packet.state == "proposed"
     assert create_action_packet(request=blocked_request, occurred_at="2026-06-17T10:00:00Z").packet.state == "blocked"
+    assert good_request.robot_id == good_run.policy_result.robot_id
+    assert good_request.required_routine_context["robot_id"] == good_run.policy_result.robot_id
+    assert good_request.robot_id.startswith("robot_") is False
 
 
 def test_99p_excluded_memory_is_not_exposed_through_action_packet_traces_or_approval_records():
@@ -609,6 +628,124 @@ def test_trace_records_are_deterministic_and_inspectable():
         "trace_records"
     ]
     assert all(record["packet_id"] == first.packet.packet_id for record in serialize_action_packet_approval_state(first)["trace_records"])
+
+
+@pytest.mark.anyio
+async def test_95p_derived_action_packet_blocks_when_upstream_robot_id_is_missing(client):
+    with client.app.state.db.session() as session:
+        result = run_telegram_policy_chain(
+            update=build_update("Send email to Ana with the local summary", user_id=101119),
+            settings=Settings(),
+            session=session,
+        )
+    result = replace(result, robot_id=None)
+    blocked = create_action_packet(
+        request=action_packet_request_from_95p_result(
+            policy_result=result,
+            actor_id=str(result.user_id),
+            actor_role="owner_admin",
+        ),
+        occurred_at="2026-06-17T10:00:00Z",
+    )
+
+    assert blocked.packet.state == "blocked"
+    assert blocked.trace_records[-1].reason_code == "blocked_missing_robot_id"
+
+
+@pytest.mark.anyio
+async def test_98p_derived_action_packet_blocks_when_routine_robot_id_is_missing(client):
+    with client.app.state.db.session() as session:
+        run = execute_routine_locally(
+            definition=RoutineDefinition(
+                routine_id="routine_missing_robot",
+                label="Missing Robot",
+                trigger_text="Send email to Ana with the routine summary",
+            ),
+            update=build_update("Send email to Ana with the routine summary", user_id=101120),
+            settings=Settings(),
+            session=session,
+        )
+    run = replace(run, policy_result=replace(run.policy_result, robot_id=None))
+    blocked = create_action_packet(
+        request=action_packet_request_from_routine_run(
+            routine_run=run,
+            actor_id=str(run.policy_result.user_id),
+            actor_role="owner_admin",
+        ),
+        occurred_at="2026-06-17T10:00:00Z",
+    )
+
+    assert blocked.packet.state == "blocked"
+    assert blocked.trace_records[-1].reason_code == "blocked_missing_robot_id"
+
+
+@pytest.mark.anyio
+async def test_approval_resume_blocks_on_robot_mismatch_against_preserved_upstream_robot_id(client):
+    with client.app.state.db.session() as session:
+        result = run_telegram_policy_chain(
+            update=build_update("Send email to Ana with the local summary", user_id=101121),
+            settings=Settings(),
+            session=session,
+        )
+
+    approval_state = create_and_submit(
+        action_packet_request_from_95p_result(
+            policy_result=result,
+            actor_id=str(result.user_id),
+            actor_role="owner_admin",
+            review_expires_at="2026-06-18T00:00:00Z",
+        )
+    )
+    approved = apply_action_packet_decision(approval_state=approval_state, decision=decision(approval_state, "approve"))
+    blocked = apply_action_packet_decision(
+        approval_state=approved,
+        decision=decision(
+            approved,
+            "resume",
+            robot_id="wrong-robot",
+            resume_token_id=approved.resume_token.token_id,
+            reason_code="robot_boundary_mismatch",
+        ),
+    )
+
+    assert blocked.packet.state == "blocked"
+    assert blocked.trace_records[-1].reason_code == "blocked_robot_id_mismatch"
+
+
+@pytest.mark.anyio
+async def test_cost_confirmation_approval_state_keeps_preserved_preflight_request_without_recomputation(client):
+    with client.app.state.db.session() as session:
+        user = User(telegram_user_id=101122, first_name="Preserve", username="preserve")
+        session.add(user)
+        session.flush()
+        owner_id = str(user.id)
+        robot = Robot(user_id=user.id, name="Preserve Robot")
+        session.add(robot)
+        session.flush()
+        result = run_telegram_policy_chain(
+            update=build_update("Premium research " + ("long context " * 700), user_id=101122),
+            settings=Settings(),
+            session=session,
+        )
+    packet_request = action_packet_request_from_cost_confirmation(
+        cost_confirmation=result.cost_confirmation,
+        cost_preflight=result.cost_preflight,
+        actor_id=owner_id,
+        actor_role="owner_admin",
+        required_policy_trace=tuple(step.policy for step in result.policy_trace),
+        review_expires_at="2026-06-18T00:00:00Z",
+    )
+    approved = apply_action_packet_decision(
+        approval_state=create_and_submit(packet_request),
+        decision=decision(create_and_submit(packet_request), "approve"),
+    )
+    serialized = serialize_action_packet_approval_state(approved)
+
+    assert serialized["packet"]["required_cost_preflight"]["task_cost_request"] == result.cost_confirmation.task_cost_request
+    assert serialized["packet"]["required_cost_preflight"]["budget_policy"] == result.cost_confirmation.budget_policy
+    assert serialized["packet"]["required_cost_preflight"]["route_decision"]["selected_model_id"] == result.cost_preflight.route_decision.selected_model_id
+    assert serialized["packet"]["required_cost_preflight"]["authority_flags"]["execution_authorized"] is False
+    assert serialized["packet"]["execution_authorized"] is False
 
 
 def test_trace_records_keep_external_provider_and_execution_flags_false():

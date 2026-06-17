@@ -9,11 +9,15 @@ from sqlalchemy.orm import Session
 
 from app.config import Settings
 from app.cost_governor import (
+    BudgetPolicy,
     CostPreflightResult,
+    TaskCostRequest,
     build_task_cost_request,
     default_budget_policy,
     evaluate_cost_preflight,
+    serialize_budget_policy,
     serialize_cost_preflight_result,
+    serialize_task_cost_request,
 )
 from app.memory_control import list_active_memories
 from app.memory_center_projection import (
@@ -124,6 +128,7 @@ class LocalCostConfirmation:
     request_id: str
     owner_id: str
     robot_id: str
+    requester_actor_id: str | None
     task_class: str
     routing_mode: str
     estimated_tokens: int
@@ -131,6 +136,8 @@ class LocalCostConfirmation:
     selected_model_id: str | None
     decision: str
     reason_code: str
+    task_cost_request: dict[str, object]
+    budget_policy: dict[str, object]
     authority_expanded: bool
     external_effect_authorized: bool
     provider_call_authorized: bool
@@ -155,6 +162,8 @@ class TelegramPolicyChainResult:
     stage: str
     chat_id: int | None
     user_id: int | None
+    owner_id: str | None
+    robot_id: str | None
     response_text: str
     command_policy: PolicyDecision
     skill_scope_policy: PolicyDecision
@@ -194,6 +203,8 @@ def run_telegram_policy_chain(
             stage=POLICY_CHAIN_STAGE,
             chat_id=None,
             user_id=None,
+            owner_id=None,
+            robot_id=None,
             response_text="No pude procesar ese mensaje por ahora.",
             command_policy=blocked,
             skill_scope_policy=_skipped_policy("skill_scope_policy"),
@@ -209,6 +220,8 @@ def run_telegram_policy_chain(
         )
 
     user, robot = _resolve_user_and_robot(session=session, message=message)
+    owner_id = str(user.id)
+    robot_id = str(robot.id)
     command_policy = evaluate_command_policy(message.text)
     if command_policy.decision == "BLOCK_CONSUMER":
         memory_context = project_memory_context(
@@ -234,6 +247,8 @@ def run_telegram_policy_chain(
             response_text="This raw Hermes command is not available in the Roboticxs Telegram surface.",
             ok=False,
             error_code="command_policy_blocked",
+            owner_id=owner_id,
+            robot_id=robot_id,
         )
 
     skill_scope_policy = evaluate_skill_scope_policy(message.text, command_policy=command_policy)
@@ -261,6 +276,8 @@ def run_telegram_policy_chain(
             response_text="I cannot do that in Roboticxs v0. I can help prepare a safe local draft or checklist.",
             ok=False,
             error_code="skill_scope_blocked",
+            owner_id=owner_id,
+            robot_id=robot_id,
         )
 
     tool_authority_policy = evaluate_tool_authority_policy(message.text)
@@ -289,6 +306,8 @@ def run_telegram_policy_chain(
             response_text="That action is blocked in Roboticxs v0. Nothing was executed.",
             ok=False,
             error_code="tool_authority_blocked",
+            owner_id=owner_id,
+            robot_id=robot_id,
         )
 
     if tool_authority_policy.decision == "ASK_CONFIRMATION":
@@ -313,20 +332,24 @@ def run_telegram_policy_chain(
             ),
             ok=False,
             error_code="action_packet_required",
+            owner_id=owner_id,
+            robot_id=robot_id,
         )
 
+    task_cost_request = build_task_cost_request(
+        request_id=f"100p:{user.id}:{robot.id}:{message.chat_id}:{message.user_id}",
+        owner_id=owner_id,
+        robot_id=robot_id,
+        text=message.text,
+        memory_context_used=bool(memory_context.projections),
+        context_item_count=len(memory_context.projections),
+        active_skill_id=str(skill_scope_policy.metadata.get("active_skill_id", "basic_assistant")),
+        routine_requested=memory_actor_role == "routine",
+    )
+    budget_policy = default_budget_policy(owner_id=owner_id, robot_id=robot_id)
     cost_preflight = evaluate_cost_preflight(
-        request=build_task_cost_request(
-            request_id=f"100p:{user.id}:{robot.id}:{message.chat_id}:{message.user_id}",
-            owner_id=str(user.id),
-            robot_id=str(robot.id),
-            text=message.text,
-            memory_context_used=bool(memory_context.projections),
-            context_item_count=len(memory_context.projections),
-            active_skill_id=str(skill_scope_policy.metadata.get("active_skill_id", "basic_assistant")),
-            routine_requested=memory_actor_role == "routine",
-        ),
-        budget_policy=default_budget_policy(owner_id=str(user.id), robot_id=str(robot.id)),
+        request=task_cost_request,
+        budget_policy=budget_policy,
     )
     if cost_preflight.blocked:
         adapter = _blocked_adapter_result("100P cost preflight blocked the request before Hermes adapter.")
@@ -343,13 +366,17 @@ def run_telegram_policy_chain(
             response_text="This request was blocked by the local cost governor before execution.",
             ok=False,
             error_code="cost_preflight_blocked",
+            owner_id=owner_id,
+            robot_id=robot_id,
         )
     if cost_preflight.confirmation_required:
         adapter = _blocked_adapter_result("100P cost preflight requires confirmation before Hermes adapter.")
         cost_confirmation = build_cost_confirmation(
             cost_preflight=cost_preflight,
-            owner_id=str(user.id),
-            robot_id=str(robot.id),
+            task_cost_request=task_cost_request,
+            budget_policy=budget_policy,
+            owner_id=owner_id,
+            robot_id=robot_id,
         )
         return _result(
             message=message,
@@ -364,6 +391,8 @@ def run_telegram_policy_chain(
             response_text="This request needs explicit approval because the local cost governor flagged it as expensive.",
             ok=False,
             error_code="cost_confirmation_required",
+            owner_id=owner_id,
+            robot_id=robot_id,
         )
 
     hermes_request = build_hermes_request_from_telegram(message)
@@ -383,6 +412,8 @@ def run_telegram_policy_chain(
         adapter=adapter,
         response_text=adapter.response_text,
         ok=True,
+        owner_id=owner_id,
+        robot_id=robot_id,
     )
 
 
@@ -654,6 +685,8 @@ def build_local_action_packet(*, message_text: str, action_class: str) -> LocalA
 def build_cost_confirmation(
     *,
     cost_preflight: CostPreflightResult,
+    task_cost_request: TaskCostRequest,
+    budget_policy: BudgetPolicy,
     owner_id: str,
     robot_id: str,
 ) -> LocalCostConfirmation:
@@ -663,6 +696,7 @@ def build_cost_confirmation(
         request_id=cost_preflight.request_id,
         owner_id=owner_id,
         robot_id=robot_id,
+        requester_actor_id=owner_id,
         task_class=final_trace.task_class,
         routing_mode=final_trace.routing_mode,
         estimated_tokens=cost_preflight.token_estimate.estimated_total_tokens,
@@ -670,6 +704,8 @@ def build_cost_confirmation(
         selected_model_id=None if cost_preflight.route_decision is None else cost_preflight.route_decision.selected_model_id,
         decision=cost_preflight.decision,
         reason_code=final_trace.reason_code,
+        task_cost_request=serialize_task_cost_request(task_cost_request),
+        budget_policy=serialize_budget_policy(budget_policy),
         authority_expanded=False,
         external_effect_authorized=False,
         provider_call_authorized=False,
@@ -697,6 +733,8 @@ def serialize_policy_chain_result(result: TelegramPolicyChainResult) -> dict[str
         "stage": result.stage,
         "chat_id": result.chat_id,
         "user_id": result.user_id,
+        "owner_id": result.owner_id,
+        "robot_id": result.robot_id,
         "response_text": result.response_text,
         "error_code": result.error_code,
         "command_policy": _policy_to_dict(result.command_policy),
@@ -754,6 +792,7 @@ def serialize_policy_chain_result(result: TelegramPolicyChainResult) -> dict[str
             "request_id": result.cost_confirmation.request_id,
             "owner_id": result.cost_confirmation.owner_id,
             "robot_id": result.cost_confirmation.robot_id,
+            "requester_actor_id": result.cost_confirmation.requester_actor_id,
             "task_class": result.cost_confirmation.task_class,
             "routing_mode": result.cost_confirmation.routing_mode,
             "estimated_tokens": result.cost_confirmation.estimated_tokens,
@@ -761,6 +800,8 @@ def serialize_policy_chain_result(result: TelegramPolicyChainResult) -> dict[str
             "selected_model_id": result.cost_confirmation.selected_model_id,
             "decision": result.cost_confirmation.decision,
             "reason_code": result.cost_confirmation.reason_code,
+            "task_cost_request": result.cost_confirmation.task_cost_request,
+            "budget_policy": result.cost_confirmation.budget_policy,
             "authority_expanded": result.cost_confirmation.authority_expanded,
             "external_effect_authorized": result.cost_confirmation.external_effect_authorized,
             "provider_call_authorized": result.cost_confirmation.provider_call_authorized,
@@ -794,6 +835,8 @@ def _result(
     adapter: HermesGatewayAdapterStubResult,
     response_text: str,
     ok: bool,
+    owner_id: str | None,
+    robot_id: str | None,
     error_code: str | None = None,
 ) -> TelegramPolicyChainResult:
     trace = tuple(
@@ -806,6 +849,8 @@ def _result(
         stage=POLICY_CHAIN_STAGE,
         chat_id=message.chat_id,
         user_id=message.user_id,
+        owner_id=owner_id,
+        robot_id=robot_id,
         response_text=response_text,
         command_policy=command_policy,
         skill_scope_policy=skill_scope_policy,

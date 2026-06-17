@@ -763,6 +763,50 @@ def can_dispatch_async_delegation(preflight_result: CostPreflightResult | None) 
     )
 
 
+def serialize_task_cost_request(request: TaskCostRequest) -> dict[str, object]:
+    return {
+        "request_id": request.request_id,
+        "owner_id": request.owner_id,
+        "robot_id": request.robot_id,
+        "task_class": request.task_class,
+        "routing_mode": request.routing_mode,
+        "sensitivity": request.sensitivity,
+        "requires_tools": request.requires_tools,
+        "requires_long_context": request.requires_long_context,
+        "input_chars_estimate": request.input_chars_estimate,
+        "expected_output_chars": request.expected_output_chars,
+        "context_item_count": request.context_item_count,
+        "active_skill_id": request.active_skill_id,
+        "memory_context_used": request.memory_context_used,
+        "routine_requested": request.routine_requested,
+        "async_delegation_requested": request.async_delegation_requested,
+        "authority_expansion_requested": request.authority_expansion_requested,
+    }
+
+
+def serialize_budget_policy(policy: BudgetPolicy) -> dict[str, object]:
+    return {
+        "policy_id": policy.policy_id,
+        "owner_id": policy.owner_id,
+        "robot_id": policy.robot_id,
+        "routing_mode_allowlist": list(policy.routing_mode_allowlist),
+        "default_routing_mode": policy.default_routing_mode,
+        "max_estimated_cost_usd": policy.max_estimated_cost_usd,
+        "confirmation_cost_usd": policy.confirmation_cost_usd,
+        "max_input_tokens": policy.max_input_tokens,
+        "max_output_tokens": policy.max_output_tokens,
+        "long_context_confirmation_tokens": policy.long_context_confirmation_tokens,
+        "byok_allowed": policy.byok_allowed,
+        "async_delegation_allowed": policy.async_delegation_allowed,
+        "premium_allowed_without_confirmation": policy.premium_allowed_without_confirmation,
+        "allowed_task_classes": list(policy.allowed_task_classes),
+        "sensitive_task_min_tier": policy.sensitive_task_min_tier,
+        "unsafe_model_block": policy.unsafe_model_block,
+        "untrusted_model_block": policy.untrusted_model_block,
+        "requires_trace": policy.requires_trace,
+    }
+
+
 def serialize_cost_preflight_result(result: CostPreflightResult | None) -> dict[str, object] | None:
     if result is None:
         return None

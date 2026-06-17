@@ -394,6 +394,8 @@ def _preflight_stopped_policy_result(
         stage=ROUTINE_EXECUTION_STAGE,
         chat_id=chat_id,
         user_id=user_id,
+        owner_id=None,
+        robot_id=None,
         response_text=hermes_adapter.response_text,
         command_policy=decision,
         skill_scope_policy=decision,
