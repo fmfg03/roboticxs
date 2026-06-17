@@ -109,6 +109,8 @@ class AsyncDelegationPacket:
     task_class: str
     request_snapshot: dict[str, object]
     required_policy_trace: tuple[str, ...]
+    cost_preflight_evidence: dict[str, object] | None
+    approval_evidence: dict[str, object] | None
     cost_preflight_request_id: str | None
     cost_preflight_decision: str | None
     selected_provider_id: str | None
@@ -135,6 +137,9 @@ class AsyncDelegationHandle:
     task_class: str
     packet_version: int
     packet_hash: str
+    original_request_evidence: dict[str, object]
+    cost_preflight_evidence: dict[str, object]
+    approval_evidence: dict[str, object] | None
     cost_preflight_request_id: str
     cost_preflight_decision: str
     selected_provider_id: str | None
@@ -398,6 +403,26 @@ def bind_async_delegation_approval(
         decision="allow_local_register",
         action_packet_id=approval_state.packet.packet_id,
         approval_resume_token_id=approval_state.resume_token.token_id,
+        approval_evidence={
+            "action_type": approval_state.packet.action_type,
+            "action_packet_id": approval_state.packet.packet_id,
+            "packet_version": approval_state.packet.packet_version,
+            "owner_id": approval_state.packet.owner_id,
+            "robot_id": approval_state.packet.robot_id,
+            "actor_id": approval_state.packet.actor_id,
+            "actor_role": approval_state.packet.actor_role,
+            "delegation_id": approval_state.packet.action_payload.get("delegation_id"),
+            "task_class": approval_state.packet.action_payload.get("task_class"),
+            "source_stage": approval_state.packet.action_payload.get("source_stage"),
+            "requested_capability": approval_state.packet.action_payload.get("requested_capability"),
+            "requested_route_mode": approval_state.packet.action_payload.get("requested_route_mode"),
+            "request_payload": _dict_snapshot(approval_state.packet.action_payload.get("request_payload")),
+            "selected_model_id": approval_state.packet.required_selected_model_id,
+            "cost_preflight_request_id": approval_state.packet.required_cost_preflight_request_id,
+            "cost_preflight_decision": approval_state.packet.required_cost_preflight_decision,
+            "required_cost_preflight": _dict_snapshot(approval_state.packet.required_cost_preflight),
+            "approval_resume_token_id": approval_state.resume_token.token_id,
+        },
     )
     return _append_transition(
         replace(authority_state, packet=approved_packet),
@@ -438,6 +463,9 @@ def register_async_delegation_handle(
         task_class=packet.task_class,
         packet_version=packet.packet_version,
         packet_hash=_stable_id("async_packet_hash", packet.delegation_id, packet.packet_version, packet.selected_model_id, packet.cost_preflight_request_id),
+        original_request_evidence=_dict_snapshot(packet.request_snapshot) or {},
+        cost_preflight_evidence=_dict_snapshot(packet.cost_preflight_evidence) or {},
+        approval_evidence=None if packet.approval_evidence is None else _dict_snapshot(packet.approval_evidence),
         cost_preflight_request_id=packet.cost_preflight_request_id,
         cost_preflight_decision=packet.cost_preflight_decision,
         selected_provider_id=packet.selected_provider_id,
@@ -537,6 +565,8 @@ def serialize_async_delegation_authority_state(authority_state: AsyncDelegationA
             "task_class": authority_state.packet.task_class,
             "request_snapshot": _dict_snapshot(authority_state.packet.request_snapshot),
             "required_policy_trace": list(authority_state.packet.required_policy_trace),
+            "cost_preflight_evidence": _dict_snapshot(authority_state.packet.cost_preflight_evidence),
+            "approval_evidence": _dict_snapshot(authority_state.packet.approval_evidence),
             "cost_preflight_request_id": authority_state.packet.cost_preflight_request_id,
             "cost_preflight_decision": authority_state.packet.cost_preflight_decision,
             "selected_provider_id": authority_state.packet.selected_provider_id,
@@ -563,6 +593,9 @@ def serialize_async_delegation_authority_state(authority_state: AsyncDelegationA
             "task_class": authority_state.handle.task_class,
             "packet_version": authority_state.handle.packet_version,
             "packet_hash": authority_state.handle.packet_hash,
+            "original_request_evidence": _dict_snapshot(authority_state.handle.original_request_evidence),
+            "cost_preflight_evidence": _dict_snapshot(authority_state.handle.cost_preflight_evidence),
+            "approval_evidence": None if authority_state.handle.approval_evidence is None else _dict_snapshot(authority_state.handle.approval_evidence),
             "cost_preflight_request_id": authority_state.handle.cost_preflight_request_id,
             "cost_preflight_decision": authority_state.handle.cost_preflight_decision,
             "selected_provider_id": authority_state.handle.selected_provider_id,
@@ -645,11 +678,11 @@ def _record_terminal_event(
         return _blocked_transition(authority_state=authority_state, occurred_at=event.source_stage, reason_code="blocked_unknown_delegation_state")
     event_reason = _completion_event_block_reason(authority_state=authority_state, event=event, expected_status=next_state)
     if event_reason is not None:
-        rejected_state = _transition_packet_and_handle(authority_state=authority_state, next_state="rejected")
+        rejected_state = replace(authority_state, completion_events=authority_state.completion_events + (event,))
         return _append_transition(
             rejected_state,
             previous_state=packet.state,
-            next_state="rejected",
+            next_state=packet.state,
             decision="block",
             reason_code=event_reason,
             occurred_at=event.source_stage,
@@ -738,8 +771,10 @@ def _approval_block_reason(
         return "blocked_robot_id_mismatch"
     if packet.actor_id is not None and approval_state.packet.actor_id != packet.actor_id:
         return "blocked_actor_id_mismatch"
-    if approval_state.packet.action_type not in {"async_delegation", "cost_confirmation"}:
+    if approval_state.packet.action_type != "async_delegation":
         return "blocked_approval_action_type_mismatch"
+    if packet.cost_preflight_evidence is None:
+        return "blocked_missing_cost_preflight_evidence"
     if approval_state.packet.required_cost_preflight_request_id != packet.cost_preflight_request_id:
         return "blocked_cost_preflight_request_id_mismatch"
     if approval_state.packet.required_cost_preflight_decision != packet.cost_preflight_decision:
@@ -747,16 +782,45 @@ def _approval_block_reason(
     if approval_state.packet.required_selected_model_id != packet.selected_model_id:
         return "blocked_selected_route_mismatch"
     snapshot = approval_state.packet.required_cost_preflight or {}
+    if not snapshot:
+        return "blocked_missing_cost_preflight_evidence"
     task_snapshot = snapshot.get("task_cost_request")
-    if isinstance(task_snapshot, dict):
-        if str(task_snapshot.get("task_class")) != packet.task_class:
-            return "blocked_task_class_mismatch"
-    if approval_state.packet.action_type == "async_delegation":
-        payload = approval_state.packet.action_payload
-        if str(payload.get("delegation_id")) != packet.delegation_id:
-            return "blocked_delegation_id_mismatch"
-        if str(payload.get("requested_capability")) != str(packet.request_snapshot.get("requested_capability")):
-            return "blocked_request_payload_mismatch"
+    if not isinstance(task_snapshot, dict):
+        return "blocked_missing_async_delegation_task_cost_request"
+    if str(task_snapshot.get("task_class")) != packet.task_class:
+        return "blocked_task_class_mismatch"
+    if str(task_snapshot.get("owner_id")) != packet.owner_id:
+        return "blocked_owner_id_mismatch"
+    if str(task_snapshot.get("robot_id")) != packet.robot_id:
+        return "blocked_robot_id_mismatch"
+    budget_snapshot = snapshot.get("budget_policy")
+    if not isinstance(budget_snapshot, dict):
+        return "blocked_missing_async_delegation_budget_policy"
+    if str(budget_snapshot.get("owner_id")) != packet.owner_id:
+        return "blocked_owner_id_mismatch"
+    if str(budget_snapshot.get("robot_id")) != packet.robot_id:
+        return "blocked_robot_id_mismatch"
+    if budget_snapshot.get("async_delegation_allowed") is not True:
+        return "blocked_async_delegation_disabled_by_policy"
+    route_snapshot = snapshot.get("route_decision")
+    if packet.selected_model_id is not None:
+        if not isinstance(route_snapshot, dict):
+            return "blocked_selected_route_mismatch"
+        if str(route_snapshot.get("selected_model_id")) != packet.selected_model_id:
+            return "blocked_selected_route_mismatch"
+    payload = approval_state.packet.action_payload
+    if str(payload.get("delegation_id")) != packet.delegation_id:
+        return "blocked_delegation_id_mismatch"
+    if str(payload.get("task_class")) != packet.task_class:
+        return "blocked_task_class_mismatch"
+    if str(payload.get("source_stage")) != packet.source_stage:
+        return "blocked_source_stage_mismatch"
+    if str(payload.get("requested_capability")) != str(packet.request_snapshot.get("requested_capability")):
+        return "blocked_request_payload_mismatch"
+    if str(payload.get("requested_route_mode")) != str(packet.request_snapshot.get("requested_route_mode")):
+        return "blocked_request_payload_mismatch"
+    if _dict_snapshot(payload.get("request_payload")) != _dict_snapshot(packet.request_snapshot.get("request_payload")):
+        return "blocked_request_payload_mismatch"
     return None
 
 
@@ -782,6 +846,17 @@ def _completion_event_block_reason(
         return "rejected_robot_id_mismatch"
     if packet.actor_id is not None and event.actor_id != packet.actor_id:
         return "rejected_actor_id_mismatch"
+    if _dict_snapshot(event.original_request_evidence) != _dict_snapshot(packet.request_snapshot):
+        return "rejected_request_evidence_mismatch"
+    if packet.cost_preflight_evidence is None:
+        return "rejected_missing_cost_preflight_evidence"
+    if _dict_snapshot(event.cost_preflight_evidence) != _dict_snapshot(packet.cost_preflight_evidence):
+        return "rejected_cost_preflight_evidence_mismatch"
+    if packet.action_packet_id is None:
+        if event.approval_evidence is not None:
+            return "rejected_unexpected_approval_evidence"
+    elif _dict_snapshot(event.approval_evidence) != _dict_snapshot(packet.approval_evidence):
+        return "rejected_approval_evidence_mismatch"
     if authority_state.packet.state in {"cancelled", "expired", "completed", "failed"}:
         return f"rejected_{authority_state.packet.state}_handle"
     if any(
@@ -907,6 +982,8 @@ def _build_packet(
             "expires_at": request.expires_at,
         },
         required_policy_trace=tuple(request.required_policy_trace),
+        cost_preflight_evidence=serialize_cost_preflight_result(cost_preflight),
+        approval_evidence=None,
         cost_preflight_request_id=None if cost_preflight is None else cost_preflight.request_id,
         cost_preflight_decision=None if cost_preflight is None else cost_preflight.decision,
         selected_provider_id=None if route is None else route.selected_provider_id,
@@ -959,6 +1036,10 @@ def build_completion_event(
         raise ValueError("Completion events require a registered local handle.")
     if completion_status not in COMPLETION_STATUSES:
         raise ValueError("Completion status must be known.")
+    if not handle.original_request_evidence:
+        raise ValueError("Completion events require preserved original request evidence.")
+    if not handle.cost_preflight_evidence:
+        raise ValueError("Completion events require preserved 100P cost preflight evidence.")
     return AsyncDelegationCompletionEvent(
         event_id=_stable_id("async_event", packet.delegation_id, handle.handle_id, completion_status, source_stage, reason_code),
         handle_id=handle.handle_id,
@@ -967,77 +1048,10 @@ def build_completion_event(
         robot_id=packet.robot_id,
         actor_id=packet.actor_id,
         source_stage=source_stage,
-        original_request_evidence=_dict_snapshot(packet.request_snapshot) or {},
-        cost_preflight_evidence=serialize_cost_preflight_result(
-            CostPreflightResult(
-                request_id=packet.cost_preflight_request_id or "missing",
-                decision=packet.cost_preflight_decision or "block",
-                budget_policy_id=None,
-                token_estimate=authority_state_to_token_estimate(authority_state),
-                route_decision=authority_state_to_route_decision(authority_state),
-                estimated_cost_usd=0.0,
-                confirmation_required=packet.cost_preflight_decision == "require_confirmation",
-                blocked=packet.cost_preflight_decision == "block",
-                trace=(),
-            )
-        )
-        or {},
-        approval_evidence=None
-        if packet.action_packet_id is None
-        else {
-            "action_packet_id": packet.action_packet_id,
-            "approval_resume_token_id": packet.approval_resume_token_id,
-        },
+        original_request_evidence=_dict_snapshot(handle.original_request_evidence) or {},
+        cost_preflight_evidence=_dict_snapshot(handle.cost_preflight_evidence) or {},
+        approval_evidence=None if handle.approval_evidence is None else _dict_snapshot(handle.approval_evidence),
         completion_status=completion_status,
         completion_payload_summary=_dict_snapshot(completion_payload_summary) or {},
         reason_code=reason_code,
-    )
-
-
-def authority_state_to_token_estimate(authority_state: AsyncDelegationAuthorityState):
-    serialized = authority_state.packet.request_snapshot
-    input_tokens = int(serialized.get("request_payload", {}).get("estimated_input_tokens", 0))
-    output_tokens = int(serialized.get("request_payload", {}).get("estimated_output_tokens", 0))
-    total_tokens = input_tokens + output_tokens
-
-    @dataclass(frozen=True, slots=True)
-    class _TokenEstimate:
-        estimated_input_tokens: int
-        estimated_output_tokens: int
-        estimated_total_tokens: int
-        estimation_basis: str
-        long_context_applied: bool
-
-    return _TokenEstimate(
-        estimated_input_tokens=input_tokens,
-        estimated_output_tokens=output_tokens,
-        estimated_total_tokens=total_tokens,
-        estimation_basis="async_authority_snapshot",
-        long_context_applied=False,
-    )
-
-
-def authority_state_to_route_decision(authority_state: AsyncDelegationAuthorityState):
-    handle = authority_state.handle
-
-    @dataclass(frozen=True, slots=True)
-    class _RouteDecision:
-        selected_provider_id: str | None
-        selected_model_id: str | None
-        selected_capability_tier: str | None
-        selected_trust_level: str | None
-        candidate_models_considered: tuple[str, ...]
-        rejected_candidates: tuple[str, ...]
-        downgrade_from_model_id: str | None
-        decision_reason: str
-
-    return _RouteDecision(
-        selected_provider_id=None if handle is None else handle.selected_provider_id,
-        selected_model_id=None if handle is None else handle.selected_model_id,
-        selected_capability_tier=None,
-        selected_trust_level=None,
-        candidate_models_considered=(),
-        rejected_candidates=(),
-        downgrade_from_model_id=None,
-        decision_reason="async_authority_snapshot",
     )

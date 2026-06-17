@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 
 from app.action_packet_approval import (
     ActionPacketDecision,
+    ActionPacketRequest,
     create_action_packet,
     submit_action_packet_for_approval,
     apply_action_packet_decision,
@@ -218,6 +220,55 @@ def create_and_approve_async_action_packet(
     return packet_request, approved
 
 
+def registered_state(*, use_approval: bool = False):
+    request = delegation_request()
+    task_request = task_cost_request()
+    if use_approval:
+        policy = budget_policy(async_delegation_allowed=True)
+        preflight = evaluate_cost_preflight(request=task_request, budget_policy=policy)
+        awaiting = create_async_delegation_authority_state(
+            request=request,
+            task_cost_request=task_request,
+            budget_policy=policy,
+            cost_preflight=preflight,
+            occurred_at="2026-06-17T12:00:00Z",
+        )
+        _, approved_packet = create_and_approve_async_action_packet(
+            request=request,
+            task_request=task_request,
+            policy=policy,
+            preflight=preflight,
+        )
+        approved = bind_async_delegation_approval(
+            authority_state=awaiting,
+            approval_state=approved_packet,
+            occurred_at="2026-06-17T14:00:00Z",
+        )
+        return register_async_delegation_handle(
+            authority_state=approved,
+            occurred_at="2026-06-17T14:05:00Z",
+        )
+    return register_async_delegation_handle(
+        authority_state=create_async_delegation_authority_state(
+            request=request,
+            task_cost_request=task_request,
+            budget_policy=budget_policy(),
+            cost_preflight=synthetic_allow_preflight(task_request),
+            occurred_at="2026-06-17T12:00:00Z",
+        ),
+        occurred_at="2026-06-17T12:05:00Z",
+    )
+
+
+def assert_registered_unchanged(before, after):
+    assert after.packet.state == "registered"
+    assert after.handle is not None
+    assert after.handle.status == "registered"
+    assert after.handle.handle_id == before.handle.handle_id
+    assert after.handle.packet_hash == before.handle.packet_hash
+    assert after.handle.approval_evidence == before.handle.approval_evidence
+
+
 def test_creates_docs_only_local_authority_state_for_allow_path():
     request = delegation_request()
     task_request = task_cost_request()
@@ -411,6 +462,177 @@ def test_used_or_mismatched_approval_token_blocks_registration():
     assert blocked.trace_records[-1].reason_code in {"blocked_approval_not_approved", "blocked_resume_token_already_used"}
 
 
+def test_102p_approval_binding_requires_async_delegation_specific_evidence():
+    request = delegation_request()
+    task_request = task_cost_request()
+    policy = budget_policy(async_delegation_allowed=True)
+    preflight = evaluate_cost_preflight(request=task_request, budget_policy=policy)
+    awaiting = create_async_delegation_authority_state(
+        request=request,
+        task_cost_request=task_request,
+        budget_policy=policy,
+        cost_preflight=preflight,
+        occurred_at="2026-06-17T12:00:00Z",
+    )
+    cost_confirmation_request = ActionPacketRequest(
+        request_id=task_request.request_id,
+        source_stage="100P",
+        action_type="cost_confirmation",
+        owner_id=request.owner_id,
+        robot_id=request.robot_id,
+        actor_id=request.actor_id,
+        actor_role=request.actor_role,
+        requested_by_actor_id=request.owner_id,
+        requested_by_actor_role="owner_admin",
+        required_policy_trace=request.required_policy_trace,
+        required_cost_preflight={
+            "request_id": preflight.request_id,
+            "decision": preflight.decision,
+            "selected_model_id": preflight.route_decision.selected_model_id,
+        },
+        required_memory_projection=None,
+        required_routine_context=None,
+        action_payload={
+            "confirmation_type": "cost_confirmation",
+            "task_class": task_request.task_class,
+            "selected_model_id": preflight.route_decision.selected_model_id,
+        },
+        review_expires_at=None,
+        resume_scope="exact_preflight",
+    )
+    submitted = submit_action_packet_for_approval(
+        approval_state=create_action_packet(
+            request=cost_confirmation_request,
+            occurred_at="2026-06-17T12:05:00Z",
+        ),
+        actor_id=request.owner_id,
+        actor_role="owner_admin",
+        occurred_at="2026-06-17T12:06:00Z",
+    )
+    approval_state = apply_action_packet_decision(
+        approval_state=submitted,
+        decision=approval_decision(
+            submitted,
+            choice="approve",
+            occurred_at="2026-06-17T12:07:00Z",
+        ),
+    )
+
+    blocked = bind_async_delegation_approval(
+        authority_state=awaiting,
+        approval_state=approval_state,
+        occurred_at="2026-06-17T12:08:00Z",
+    )
+
+    assert blocked.packet.state == "blocked"
+    assert blocked.trace_records[-1].reason_code == "blocked_approval_action_type_mismatch"
+
+
+def test_approval_mismatch_on_selected_route_model_blocks():
+    request = delegation_request()
+    task_request = task_cost_request()
+    policy = budget_policy(async_delegation_allowed=True)
+    preflight = evaluate_cost_preflight(request=task_request, budget_policy=policy)
+    awaiting = create_async_delegation_authority_state(
+        request=request,
+        task_cost_request=task_request,
+        budget_policy=policy,
+        cost_preflight=preflight,
+        occurred_at="2026-06-17T12:00:00Z",
+    )
+    _, approved_packet = create_and_approve_async_action_packet(
+        request=request,
+        task_request=task_request,
+        policy=policy,
+        preflight=preflight,
+    )
+    mismatched = replace(
+        approved_packet,
+        packet=replace(approved_packet.packet, required_selected_model_id="other-model"),
+    )
+
+    blocked = bind_async_delegation_approval(
+        authority_state=awaiting,
+        approval_state=mismatched,
+        occurred_at="2026-06-17T14:00:00Z",
+    )
+
+    assert blocked.packet.state == "blocked"
+    assert blocked.trace_records[-1].reason_code == "blocked_selected_route_mismatch"
+
+
+def test_approval_mismatch_on_cost_preflight_request_id_blocks():
+    request = delegation_request()
+    task_request = task_cost_request()
+    policy = budget_policy(async_delegation_allowed=True)
+    preflight = evaluate_cost_preflight(request=task_request, budget_policy=policy)
+    awaiting = create_async_delegation_authority_state(
+        request=request,
+        task_cost_request=task_request,
+        budget_policy=policy,
+        cost_preflight=preflight,
+        occurred_at="2026-06-17T12:00:00Z",
+    )
+    _, approved_packet = create_and_approve_async_action_packet(
+        request=request,
+        task_request=task_request,
+        policy=policy,
+        preflight=preflight,
+    )
+    mismatched = replace(
+        approved_packet,
+        packet=replace(approved_packet.packet, required_cost_preflight_request_id="other-request"),
+    )
+
+    blocked = bind_async_delegation_approval(
+        authority_state=awaiting,
+        approval_state=mismatched,
+        occurred_at="2026-06-17T14:00:00Z",
+    )
+
+    assert blocked.packet.state == "blocked"
+    assert blocked.trace_records[-1].reason_code == "blocked_cost_preflight_request_id_mismatch"
+
+
+def test_approval_mismatch_on_delegation_request_evidence_blocks():
+    request = delegation_request()
+    task_request = task_cost_request()
+    policy = budget_policy(async_delegation_allowed=True)
+    preflight = evaluate_cost_preflight(request=task_request, budget_policy=policy)
+    awaiting = create_async_delegation_authority_state(
+        request=request,
+        task_cost_request=task_request,
+        budget_policy=policy,
+        cost_preflight=preflight,
+        occurred_at="2026-06-17T12:00:00Z",
+    )
+    _, approved_packet = create_and_approve_async_action_packet(
+        request=request,
+        task_request=task_request,
+        policy=policy,
+        preflight=preflight,
+    )
+    mismatched = replace(
+        approved_packet,
+        packet=replace(
+            approved_packet.packet,
+            action_payload={
+                **approved_packet.packet.action_payload,
+                "request_payload": {"summary": "tampered"},
+            },
+        ),
+    )
+
+    blocked = bind_async_delegation_approval(
+        authority_state=awaiting,
+        approval_state=mismatched,
+        occurred_at="2026-06-17T14:00:00Z",
+    )
+
+    assert blocked.packet.state == "blocked"
+    assert blocked.trace_records[-1].reason_code == "blocked_request_payload_mismatch"
+
+
 def test_cancellation_and_expiry_are_local_only():
     request = delegation_request()
     task_request = task_cost_request()
@@ -434,76 +656,109 @@ def test_cancellation_and_expiry_are_local_only():
     assert cancelled.handle.execution_authorized is False
 
 
-def test_completion_event_rejects_unknown_or_authority_expanding_payloads():
-    request = delegation_request()
-    task_request = task_cost_request()
-    state = create_async_delegation_authority_state(
-        request=request,
-        task_cost_request=task_request,
-        budget_policy=budget_policy(),
-        cost_preflight=synthetic_allow_preflight(task_request),
-        occurred_at="2026-06-17T12:00:00Z",
-    )
+def test_invalid_completion_event_for_unknown_handle_rejects_without_mutating_registered_handle():
+    registered = registered_state()
     unknown = record_async_delegation_completion(
-        authority_state=state,
-        event=AsyncDelegationCompletionEvent(
-            event_id="unknown-event",
+        authority_state=registered,
+        event=replace(
+            build_completion_event(
+                authority_state=registered,
+                completion_status="completed",
+                source_stage="simulated_import",
+                completion_payload_summary={"result": "done"},
+                reason_code="imported_record",
+            ),
             handle_id="missing-handle",
-            delegation_id=request.delegation_id,
-            owner_id=request.owner_id,
-            robot_id=request.robot_id,
-            actor_id=request.actor_id,
-            source_stage="simulated_import",
-            original_request_evidence={},
-            cost_preflight_evidence={},
-            approval_evidence=None,
-            completion_status="completed",
-            completion_payload_summary={"result": "done"},
-            reason_code="imported_record",
         ),
     )
 
-    assert unknown.packet.state == "rejected"
+    assert_registered_unchanged(registered, unknown)
     assert unknown.trace_records[-1].reason_code == "rejected_unknown_handle"
+    assert unknown.completion_events[-1].handle_id == "missing-handle"
 
-    registered = register_async_delegation_handle(authority_state=state, occurred_at="2026-06-17T12:05:00Z")
-    expanding = record_async_delegation_completion(
+
+def test_owner_mismatch_completion_event_rejects_without_mutating_registered_handle():
+    registered = registered_state()
+    rejected = record_async_delegation_completion(
         authority_state=registered,
-        event=AsyncDelegationCompletionEvent(
-            event_id="expanding-event",
-            handle_id=registered.handle.handle_id,
-            delegation_id=request.delegation_id,
-            owner_id=request.owner_id,
-            robot_id=request.robot_id,
-            actor_id=request.actor_id,
-            source_stage="simulated_import",
-            original_request_evidence={},
-            cost_preflight_evidence={},
-            approval_evidence=None,
-            completion_status="completed",
-            completion_payload_summary={"external_effect": "send a live message"},
-            reason_code="imported_record",
+        event=replace(
+            build_completion_event(
+                authority_state=registered,
+                completion_status="completed",
+                source_stage="simulated_import",
+                completion_payload_summary={"summary": "done"},
+                reason_code="imported_record",
+            ),
+            owner_id="other-owner",
+        ),
+    )
+
+    assert_registered_unchanged(registered, rejected)
+    assert rejected.trace_records[-1].reason_code == "rejected_owner_id_mismatch"
+
+
+def test_robot_mismatch_completion_event_rejects_without_mutating_registered_handle():
+    registered = registered_state()
+    rejected = record_async_delegation_completion(
+        authority_state=registered,
+        event=replace(
+            build_completion_event(
+                authority_state=registered,
+                completion_status="completed",
+                source_stage="simulated_import",
+                completion_payload_summary={"summary": "done"},
+                reason_code="imported_record",
+            ),
+            robot_id="other-robot",
+        ),
+    )
+
+    assert_registered_unchanged(registered, rejected)
+    assert rejected.trace_records[-1].reason_code == "rejected_robot_id_mismatch"
+
+
+def test_authority_expanding_completion_payload_rejects_without_mutating_registered_handle():
+    registered = registered_state()
+    rejected = record_async_delegation_completion(
+        authority_state=registered,
+        event=replace(
+            build_completion_event(
+                authority_state=registered,
+                completion_status="completed",
+                source_stage="simulated_import",
+                completion_payload_summary={"summary": "done"},
+                reason_code="imported_record",
+            ),
+            authority_expanded=True,
+        ),
+    )
+
+    assert_registered_unchanged(registered, rejected)
+    assert rejected.trace_records[-1].reason_code == "rejected_authority_expansion_attempt"
+
+
+def test_external_effect_completion_payload_rejects_without_mutating_registered_handle():
+    registered = registered_state()
+    rejected = record_async_delegation_completion(
+        authority_state=registered,
+        event=replace(
+            build_completion_event(
+                authority_state=registered,
+                completion_status="completed",
+                source_stage="simulated_import",
+                completion_payload_summary={"external_effect": "send a live message"},
+                reason_code="imported_record",
+            ),
             external_effect_authorized=True,
         ),
     )
 
-    assert expanding.packet.state == "rejected"
-    assert expanding.trace_records[-1].reason_code == "rejected_authority_expansion_attempt"
+    assert_registered_unchanged(registered, rejected)
+    assert rejected.trace_records[-1].reason_code == "rejected_authority_expansion_attempt"
 
 
 def test_matching_completion_and_failure_events_are_local_data_only_records():
-    request = delegation_request()
-    task_request = task_cost_request()
-    registered = register_async_delegation_handle(
-        authority_state=create_async_delegation_authority_state(
-            request=request,
-            task_cost_request=task_request,
-            budget_policy=budget_policy(),
-            cost_preflight=synthetic_allow_preflight(task_request),
-            occurred_at="2026-06-17T12:00:00Z",
-        ),
-        occurred_at="2026-06-17T12:05:00Z",
-    )
+    registered = registered_state()
     completion = build_completion_event(
         authority_state=registered,
         completion_status="completed",
@@ -517,16 +772,7 @@ def test_matching_completion_and_failure_events_are_local_data_only_records():
     assert completed.completion_events[-1].completion_status == "completed"
     assert completed.completion_events[-1].execution_authorized is False
 
-    registered_again = register_async_delegation_handle(
-        authority_state=create_async_delegation_authority_state(
-            request=request,
-            task_cost_request=task_request,
-            budget_policy=budget_policy(),
-            cost_preflight=synthetic_allow_preflight(task_request),
-            occurred_at="2026-06-17T13:00:00Z",
-        ),
-        occurred_at="2026-06-17T13:05:00Z",
-    )
+    registered_again = registered_state()
     failure = build_completion_event(
         authority_state=registered_again,
         completion_status="failed",
@@ -540,6 +786,60 @@ def test_matching_completion_and_failure_events_are_local_data_only_records():
     assert failed.packet.state == "failed"
     assert serialized["packet"]["live_dispatch_authorized"] is False
     assert serialized["completion_events"][-1]["provider_call_authorized"] is False
+
+
+def test_completion_event_preserves_original_100p_cost_preflight_evidence_from_registration_lineage():
+    registered = registered_state(use_approval=True)
+
+    event = build_completion_event(
+        authority_state=registered,
+        completion_status="completed",
+        source_stage="simulated_import",
+        completion_payload_summary={"summary": "done"},
+        reason_code="completed_local_record",
+    )
+
+    assert event.cost_preflight_evidence == registered.handle.cost_preflight_evidence
+    assert event.cost_preflight_evidence["request_id"] == registered.packet.cost_preflight_request_id
+    assert event.cost_preflight_evidence["route_decision"]["selected_model_id"] == registered.packet.selected_model_id
+    assert event.approval_evidence == registered.handle.approval_evidence
+
+
+def test_completion_event_does_not_fabricate_synthetic_zero_cost_preflight_evidence():
+    registered = registered_state()
+
+    event = build_completion_event(
+        authority_state=registered,
+        completion_status="completed",
+        source_stage="simulated_import",
+        completion_payload_summary={"summary": "done"},
+        reason_code="completed_local_record",
+    )
+
+    assert event.cost_preflight_evidence["estimated_cost_usd"] == 0.01
+    assert event.cost_preflight_evidence["token_estimate"]["estimated_total_tokens"] == 520
+    assert event.cost_preflight_evidence["trace"][-1]["reason_code"] == "allow_selected_eligible_route"
+
+
+def test_completion_event_creation_blocks_if_required_original_100p_evidence_is_missing():
+    registered = registered_state()
+    corrupted = replace(
+        registered,
+        handle=replace(registered.handle, cost_preflight_evidence={}),
+    )
+
+    try:
+        build_completion_event(
+            authority_state=corrupted,
+            completion_status="completed",
+            source_stage="simulated_import",
+            completion_payload_summary={"summary": "done"},
+            reason_code="completed_local_record",
+        )
+    except ValueError as exc:
+        assert "100P cost preflight evidence" in str(exc)
+    else:
+        raise AssertionError("expected missing 100P lineage evidence to block completion event creation")
 
 
 def test_103p_and_later_source_stage_remains_blocked():
