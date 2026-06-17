@@ -1,8 +1,6 @@
 # Hermes Async Delegation Authority Adapter 102P v0.1
 
-Status: 102P technical specification proposed for human approval only.
-
-102P implementation is not authorized.
+Status: 102P technical specification committed. 102P implementation is authorized and implemented pending independent review/closeout.
 
 103P and later remain unauthorized.
 
@@ -33,13 +31,12 @@ The stage exists to prove that Roboticxs can:
 - 99P: `CLOSED_COMMITTED`
 - 100P: `CLOSED_COMMITTED`
 - 101P: `CLOSED_COMMITTED`
-- 102P technical specification: authorized by maintainer instruction for proposal and human approval only
-- 102P implementation: not authorized
+- 102P technical specification: committed docs-only at `87acdf23b5b011618f8bca1605ddd19ba4a69a4c`
+- 102P implementation: authorized and implemented pending independent review/closeout
 - 103P and later: unauthorized
 
 No part of this document:
 
-- authorizes runtime implementation;
 - updates canonical roadmap status to `CLOSED_COMMITTED`;
 - authorizes live Hermes `delegate_task`;
 - authorizes live async dispatch or live subagent startup; or
@@ -575,12 +572,11 @@ These are planning expectations only. This document does not authorize creating 
 
 ## Roadmap and Continuation Authorization Rules
 
-- This document proposes the 102P technical specification for human approval only.
-- This document does not authorize 102P implementation.
+- This document records the committed 102P technical specification baseline.
+- 102P implementation is separately authorized and implemented pending independent review/closeout.
 - This document does not update 102P to `CLOSED_COMMITTED`.
 - No next stage becomes eligible from this document alone.
 - 103P and later remain unauthorized.
-- Any 102P implementation requires separate explicit maintainer authorization after this spec is reviewed and approved.
 - Any 103P or later story, spec, or implementation requires separate explicit maintainer direction.
 
 ## Explicit Future Boundary for 103P and Later
@@ -601,8 +597,8 @@ If a future stage is proposed for live Telegram delivery, it must remain separat
 
 ## Approval Boundary Statement
 
-102P technical spec proposed for human approval only.
+102P technical spec is committed.
 
-102P implementation is not authorized.
+102P implementation is authorized and implemented pending independent review/closeout.
 
 103P and later remain unauthorized.
