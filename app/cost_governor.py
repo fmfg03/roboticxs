@@ -201,6 +201,8 @@ class CostTraceRecord:
     task_class: str
     routing_mode: str
     candidate_model_id: str | None
+    selected_model_id: str | None
+    candidate_model_ids: tuple[str, ...]
     decision: str
     reason_code: str
     estimated_input_tokens: int
@@ -520,6 +522,26 @@ def evaluate_cost_preflight(
             reason_code="blocked_routing_mode_not_allowed",
             budget_state="policy_invalid",
         )
+    if request.owner_id != budget_policy.owner_id:
+        return _blocked_result(
+            request=request,
+            budget_policy=budget_policy,
+            token_estimate=token_estimate,
+            estimated_cost_usd=0.0,
+            route_decision=None,
+            reason_code="blocked_owner_boundary_mismatch",
+            budget_state="policy_invalid",
+        )
+    if request.robot_id != budget_policy.robot_id:
+        return _blocked_result(
+            request=request,
+            budget_policy=budget_policy,
+            token_estimate=token_estimate,
+            estimated_cost_usd=0.0,
+            route_decision=None,
+            reason_code="blocked_robot_boundary_mismatch",
+            budget_state="policy_invalid",
+        )
     if request.routing_mode == "byok" and not budget_policy.byok_allowed:
         return _blocked_result(
             request=request,
@@ -528,6 +550,16 @@ def evaluate_cost_preflight(
             estimated_cost_usd=0.0,
             route_decision=None,
             reason_code="blocked_byok_not_allowed",
+            budget_state="policy_invalid",
+        )
+    if request.task_class == "async_delegation" and not budget_policy.async_delegation_allowed:
+        return _blocked_result(
+            request=request,
+            budget_policy=budget_policy,
+            token_estimate=token_estimate,
+            estimated_cost_usd=0.0,
+            route_decision=None,
+            reason_code="blocked_async_delegation_disabled_by_policy",
             budget_state="policy_invalid",
         )
     if token_estimate.estimated_input_tokens > budget_policy.max_input_tokens or token_estimate.estimated_output_tokens > budget_policy.max_output_tokens:
@@ -581,6 +613,7 @@ def evaluate_cost_preflight(
                     token_estimate=token_estimate,
                     estimated_cost_usd=0.0,
                     budget_state="over_budget",
+                    candidate_model_ids=considered_ids,
                 ),
             ),
         )
@@ -623,6 +656,8 @@ def evaluate_cost_preflight(
                     token_estimate=token_estimate,
                     estimated_cost_usd=selected_cost,
                     budget_state="over_budget",
+                    selected_model_id=selected_entry.model_id,
+                    candidate_model_ids=considered_ids,
                 ),
             ),
         )
@@ -657,13 +692,15 @@ def evaluate_cost_preflight(
                     token_estimate=token_estimate,
                     estimated_cost_usd=selected_cost,
                     budget_state="over_budget",
+                    selected_model_id=selected_entry.model_id,
+                    candidate_model_ids=considered_ids,
                 ),
             ),
         )
 
     if request.task_class == "async_delegation":
         confirmation_needed = True
-        confirmation_reason = "blocked_async_without_cost_preflight"
+        confirmation_reason = "confirmation_async_delegation_future_only"
 
     if confirmation_needed:
         return CostPreflightResult(
@@ -684,6 +721,8 @@ def evaluate_cost_preflight(
                     token_estimate=token_estimate,
                     estimated_cost_usd=selected_cost,
                     budget_state="confirmation_required",
+                    selected_model_id=selected_entry.model_id,
+                    candidate_model_ids=considered_ids,
                 ),
             ),
         )
@@ -708,6 +747,8 @@ def evaluate_cost_preflight(
                 token_estimate=token_estimate,
                 estimated_cost_usd=selected_cost,
                 budget_state="within_budget",
+                selected_model_id=selected_entry.model_id,
+                candidate_model_ids=considered_ids,
             ),
         ),
     )
@@ -764,6 +805,8 @@ def serialize_cost_preflight_result(result: CostPreflightResult | None) -> dict[
                 "task_class": trace.task_class,
                 "routing_mode": trace.routing_mode,
                 "candidate_model_id": trace.candidate_model_id,
+                "selected_model_id": trace.selected_model_id,
+                "candidate_model_ids": list(trace.candidate_model_ids),
                 "decision": trace.decision,
                 "reason_code": trace.reason_code,
                 "estimated_input_tokens": trace.estimated_input_tokens,
@@ -812,6 +855,7 @@ def _evaluate_candidates(
                     estimated_cost_usd=estimated_cost_usd,
                     budget_state="within_budget" if rejection is None else "over_budget",
                     candidate_model_id=entry.model_id,
+                    candidate_model_ids=(entry.model_id,),
                 ),
             }
         )
@@ -976,12 +1020,16 @@ def _trace(
     estimated_cost_usd: float,
     budget_state: str,
     candidate_model_id: str | None = None,
+    selected_model_id: str | None = None,
+    candidate_model_ids: tuple[str, ...] = (),
 ) -> CostTraceRecord:
     return CostTraceRecord(
         request_id=request.request_id,
         task_class=request.task_class,
         routing_mode=request.routing_mode,
         candidate_model_id=candidate_model_id,
+        selected_model_id=selected_model_id,
+        candidate_model_ids=candidate_model_ids,
         decision=decision,
         reason_code=reason_code,
         estimated_input_tokens=token_estimate.estimated_input_tokens,

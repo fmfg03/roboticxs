@@ -119,6 +119,25 @@ class LocalActionPacket:
 
 
 @dataclass(frozen=True, slots=True)
+class LocalCostConfirmation:
+    confirmation_type: str
+    request_id: str
+    owner_id: str
+    robot_id: str
+    task_class: str
+    routing_mode: str
+    estimated_tokens: int
+    estimated_cost_usd: float
+    selected_model_id: str | None
+    decision: str
+    reason_code: str
+    authority_expanded: bool
+    external_effect_authorized: bool
+    provider_call_authorized: bool
+    execution_authorized: bool
+
+
+@dataclass(frozen=True, slots=True)
 class HermesGatewayAdapterStubResult:
     called: bool
     status: str
@@ -142,6 +161,7 @@ class TelegramPolicyChainResult:
     tool_authority_policy: PolicyDecision
     memory_context: MemoryContextBlock
     cost_preflight: CostPreflightResult | None
+    cost_confirmation: LocalCostConfirmation | None
     action_packet: LocalActionPacket | None
     hermes_adapter: HermesGatewayAdapterStubResult
     policy_trace: tuple[PolicyDecision, ...]
@@ -180,6 +200,7 @@ def run_telegram_policy_chain(
             tool_authority_policy=_skipped_policy("tool_authority_policy"),
             memory_context=empty_context,
             cost_preflight=None,
+            cost_confirmation=None,
             action_packet=None,
             hermes_adapter=adapter,
             policy_trace=(blocked,),
@@ -207,6 +228,7 @@ def run_telegram_policy_chain(
             tool_authority_policy=_skipped_policy("tool_authority_policy"),
             memory_context=memory_context,
             cost_preflight=None,
+            cost_confirmation=None,
             action_packet=None,
             adapter=adapter,
             response_text="This raw Hermes command is not available in the Roboticxs Telegram surface.",
@@ -233,6 +255,7 @@ def run_telegram_policy_chain(
             tool_authority_policy=_skipped_policy("tool_authority_policy"),
             memory_context=memory_context,
             cost_preflight=None,
+            cost_confirmation=None,
             action_packet=None,
             adapter=adapter,
             response_text="I cannot do that in Roboticxs v0. I can help prepare a safe local draft or checklist.",
@@ -260,6 +283,7 @@ def run_telegram_policy_chain(
             tool_authority_policy=tool_authority_policy,
             memory_context=memory_context,
             cost_preflight=None,
+            cost_confirmation=None,
             action_packet=None,
             adapter=adapter,
             response_text="That action is blocked in Roboticxs v0. Nothing was executed.",
@@ -280,6 +304,7 @@ def run_telegram_policy_chain(
             tool_authority_policy=tool_authority_policy,
             memory_context=memory_context,
             cost_preflight=None,
+            cost_confirmation=None,
             action_packet=action_packet,
             adapter=adapter,
             response_text=(
@@ -312,6 +337,7 @@ def run_telegram_policy_chain(
             tool_authority_policy=tool_authority_policy,
             memory_context=memory_context,
             cost_preflight=cost_preflight,
+            cost_confirmation=None,
             action_packet=None,
             adapter=adapter,
             response_text="This request was blocked by the local cost governor before execution.",
@@ -320,6 +346,11 @@ def run_telegram_policy_chain(
         )
     if cost_preflight.confirmation_required:
         adapter = _blocked_adapter_result("100P cost preflight requires confirmation before Hermes adapter.")
+        cost_confirmation = build_cost_confirmation(
+            cost_preflight=cost_preflight,
+            owner_id=str(user.id),
+            robot_id=str(robot.id),
+        )
         return _result(
             message=message,
             command_policy=command_policy,
@@ -327,6 +358,7 @@ def run_telegram_policy_chain(
             tool_authority_policy=tool_authority_policy,
             memory_context=memory_context,
             cost_preflight=cost_preflight,
+            cost_confirmation=cost_confirmation,
             action_packet=None,
             adapter=adapter,
             response_text="This request needs explicit approval because the local cost governor flagged it as expensive.",
@@ -346,6 +378,7 @@ def run_telegram_policy_chain(
         tool_authority_policy=tool_authority_policy,
         memory_context=memory_context,
         cost_preflight=cost_preflight,
+        cost_confirmation=None,
         action_packet=None,
         adapter=adapter,
         response_text=adapter.response_text,
@@ -618,6 +651,32 @@ def build_local_action_packet(*, message_text: str, action_class: str) -> LocalA
     )
 
 
+def build_cost_confirmation(
+    *,
+    cost_preflight: CostPreflightResult,
+    owner_id: str,
+    robot_id: str,
+) -> LocalCostConfirmation:
+    final_trace = cost_preflight.trace[-1]
+    return LocalCostConfirmation(
+        confirmation_type="cost_preflight",
+        request_id=cost_preflight.request_id,
+        owner_id=owner_id,
+        robot_id=robot_id,
+        task_class=final_trace.task_class,
+        routing_mode=final_trace.routing_mode,
+        estimated_tokens=cost_preflight.token_estimate.estimated_total_tokens,
+        estimated_cost_usd=cost_preflight.estimated_cost_usd,
+        selected_model_id=None if cost_preflight.route_decision is None else cost_preflight.route_decision.selected_model_id,
+        decision=cost_preflight.decision,
+        reason_code=final_trace.reason_code,
+        authority_expanded=False,
+        external_effect_authorized=False,
+        provider_call_authorized=False,
+        execution_authorized=False,
+    )
+
+
 def dispatch_hermes_gateway_adapter_stub(
     *,
     request_text: str,
@@ -688,6 +747,25 @@ def serialize_policy_chain_result(result: TelegramPolicyChainResult) -> dict[str
             "external_effect_authorized": result.action_packet.external_effect_authorized,
         },
         "cost_preflight": serialize_cost_preflight_result(result.cost_preflight),
+        "cost_confirmation": None
+        if result.cost_confirmation is None
+        else {
+            "confirmation_type": result.cost_confirmation.confirmation_type,
+            "request_id": result.cost_confirmation.request_id,
+            "owner_id": result.cost_confirmation.owner_id,
+            "robot_id": result.cost_confirmation.robot_id,
+            "task_class": result.cost_confirmation.task_class,
+            "routing_mode": result.cost_confirmation.routing_mode,
+            "estimated_tokens": result.cost_confirmation.estimated_tokens,
+            "estimated_cost_usd": result.cost_confirmation.estimated_cost_usd,
+            "selected_model_id": result.cost_confirmation.selected_model_id,
+            "decision": result.cost_confirmation.decision,
+            "reason_code": result.cost_confirmation.reason_code,
+            "authority_expanded": result.cost_confirmation.authority_expanded,
+            "external_effect_authorized": result.cost_confirmation.external_effect_authorized,
+            "provider_call_authorized": result.cost_confirmation.provider_call_authorized,
+            "execution_authorized": result.cost_confirmation.execution_authorized,
+        },
         "hermes_adapter": {
             "called": result.hermes_adapter.called,
             "status": result.hermes_adapter.status,
@@ -711,6 +789,7 @@ def _result(
     tool_authority_policy: PolicyDecision,
     memory_context: MemoryContextBlock,
     cost_preflight: CostPreflightResult | None,
+    cost_confirmation: LocalCostConfirmation | None,
     action_packet: LocalActionPacket | None,
     adapter: HermesGatewayAdapterStubResult,
     response_text: str,
@@ -733,6 +812,7 @@ def _result(
         tool_authority_policy=tool_authority_policy,
         memory_context=memory_context,
         cost_preflight=cost_preflight,
+        cost_confirmation=cost_confirmation,
         action_packet=action_packet,
         hermes_adapter=adapter,
         policy_trace=trace,

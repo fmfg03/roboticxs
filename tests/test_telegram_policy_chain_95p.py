@@ -102,6 +102,49 @@ async def test_external_send_request_produces_action_packet_and_stops_before_ada
 
 
 @pytest.mark.anyio
+async def test_cost_require_confirmation_emits_structured_non_authority_metadata(client):
+    with client.app.state.db.session() as session:
+        user = User(telegram_user_id=95077, first_name="Cost", username="cost")
+        session.add(user)
+        session.flush()
+        robot = Robot(user_id=user.id, name="Cost Robot")
+        session.add(robot)
+        session.flush()
+        owner_id = str(user.id)
+        robot_id = str(robot.id)
+
+    response = await client.post(
+        POLICY_CHAIN_WEBHOOK_PATH,
+        json=build_update("Premium research " + ("long context " * 700), user_id=95077, chat_id=95077),
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["ok"] is False
+    assert body["error_code"] == "cost_confirmation_required"
+    assert body["cost_preflight"]["decision"] == "require_confirmation"
+    assert body["cost_confirmation"] == {
+        "confirmation_type": "cost_preflight",
+        "request_id": body["cost_preflight"]["request_id"],
+        "owner_id": owner_id,
+        "robot_id": robot_id,
+        "task_class": "long_context",
+        "routing_mode": "premium",
+        "estimated_tokens": body["cost_preflight"]["token_estimate"]["estimated_total_tokens"],
+        "estimated_cost_usd": body["cost_preflight"]["estimated_cost_usd"],
+        "selected_model_id": body["cost_preflight"]["route_decision"]["selected_model_id"],
+        "decision": "require_confirmation",
+        "reason_code": body["cost_preflight"]["trace"][-1]["reason_code"],
+        "authority_expanded": False,
+        "external_effect_authorized": False,
+        "provider_call_authorized": False,
+        "execution_authorized": False,
+    }
+    assert body["action_packet"] is None
+    assert body["hermes_adapter"]["called"] is False
+
+
+@pytest.mark.anyio
 async def test_blocked_payment_does_not_create_action_packet_or_reach_adapter(client):
     response = await client.post(POLICY_CHAIN_WEBHOOK_PATH, json=build_update("Please pay this invoice now"))
 

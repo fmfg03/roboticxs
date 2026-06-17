@@ -400,6 +400,7 @@ def _preflight_stopped_policy_result(
         tool_authority_policy=skipped_tool_authority,
         memory_context=memory_context,
         cost_preflight=None,
+        cost_confirmation=None,
         action_packet=None,
         hermes_adapter=hermes_adapter,
         policy_trace=(decision,),

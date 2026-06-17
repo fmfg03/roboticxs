@@ -314,6 +314,42 @@ def test_byok_without_local_allowance_blocks():
     assert result.trace[-1].reason_code == "blocked_byok_not_allowed"
 
 
+def test_owner_id_mismatch_blocks():
+    result = evaluate_cost_preflight(
+        request=request(owner_id="owner-2"),
+        budget_policy=policy(owner_id="owner-1"),
+        model_catalog=default_model_catalog(),
+    )
+
+    assert result.decision == "block"
+    assert result.route_decision is None
+    assert result.trace[-1].reason_code == "blocked_owner_boundary_mismatch"
+
+
+def test_robot_id_mismatch_blocks():
+    result = evaluate_cost_preflight(
+        request=request(robot_id="robot-2"),
+        budget_policy=policy(robot_id="robot-1"),
+        model_catalog=default_model_catalog(),
+    )
+
+    assert result.decision == "block"
+    assert result.route_decision is None
+    assert result.trace[-1].reason_code == "blocked_robot_boundary_mismatch"
+
+
+def test_matching_owner_and_robot_ids_allow_normal_eligible_path():
+    result = evaluate_cost_preflight(
+        request=request(owner_id="owner-1", robot_id="robot-1"),
+        budget_policy=policy(owner_id="owner-1", robot_id="robot-1"),
+        model_catalog=default_model_catalog(),
+    )
+
+    assert result.decision == "allow"
+    assert result.route_decision is not None
+    assert result.route_decision.selected_model_id == "balanced_standard_v1"
+
+
 def test_cost_result_cannot_expand_tool_action_or_external_authority():
     result = evaluate_cost_preflight(request=request(), budget_policy=policy(), model_catalog=default_model_catalog())
 
@@ -415,14 +451,41 @@ def test_99p_memory_projection_remains_separate_from_cost_authority():
 def test_async_delegation_task_cannot_dispatch_without_cost_preflight():
     assert can_dispatch_async_delegation(None) is False
 
-    result = evaluate_cost_preflight(
+    disabled = evaluate_cost_preflight(
+        request=request(task_class="async_delegation", async_delegation_requested=True),
+        budget_policy=policy(async_delegation_allowed=False, premium_allowed_without_confirmation=True),
+        model_catalog=default_model_catalog(),
+    )
+    allowed_but_future_only = evaluate_cost_preflight(
         request=request(task_class="async_delegation", async_delegation_requested=True),
         budget_policy=policy(async_delegation_allowed=True, premium_allowed_without_confirmation=True),
         model_catalog=default_model_catalog(),
     )
 
-    assert result.decision == "require_confirmation"
-    assert can_dispatch_async_delegation(result) is False
+    assert disabled.decision == "block"
+    assert disabled.trace[-1].reason_code == "blocked_async_delegation_disabled_by_policy"
+    assert disabled.confirmation_required is False
+    assert can_dispatch_async_delegation(disabled) is False
+
+    assert allowed_but_future_only.decision == "require_confirmation"
+    assert allowed_but_future_only.trace[-1].reason_code == "confirmation_async_delegation_future_only"
+    assert can_dispatch_async_delegation(allowed_but_future_only) is False
+
+
+def test_trace_includes_selected_model_and_candidate_sets():
+    result = evaluate_cost_preflight(request=request(), budget_policy=policy(), model_catalog=default_model_catalog())
+
+    final_trace = result.trace[-1]
+    assert final_trace.selected_model_id == "balanced_standard_v1"
+    assert final_trace.candidate_model_ids == (
+        "economy_basic_v1",
+        "balanced_standard_v1",
+        "advanced_reasoning_v1",
+        "premium_strong_v1",
+        "byok_placeholder_v1",
+    )
+    assert all(trace.candidate_model_ids for trace in result.trace)
+    assert all(trace.model_provider_access_authorized is False for trace in result.trace)
 
 
 def test_no_provider_network_billing_or_credential_calls_occur():
@@ -454,6 +517,8 @@ def test_trace_is_deterministic_and_inspectable():
     assert first.trace[-1].request_id == "request-100p"
     assert first.trace[-1].task_class == "drafting"
     assert first.trace[-1].routing_mode == "balanced"
+    assert first.trace[-1].selected_model_id == "balanced_standard_v1"
+    assert first.trace[-1].candidate_model_ids == second.trace[-1].candidate_model_ids
 
 
 def test_101p_and_later_remain_unauthorized():
