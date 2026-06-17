@@ -1,6 +1,6 @@
 # Hermes Async Delegation Authority Adapter 102P v0.1
 
-Status: 102P technical specification committed. 102P implementation is authorized and implemented pending independent review/closeout.
+Status: 102P technical specification committed. 102P implementation is closed committed after remediation review and validation.
 
 103P and later remain unauthorized.
 
@@ -32,12 +32,13 @@ The stage exists to prove that Roboticxs can:
 - 100P: `CLOSED_COMMITTED`
 - 101P: `CLOSED_COMMITTED`
 - 102P technical specification: committed docs-only at `87acdf23b5b011618f8bca1605ddd19ba4a69a4c`
-- 102P implementation: authorized and implemented pending independent review/closeout
+- 102P implementation commit: `2b2d7ff1bd7b7cd0fc859199b3330c7a0a201986`
+- 102P remediation commit: `90247db9ec0b4e89840e10d365097f0f51b5c506`
+- 102P closeout state: `CLOSED_COMMITTED` after remediation review and validation
 - 103P and later: unauthorized
 
 No part of this document:
 
-- updates canonical roadmap status to `CLOSED_COMMITTED`;
 - authorizes live Hermes `delegate_task`;
 - authorizes live async dispatch or live subagent startup; or
 - authorizes 103P or any later stage.
@@ -573,8 +574,7 @@ These are planning expectations only. This document does not authorize creating 
 ## Roadmap and Continuation Authorization Rules
 
 - This document records the committed 102P technical specification baseline.
-- 102P implementation is separately authorized and implemented pending independent review/closeout.
-- This document does not update 102P to `CLOSED_COMMITTED`.
+- 102P implementation is closed committed after remediation review and validation.
 - No next stage becomes eligible from this document alone.
 - 103P and later remain unauthorized.
 - Any 103P or later story, spec, or implementation requires separate explicit maintainer direction.
@@ -599,6 +599,6 @@ If a future stage is proposed for live Telegram delivery, it must remain separat
 
 102P technical spec is committed.
 
-102P implementation is authorized and implemented pending independent review/closeout.
+102P implementation is closed committed after remediation review and validation.
 
 103P and later remain unauthorized.
