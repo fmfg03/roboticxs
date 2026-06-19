@@ -682,4 +682,6 @@ def test_103p_104p_plus_remains_unauthorized():
         "103P and later remain unauthorized" in roadmap
         or "104P and later remain unauthorized" in roadmap
         or "104P+ remains unauthorized" in roadmap
+        or "105P and later remain unauthorized" in roadmap
+        or "105P+ remains unauthorized" in roadmap
     )
