@@ -77,7 +77,9 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_99P_is_closed_committed_after_memory_center_projection_runtime_remediation_validation",
     "stage_100P_is_closed_committed_after_cost_governor_model_routing_runtime_closeout",
     "stage_101P_is_closed_committed_after_action_packet_approval_loop_remediation_review",
-    "do_not_invent_102P_without_explicit_maintainer_direction_in_repo_evidence",
+    "stage_102P_is_closed_committed_after_async_delegation_authority_adapter_closeout",
+    "stage_103P_is_closed_committed_after_async_delegation_completion_inbox_closeout",
+    "do_not_invent_104P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -120,6 +122,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "100P": ("CLOSED_COMMITTED", "Cost Governor / Model Routing Runtime v0"),
     "101P": ("CLOSED_COMMITTED", "Action Packet Approval Loop v0"),
     "102P": ("CLOSED_COMMITTED", "Hermes Async Delegation Authority Adapter v0"),
+    "103P": ("CLOSED_COMMITTED", "Async Delegation Completion Inbox v0"),
 }
 
 
@@ -142,7 +145,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_102P",
+        "local_evidence_scope": "stages_61P_through_103P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -154,7 +157,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 103)
+        f"{number}P" for number in range(67, 104)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -1838,7 +1841,7 @@ def test_100p_is_cost_governor_model_routing_runtime_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic cost governor and model-routing runtime baseline. 101P and 102P are closed committed; 103P and later remain unauthorized. Do not infer async delegation dispatch, live Telegram sends, live Hermes startup, live cron scheduling, connectors, provider calls, billing, credential checks, migrations, UI, endpoints, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, medical decisions, emergency monitoring, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic cost governor and model-routing runtime baseline. 101P and 102P are closed committed; 103P is closed committed; 104P and later remain unauthorized. Do not infer async delegation dispatch, live Telegram sends, live Hermes startup, live cron scheduling, connectors, provider calls, billing, credential checks, migrations, UI, endpoints, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, medical decisions, emergency monitoring, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["100P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -1873,7 +1876,7 @@ def test_101p_is_action_packet_approval_loop_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic Action Packet approval loop baseline. 102P is closed committed; 103P and later remain unauthorized. Do not infer live execution, async delegation dispatch, live Telegram sends, live Hermes startup, live cron scheduling, connectors, provider calls, billing, credential checks, migrations, UI, endpoints, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, medical decisions, emergency monitoring, automatic caregiver alerts, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic Action Packet approval loop baseline. 102P is closed committed; 103P is closed committed; 104P and later remain unauthorized. Do not infer live execution, async delegation dispatch, live Telegram sends, live Hermes startup, live cron scheduling, connectors, provider calls, billing, credential checks, migrations, UI, endpoints, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, medical decisions, emergency monitoring, automatic caregiver alerts, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["101P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -1900,13 +1903,39 @@ def test_102p_is_async_delegation_authority_adapter_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic async delegation authority adapter baseline. 102P is closed committed after remediation review and validation. Do not infer live Hermes delegate_task, background dispatch, live subagents, provider calls, connector activation, live Telegram sends, external effects, 103P, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic async delegation authority adapter baseline. 102P is closed committed after remediation review and validation. 103P is closed committed. Do not infer live Hermes delegate_task, background dispatch, live subagents, provider calls, connector activation, live Telegram sends, external effects, 104P, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["102P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 
-def test_100p_transition_records_later_101p_authorization_and_keeps_102p_blocked():
+def test_103p_is_async_delegation_completion_inbox_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["103P"] == {
+        "stage_id": "103P",
+        "stage_name": "Async Delegation Completion Inbox v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_103P_closeout",
+            "commit_message": "docs: close async delegation completion inbox",
+            "paths": [
+                "app/async_delegation_inbox.py",
+                "tests/test_async_delegation_completion_inbox_103p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic async delegation completion inbox baseline. 103P is closed committed after implementation, validation, and closeout review. Do not infer async workers, live Hermes delegate_task, background dispatch, callbacks, live subagents, provider calls, connector activation, live Telegram sends, Memory Center mutation, external effects, 104P, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["103P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_100p_transition_records_later_101p_102p_103p_authorization_and_keeps_104p_plus_blocked():
     transition = load_json_block("stage-100p-implementation-transition")
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
@@ -1918,7 +1947,9 @@ def test_100p_transition_records_later_101p_authorization_and_keeps_102p_blocked
         "stage_101p_authorized_later": True,
         "stage_102p_authorized_later": True,
         "stage_102p_current_status": "CLOSED_COMMITTED",
-        "stage_103p_and_later_authorized": False,
+        "stage_103p_authorized_later": True,
+        "stage_103p_current_status": "CLOSED_COMMITTED",
+        "stage_104p_and_later_authorized": False,
         "next_eligible_stage": "101P",
         "action_packet_approval_loop_authorized": True,
         "async_delegation_dispatch_authorized": False,
@@ -1937,10 +1968,11 @@ def test_100p_transition_records_later_101p_authorization_and_keeps_102p_blocked
     }
     assert stages_by_id["100P"]["status"] == "CLOSED_COMMITTED"
     assert stages_by_id["101P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["103P"]["status"] == "CLOSED_COMMITTED"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
-def test_101p_transition_records_later_102p_authorization_and_keeps_103p_plus_blocked():
+def test_101p_transition_records_later_102p_103p_authorization_and_keeps_104p_plus_blocked():
     transition = load_json_block("stage-101p-implementation-transition")
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
@@ -1952,7 +1984,9 @@ def test_101p_transition_records_later_102p_authorization_and_keeps_103p_plus_bl
         "remediation_review_commit": "f031777e12a7e53b4849f8eb7068b952551e2625",
         "stage_102p_authorized_later": True,
         "stage_102p_current_status": "CLOSED_COMMITTED",
-        "stage_103p_and_later_authorized": False,
+        "stage_103p_authorized_later": True,
+        "stage_103p_current_status": "CLOSED_COMMITTED",
+        "stage_104p_and_later_authorized": False,
         "next_eligible_stage": None,
         "live_execution_authorized": False,
         "async_delegation_dispatch_authorized": False,
@@ -1971,6 +2005,40 @@ def test_101p_transition_records_later_102p_authorization_and_keeps_103p_plus_bl
     }
     assert stages_by_id["101P"]["status"] == "CLOSED_COMMITTED"
     assert stages_by_id["102P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["103P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_103p_transition_keeps_104p_plus_blocked():
+    transition = load_json_block("stage-103p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "103P",
+        "stage_name": "Async Delegation Completion Inbox v0",
+        "implementation_commit": "same_commit_as_103P_closeout",
+        "stage_104p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "async_workers_authorized": False,
+        "live_execution_authorized": False,
+        "async_delegation_dispatch_authorized": False,
+        "live_telegram_sends_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "provider_calls_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["103P"]["status"] == "CLOSED_COMMITTED"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
