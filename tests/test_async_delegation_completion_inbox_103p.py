@@ -679,6 +679,6 @@ def test_103p_104p_plus_remains_unauthorized():
     roadmap = ROADMAP_PATH.read_text()
 
     assert (
-        "106P and later remain unauthorized" in roadmap
-        or "106P+ remains unauthorized" in roadmap
+        "107P and later remain unauthorized" in roadmap
+        or "107P+ remains unauthorized" in roadmap
     )
