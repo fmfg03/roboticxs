@@ -253,7 +253,8 @@ def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
     assert '"stage_id":"102P","stage_name":"Hermes Async Delegation Authority Adapter v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"stage_id":"103P","stage_name":"Async Delegation Completion Inbox v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"stage_id":"104P","stage_name":"Async Result User Surface v0","status":"CLOSED_COMMITTED"' in roadmap_text
-    assert "105P and later remain unauthorized" in roadmap_text
+    assert '"stage_id":"105P","stage_name":"Telegram Async Result Delivery v0","status":"CLOSED_COMMITTED"' in roadmap_text
+    assert "106P and later remain unauthorized" in roadmap_text
     assert '"status":"NEXT_ELIGIBLE"' not in roadmap_text
 
 
