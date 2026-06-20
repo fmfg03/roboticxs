@@ -403,4 +403,4 @@ def test_113p_does_not_call_live_telegram_models_tools_workers_or_memory():
 def test_113p_114p_plus_remains_unauthorized():
     roadmap = ROADMAP_PATH.read_text()
 
-    assert "118P and later remain unauthorized" in roadmap or "118P+ remains unauthorized" in roadmap
+    assert "119P and later remain unauthorized" in roadmap or "119P+ remains unauthorized" in roadmap

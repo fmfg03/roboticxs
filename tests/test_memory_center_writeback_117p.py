@@ -346,4 +346,4 @@ def test_117p_stage_stays_local_without_external_side_effects():
 def test_117p_118p_plus_remains_unauthorized():
     roadmap = (REPO_ROOT / "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md").read_text()
 
-    assert "118P and later remain unauthorized" in roadmap or "118P+ remains unauthorized" in roadmap
+    assert "119P and later remain unauthorized" in roadmap or "119P+ remains unauthorized" in roadmap
