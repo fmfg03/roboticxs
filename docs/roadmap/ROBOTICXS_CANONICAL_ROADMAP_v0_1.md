@@ -13,7 +13,7 @@ The forward sequence comes from explicit maintainer direction in the maintainer-
 ```json canonical-roadmap-authority
 {
   "authority_source":"maintainer_approved_chatgpt_web_planning_thread",
-  "local_evidence_scope":"stages_61P_through_107P",
+  "local_evidence_scope":"stages_61P_through_108P",
   "forward_sequence_source":"explicit_maintainer_direction",
   "runtime_truth_source":"local_repo",
   "roadmap_inclusion_authorizes_implementation":false
@@ -67,7 +67,7 @@ The repository confirms these fixed baselines:
 - 100P adds Cost Governor / Model Routing Runtime v0 as a deterministic local cost/model-routing preflight layer integrated with 95P through 99P while preserving non-authority execution boundaries.
 - 101P adds Action Packet Approval Loop v0 as a deterministic local approval-governance layer that preserves upstream owner/robot/runtime/cost evidence, blocks missing or mismatched robot boundaries, issues bounded non-executing resume tokens, and remains non-authority-expanding.
 
-Local implementation evidence is now claimed through 107P only. Stage 89P - Roboticxs Automation Blueprints v0 - is closed committed. Stage 90P - Roboticxs Command Surface Policy v0 - is closed committed. Stage 91P - Skill Activation Scope Guard v0 - is closed committed. Stage 92P - Hermes Tool Authority Guard v0 - is closed committed. Stage 93P - Roboticxs Memory Center Bridge v0 - is closed committed. Stage 94P - Telegram MVP on Hermes Gateway v0 - is closed committed as story/spec/test work only. Stage 95P - Telegram-Hermes Policy Chain Runtime Skeleton v0 - is closed committed. Stage 96P - Hermes OS Runtime Contract v0 - is closed committed. Stage 97P - Caregiver Telegram MVP v0 - is closed committed. Stage 98P - Routine Execution Engine Skeleton v0 - is closed committed. Stage 99P - Memory Center Projection Runtime Slice v0 - is closed committed. Stage 100P - Cost Governor / Model Routing Runtime v0 - is closed committed after remediation review and validation. Stage 101P - Action Packet Approval Loop v0 - is closed committed after remediation review and validation. Stage 102P - Hermes Async Delegation Authority Adapter v0 - is closed committed after remediation review and validation. Stage 103P - Async Delegation Completion Inbox v0 - is closed committed after implementation, validation, and closeout review. Stage 104P - Async Result User Surface v0 - is closed committed after implementation, validation, and closeout review. Stage 105P - Telegram Async Result Delivery v0 - is closed committed after implementation, validation, and closeout review. Stage 106P - Telegram Result Acknowledgement Binding v0 - is closed committed after implementation, validation, and closeout review. Stage 107P - Follow-up Intent Review Queue v0 - is closed committed after implementation, validation, and closeout review. 108P and later remain unauthorized.
+Local implementation evidence is now claimed through 108P only. Stage 89P - Roboticxs Automation Blueprints v0 - is closed committed. Stage 90P - Roboticxs Command Surface Policy v0 - is closed committed. Stage 91P - Skill Activation Scope Guard v0 - is closed committed. Stage 92P - Hermes Tool Authority Guard v0 - is closed committed. Stage 93P - Roboticxs Memory Center Bridge v0 - is closed committed. Stage 94P - Telegram MVP on Hermes Gateway v0 - is closed committed as story/spec/test work only. Stage 95P - Telegram-Hermes Policy Chain Runtime Skeleton v0 - is closed committed. Stage 96P - Hermes OS Runtime Contract v0 - is closed committed. Stage 97P - Caregiver Telegram MVP v0 - is closed committed. Stage 98P - Routine Execution Engine Skeleton v0 - is closed committed. Stage 99P - Memory Center Projection Runtime Slice v0 - is closed committed. Stage 100P - Cost Governor / Model Routing Runtime v0 - is closed committed after remediation review and validation. Stage 101P - Action Packet Approval Loop v0 - is closed committed after remediation review and validation. Stage 102P - Hermes Async Delegation Authority Adapter v0 - is closed committed after remediation review and validation. Stage 103P - Async Delegation Completion Inbox v0 - is closed committed after implementation, validation, and closeout review. Stage 104P - Async Result User Surface v0 - is closed committed after implementation, validation, and closeout review. Stage 105P - Telegram Async Result Delivery v0 - is closed committed after implementation, validation, and closeout review. Stage 106P - Telegram Result Acknowledgement Binding v0 - is closed committed after implementation, validation, and closeout review. Stage 107P - Follow-up Intent Review Queue v0 - is closed committed after implementation, validation, and closeout review. Stage 108P - Follow-up Draft Planner v0 - is closed committed after implementation, validation, and closeout review. 109P and later remain unauthorized.
 
 ## Canonical stage registry
 
@@ -112,15 +112,16 @@ Local implementation evidence is now claimed through 107P only. Stage 89P - Robo
   {"stage_id":"96P","stage_name":"Hermes OS Runtime Contract v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"d2aa97d","commit_message":"feat: add hermes os runtime contract","paths":["app/hermes_os_contract.py","docs/reference/HERMES_OS_RUNTIME_CONTRACT_96P_v0_1.md","tests/test_hermes_os_runtime_contract_96p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local Hermes OS runtime contract baseline. 97P is closed committed; do not infer live Hermes startup, live cron execution, live Telegram sends, connector activation, model provider calls, auto skill install, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, 98P, or NEXT_ELIGIBLE from this status."},
   {"stage_id":"97P","stage_name":"Caregiver Telegram MVP v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_97P_closeout","commit_message":"feat: add caregiver telegram mvp slice","paths":["app/caregiver_telegram_mvp.py","app/telegram_policy_chain.py","app/main.py","docs/reference/CAREGIVER_TELEGRAM_MVP_97P_v0_1.md","tests/test_caregiver_telegram_mvp_97p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic caregiver Telegram MVP slice. 98P is closed committed; do not infer live Telegram sends, automatic caregiver alerts, live Hermes startup, live cron execution, connector activation, model provider calls, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, medical decisions, medication changes, emergency monitoring, destructive actions, 99P, or NEXT_ELIGIBLE from this status."},
   {"stage_id":"98P","stage_name":"Routine Execution Engine Skeleton v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_98P_closeout","commit_message":"feat: add routine execution engine skeleton","paths":["app/routine_execution_engine.py","app/main.py","docs/reference/ROUTINE_EXECUTION_ENGINE_98P_v0_1.md","tests/test_routine_execution_engine_98p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic routine execution engine skeleton. 99P and 100P are closed committed; do not infer live scheduler, live cron, live Telegram sends, automatic delivery, automatic caregiver alerts, live Hermes startup, connector activation, model provider calls, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, medical decisions, medication changes, emergency monitoring, destructive actions, 101P, or NEXT_ELIGIBLE from this status."},
-  {"stage_id":"99P","stage_name":"Memory Center Projection Runtime Slice v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_99P_closeout","commit_message":"docs: close memory center projection runtime slice","paths":["app/memory_center_projection.py","app/telegram_policy_chain.py","app/caregiver_telegram_mvp.py","app/routine_execution_engine.py","docs/reference/MEMORY_CENTER_PROJECTION_RUNTIME_99P_v0_1.md","tests/test_memory_center_projection_99p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic memory center projection runtime slice. 100P is closed committed and 101P and later remain unauthorized; do not infer migrations, canonical memory writes, UI, endpoints, live Telegram or Hermes, cron, connectors, providers, model calls, external effects, medical behavior, automatic caregiver alerts, or NEXT_ELIGIBLE from this status."},
-  {"stage_id":"100P","stage_name":"Cost Governor / Model Routing Runtime v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_100P_closeout","commit_message":"feat: add cost governor model routing runtime","paths":["app/cost_governor.py","app/telegram_policy_chain.py","app/hermes_os_contract.py","app/routine_execution_engine.py","docs/reference/COST_GOVERNOR_MODEL_ROUTING_RUNTIME_100P_v0_1.md","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_cost_governor_model_routing_100p.py","tests/test_telegram_policy_chain_95p.py","tests/test_routine_execution_engine_98p.py","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic cost governor and model-routing runtime baseline. 101P and 102P are closed committed; 103P, 104P, 105P, 106P, and 107P are closed committed; 108P and later remain unauthorized. Do not infer async delegation dispatch, live Telegram sends, live Hermes startup, live cron scheduling, connectors, provider calls, billing, credential checks, migrations, UI, endpoints, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, medical decisions, emergency monitoring, or NEXT_ELIGIBLE from this status."},
-  {"stage_id":"101P","stage_name":"Action Packet Approval Loop v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_101P_closeout","commit_message":"docs: close action packet approval loop","paths":["app/action_packet_approval.py","app/cost_governor.py","app/routine_execution_engine.py","app/telegram_policy_chain.py","docs/reference/ROBOTICXS_ACTION_PACKET_APPROVAL_LOOP_101P_v0_1.md","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_action_packet_approval_101p.py","tests/test_telegram_policy_chain_95p.py","tests/test_routine_execution_engine_98p.py","tests/test_cost_governor_model_routing_100p.py","tests/test_memory_center_projection_99p.py","tests/test_hermes_os_runtime_contract_96p.py","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic Action Packet approval loop baseline. 102P is closed committed; 103P, 104P, 105P, 106P, and 107P are closed committed; 108P and later remain unauthorized. Do not infer live execution, async delegation dispatch, live Telegram sends, live Hermes startup, live cron scheduling, connectors, provider calls, billing, credential checks, migrations, UI, endpoints, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, medical decisions, emergency monitoring, automatic caregiver alerts, or NEXT_ELIGIBLE from this status."},
+  {"stage_id":"99P","stage_name":"Memory Center Projection Runtime Slice v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_99P_closeout","commit_message":"docs: close memory center projection runtime slice","paths":["app/memory_center_projection.py","app/telegram_policy_chain.py","app/caregiver_telegram_mvp.py","app/routine_execution_engine.py","docs/reference/MEMORY_CENTER_PROJECTION_RUNTIME_99P_v0_1.md","tests/test_memory_center_projection_99p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic memory center projection runtime slice. 100P is closed committed and 101P through 108P are later closed committed; 109P and later remain unauthorized. Do not infer migrations, canonical memory writes, UI, endpoints, live Telegram or Hermes, cron, connectors, providers, model calls, external effects, medical behavior, automatic caregiver alerts, or NEXT_ELIGIBLE from this status."},
+  {"stage_id":"100P","stage_name":"Cost Governor / Model Routing Runtime v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_100P_closeout","commit_message":"feat: add cost governor model routing runtime","paths":["app/cost_governor.py","app/telegram_policy_chain.py","app/hermes_os_contract.py","app/routine_execution_engine.py","docs/reference/COST_GOVERNOR_MODEL_ROUTING_RUNTIME_100P_v0_1.md","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_cost_governor_model_routing_100p.py","tests/test_telegram_policy_chain_95p.py","tests/test_routine_execution_engine_98p.py","tests/test_canonical_roadmap.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic cost governor and model-routing runtime baseline. 101P and 102P are closed committed; 103P, 104P, 105P, 106P, 107P, and 108P are closed committed; 109P and later remain unauthorized. Do not infer async delegation dispatch, live Telegram sends, live Hermes startup, live cron scheduling, connectors, provider calls, billing, credential checks, migrations, UI, endpoints, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, medical decisions, emergency monitoring, or NEXT_ELIGIBLE from this status."},
+  {"stage_id":"101P","stage_name":"Action Packet Approval Loop v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_101P_closeout","commit_message":"docs: close action packet approval loop","paths":["app/action_packet_approval.py","app/cost_governor.py","app/routine_execution_engine.py","app/telegram_policy_chain.py","docs/reference/ROBOTICXS_ACTION_PACKET_APPROVAL_LOOP_101P_v0_1.md","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_action_packet_approval_101p.py","tests/test_telegram_policy_chain_95p.py","tests/test_routine_execution_engine_98p.py","tests/test_cost_governor_model_routing_100p.py","tests/test_memory_center_projection_99p.py","tests/test_hermes_os_runtime_contract_96p.py","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic Action Packet approval loop baseline. 102P is closed committed; 103P, 104P, 105P, 106P, 107P, and 108P are closed committed; 109P and later remain unauthorized. Do not infer live execution, async delegation dispatch, live Telegram sends, live Hermes startup, live cron scheduling, connectors, provider calls, billing, credential checks, migrations, UI, endpoints, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, medical decisions, emergency monitoring, automatic caregiver alerts, or NEXT_ELIGIBLE from this status."},
   {"stage_id":"102P","stage_name":"Hermes Async Delegation Authority Adapter v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_102P_closeout","commit_message":"docs: close async delegation authority adapter","paths":["app/async_delegation_authority.py","tests/test_async_delegation_authority_102p.py","docs/reference/HERMES_ASYNC_DELEGATION_AUTHORITY_ADAPTER_102P_v0_1.md","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic async delegation authority adapter baseline. 102P is closed committed after remediation review and validation. 103P, 104P, 105P, 106P, and 107P are closed committed. Do not infer live Hermes delegate_task, background dispatch, live subagents, provider calls, connector activation, live Telegram sends, external effects, 108P, or NEXT_ELIGIBLE from this status."},
   {"stage_id":"103P","stage_name":"Async Delegation Completion Inbox v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_103P_closeout","commit_message":"docs: close async delegation completion inbox","paths":["app/async_delegation_inbox.py","tests/test_async_delegation_completion_inbox_103p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic async delegation completion inbox baseline. 103P is closed committed after implementation, validation, and closeout review. 104P, 105P, 106P, and 107P are closed committed. Do not infer async workers, live Hermes delegate_task, background dispatch, callbacks, live subagents, provider calls, connector activation, live Telegram sends, Memory Center mutation, external effects, 108P, or NEXT_ELIGIBLE from this status."},
   {"stage_id":"104P","stage_name":"Async Result User Surface v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_104P_closeout","commit_message":"docs: close async result user surface","paths":["app/async_result_surface.py","tests/test_async_result_user_surface_104p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic async result user surface baseline. 104P is closed committed after implementation, validation, and closeout review. 105P, 106P, and 107P are closed committed. Do not infer model calls, new delegations, approvals, Memory Center mutation, external effects, 108P, or NEXT_ELIGIBLE from this status."},
   {"stage_id":"105P","stage_name":"Telegram Async Result Delivery v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_105P_closeout","commit_message":"feat: add telegram async result delivery","paths":["app/telegram_async_result_delivery.py","tests/test_telegram_async_result_delivery_105p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic Telegram async result delivery baseline. 105P is closed committed after implementation, validation, and closeout review. 106P and 107P are closed committed. Do not infer Telegram callback execution, new delegations, new approvals, Memory Center mutation, external effects, 108P, or NEXT_ELIGIBLE from this status."},
   {"stage_id":"106P","stage_name":"Telegram Result Acknowledgement Binding v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_106P_closeout","commit_message":"feat: add telegram result acknowledgement binding","paths":["app/telegram_result_acknowledgement.py","tests/test_telegram_result_acknowledgement_106p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic Telegram result acknowledgement baseline. 106P is closed committed after implementation, validation, and closeout review. 107P is closed committed. Do not infer Telegram callback execution authority, new delegations, new approvals, Memory Center mutation, external effects, 108P, or NEXT_ELIGIBLE from this status."},
-  {"stage_id":"107P","stage_name":"Follow-up Intent Review Queue v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_107P_closeout","commit_message":"feat: add follow-up intent review queue","paths":["app/followup_intent_review.py","tests/test_followup_intent_review_107p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic follow-up intent review queue baseline. 107P is closed committed after implementation, validation, and closeout review. Do not infer follow-up planning, new delegations, new approvals, new action packets, model/tool calls, Memory Center mutation, Telegram sends, external effects, 108P+, or NEXT_ELIGIBLE from this status."}
+  {"stage_id":"107P","stage_name":"Follow-up Intent Review Queue v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_107P_closeout","commit_message":"feat: add follow-up intent review queue","paths":["app/followup_intent_review.py","tests/test_followup_intent_review_107p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic follow-up intent review queue baseline. 107P is closed committed after implementation, validation, and closeout review. 108P is closed committed after follow-up draft planner validation. Do not infer follow-up execution, new delegations, new approvals, new action packets, model/tool calls, Memory Center mutation, Telegram sends, external effects, 109P+, or NEXT_ELIGIBLE from this status."},
+  {"stage_id":"108P","stage_name":"Follow-up Draft Planner v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_108P_closeout","commit_message":"feat: add follow-up draft planner","paths":["app/followup_draft_planner.py","tests/test_followup_draft_planner_108p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic follow-up draft planner baseline. 108P is closed committed after implementation, validation, and closeout review. Do not infer Telegram display, follow-up execution, new delegations, new approvals, new action packets, model/tool calls, Memory Center mutation, Telegram sends, external effects, 109P+, or NEXT_ELIGIBLE from this status."}
 ]
 ```
 
@@ -860,11 +861,11 @@ The stage registry records the 99P closed committed state. Stage 100P was later 
 }
 ```
 
-99P implements deterministic local typed contracts and projection filtering for actor id, role, scope, status, sensitivity, allowed use, and optional skill. It produces bounded data-only summaries and inspectable traces, preserves boundary-memory precedence and caregiver isolation, binds non-authority projection through 95P and 96P, and restricts 98P routine projection to the post-preflight path. Preflight-stopped routines do not invoke 99P and do not call the Hermes adapter. Actor-id isolation remediation is validated, 99P is closed committed, 100P through 107P were later explicitly authorized and closed committed locally, and 108P and later remain unauthorized.
+99P implements deterministic local typed contracts and projection filtering for actor id, role, scope, status, sensitivity, allowed use, and optional skill. It produces bounded data-only summaries and inspectable traces, preserves boundary-memory precedence and caregiver isolation, binds non-authority projection through 95P and 96P, and restricts 98P routine projection to the post-preflight path. Preflight-stopped routines do not invoke 99P and do not call the Hermes adapter. Actor-id isolation remediation is validated, 99P is closed committed, 100P through 108P were later explicitly authorized and closed committed locally, and 109P and later remain unauthorized.
 
 ## Stage 100P implementation transition
 
-The stage registry records the 100P closed committed state after remediation review and validation. 101P, 102P, 103P, 104P, 105P, 106P, and 107P were later explicitly authorized and closed committed after remediation review and validation. 108P and later remain unauthorized. No stage is next eligible after 101P without explicit maintainer direction.
+The stage registry records the 100P closed committed state after remediation review and validation. 101P, 102P, 103P, 104P, 105P, 106P, 107P, and 108P were later explicitly authorized and closed committed after remediation review and validation. 109P and later remain unauthorized. No stage is next eligible after 101P without explicit maintainer direction.
 
 ```json stage-100p-implementation-transition
 {
@@ -885,6 +886,8 @@ The stage registry records the 100P closed committed state after remediation rev
   "stage_106p_current_status":"CLOSED_COMMITTED",
   "stage_107p_authorized_later":true,
   "stage_107p_current_status":"CLOSED_COMMITTED",
+  "stage_108p_authorized_later":true,
+  "stage_108p_current_status":"CLOSED_COMMITTED",
   "next_eligible_stage":"101P",
   "action_packet_approval_loop_authorized":true,
   "async_delegation_dispatch_authorized":false,
@@ -903,11 +906,11 @@ The stage registry records the 100P closed committed state after remediation rev
 }
 ```
 
-100P implements deterministic local typed contracts for BudgetPolicy, TaskCostRequest, TokenUsageEstimate, ModelCatalogEntry, ModelRouteDecision, CostTraceRecord, and CostPreflightResult. It adds local token/cost estimation, fixture-backed model filtering, deterministic route selection, downgrade and confirmation handling, and non-authority trace output before any 95P/96P/98P path could reach the Hermes adapter or a future provider/async surface. 95P consumes the result as bounded non-authority context, 96P binds it as runtime evidence only, 98P preserves the preflight-before-Hermes invariant for routines, and 99P remains separate from cost authority. Remediation review validated owner/robot boundary enforcement, async delegation hard-block behavior when policy disallows it, 95P cost-confirmation metadata shape, and deterministic trace fields. 100P does not authorize async delegation dispatch, live Telegram sends, live Hermes startup, cron scheduling, connectors, provider calls, billing APIs, credential checks, migrations, UI, endpoints, external effects, medical behavior, or 105P and later.
+100P implements deterministic local typed contracts for BudgetPolicy, TaskCostRequest, TokenUsageEstimate, ModelCatalogEntry, ModelRouteDecision, CostTraceRecord, and CostPreflightResult. It adds local token/cost estimation, fixture-backed model filtering, deterministic route selection, downgrade and confirmation handling, and non-authority trace output before any 95P/96P/98P path could reach the Hermes adapter or a future provider/async surface. 95P consumes the result as bounded non-authority context, 96P binds it as runtime evidence only, 98P preserves the preflight-before-Hermes invariant for routines, and 99P remains separate from cost authority. Remediation review validated owner/robot boundary enforcement, async delegation hard-block behavior when policy disallows it, 95P cost-confirmation metadata shape, and deterministic trace fields. 100P does not authorize async delegation dispatch, live Telegram sends, live Hermes startup, cron scheduling, connectors, provider calls, billing APIs, credential checks, migrations, UI, endpoints, external effects, medical behavior, or 109P and later.
 
 ## Stage 101P implementation transition
 
-The stage registry records the 101P closed committed state after remediation review and validation. 102P, 103P, 104P, 105P, 106P, and 107P are closed committed after remediation review, implementation, validation, and closeout review. 108P and later remain unauthorized. No stage is next eligible after 101P without explicit maintainer direction.
+The stage registry records the 101P closed committed state after remediation review and validation. 102P, 103P, 104P, 105P, 106P, 107P, and 108P are closed committed after remediation review, implementation, validation, and closeout review. 109P and later remain unauthorized. No stage is next eligible after 101P without explicit maintainer direction.
 
 ```json stage-101p-implementation-transition
 {
@@ -928,6 +931,8 @@ The stage registry records the 101P closed committed state after remediation rev
   "stage_106p_current_status":"CLOSED_COMMITTED",
   "stage_107p_authorized_later":true,
   "stage_107p_current_status":"CLOSED_COMMITTED",
+  "stage_108p_authorized_later":true,
+  "stage_108p_current_status":"CLOSED_COMMITTED",
   "next_eligible_stage":null,
   "live_execution_authorized":false,
   "async_delegation_dispatch_authorized":false,
@@ -946,11 +951,11 @@ The stage registry records the 101P closed committed state after remediation rev
 }
 ```
 
-101P implements deterministic local typed contracts for ActionPacketRequest, ActionPacket, ActionPacketDecision, ActionPacketReviewEvent, ActionPacketResumeToken, ActionPacketTraceRecord, and ActionPacketApprovalState. It preserves exact upstream owner and robot boundaries for 95P and 98P packet derivation, blocks packet creation when required upstream robot evidence is missing, preserves full serializable 100P TaskCostRequest and BudgetPolicy evidence for cost-confirmation approval, enforces owner/robot/actor/packet/scope/expiry resume-token boundaries, and remains strictly non-executing. Remediation review validated that approval and resume remain local-only, trace records keep external/provider/execution flags false, excluded 99P memory is not leaked, 95P through 100P integrations remain intact, and 102P, 103P, 104P, 105P, 106P, and 107P are closed committed while 108P and later remain unauthorized.
+101P implements deterministic local typed contracts for ActionPacketRequest, ActionPacket, ActionPacketDecision, ActionPacketReviewEvent, ActionPacketResumeToken, ActionPacketTraceRecord, and ActionPacketApprovalState. It preserves exact upstream owner and robot boundaries for 95P and 98P packet derivation, blocks packet creation when required upstream robot evidence is missing, preserves full serializable 100P TaskCostRequest and BudgetPolicy evidence for cost-confirmation approval, enforces owner/robot/actor/packet/scope/expiry resume-token boundaries, and remains strictly non-executing. Remediation review validated that approval and resume remain local-only, trace records keep external/provider/execution flags false, excluded 99P memory is not leaked, 95P through 100P integrations remain intact, and 102P, 103P, 104P, 105P, 106P, 107P, and 108P are closed committed while 109P and later remain unauthorized.
 
 ## Stage 103P implementation transition
 
-The stage registry records the 103P closed committed state after implementation, validation, and closeout review. 104P, 105P, 106P, and 107P are closed committed after implementation, validation, and closeout review. 108P and later remain unauthorized. No stage is next eligible after 103P without explicit maintainer direction.
+The stage registry records the 103P closed committed state after implementation, validation, and closeout review. 104P, 105P, 106P, 107P, and 108P are closed committed after implementation, validation, and closeout review. 109P and later remain unauthorized. No stage is next eligible after 103P without explicit maintainer direction.
 
 ```json stage-103p-implementation-transition
 {
@@ -966,6 +971,8 @@ The stage registry records the 103P closed committed state after implementation,
   "stage_106p_current_status":"CLOSED_COMMITTED",
   "stage_107p_authorized_later":true,
   "stage_107p_current_status":"CLOSED_COMMITTED",
+  "stage_108p_authorized_later":true,
+  "stage_108p_current_status":"CLOSED_COMMITTED",
   "next_eligible_stage":null,
   "async_workers_authorized":false,
   "live_execution_authorized":false,
@@ -987,11 +994,11 @@ The stage registry records the 103P closed committed state after implementation,
 }
 ```
 
-103P implements a deterministic local inbox for async delegation completion and failure events. It reuses 102P authority validation, records accepted or quarantined outcomes as local-only inbox state, deduplicates repeated events idempotently, preserves 100P/101P/102P lineage in accepted records, and supports deterministic replay over a clean registry. It does not authorize async workers, callbacks, live Hermes delegate_task, background dispatch, provider calls, connector activation, Memory Center mutation, external effects, or 108P and later.
+103P implements a deterministic local inbox for async delegation completion and failure events. It reuses 102P authority validation, records accepted or quarantined outcomes as local-only inbox state, deduplicates repeated events idempotently, preserves 100P/101P/102P lineage in accepted records, and supports deterministic replay over a clean registry. It does not authorize async workers, callbacks, live Hermes delegate_task, background dispatch, provider calls, connector activation, Memory Center mutation, external effects, or 109P and later.
 
 ## Stage 104P implementation transition
 
-The stage registry records the 104P closed committed state after implementation, validation, and closeout review. 105P, 106P, and 107P are closed committed after implementation, validation, and closeout review. 108P and later remain unauthorized. No stage is next eligible after 104P without explicit maintainer direction.
+The stage registry records the 104P closed committed state after implementation, validation, and closeout review. 105P, 106P, 107P, and 108P are closed committed after implementation, validation, and closeout review. 109P and later remain unauthorized. No stage is next eligible after 104P without explicit maintainer direction.
 
 ```json stage-104p-implementation-transition
 {
@@ -1005,6 +1012,8 @@ The stage registry records the 104P closed committed state after implementation,
   "stage_106p_current_status":"CLOSED_COMMITTED",
   "stage_107p_authorized_later":true,
   "stage_107p_current_status":"CLOSED_COMMITTED",
+  "stage_108p_authorized_later":true,
+  "stage_108p_current_status":"CLOSED_COMMITTED",
   "next_eligible_stage":null,
   "telegram_delivery_authorized":false,
   "live_execution_authorized":false,
@@ -1028,11 +1037,11 @@ The stage registry records the 104P closed committed state after implementation,
 }
 ```
 
-104P implements a deterministic local user-facing async result surface for accepted 103P inbox records. It renders completed and failed result cards, preserves 100P/101P/102P/103P lineage internally, exposes only local-safe action labels, and can build a Telegram-compatible envelope with `send_allowed=false`. It does not authorize model calls, new delegations, new approvals, Memory Center mutation, external effects, or 108P and later.
+104P implements a deterministic local user-facing async result surface for accepted 103P inbox records. It renders completed and failed result cards, preserves 100P/101P/102P/103P lineage internally, exposes only local-safe action labels, and can build a Telegram-compatible envelope with `send_allowed=false`. It does not authorize model calls, new delegations, new approvals, Memory Center mutation, external effects, or 109P and later.
 
 ## Stage 105P implementation transition
 
-The stage registry records the 105P closed committed state after implementation, validation, and closeout review. 106P and 107P are closed committed after implementation, validation, and closeout review. 108P and later remain unauthorized. No stage is next eligible after 105P without explicit maintainer direction.
+The stage registry records the 105P closed committed state after implementation, validation, and closeout review. 106P, 107P, and 108P are closed committed after implementation, validation, and closeout review. 109P and later remain unauthorized. No stage is next eligible after 105P without explicit maintainer direction.
 
 ```json stage-105p-implementation-transition
 {
@@ -1044,6 +1053,8 @@ The stage registry records the 105P closed committed state after implementation,
   "stage_106p_current_status":"CLOSED_COMMITTED",
   "stage_107p_authorized_later":true,
   "stage_107p_current_status":"CLOSED_COMMITTED",
+  "stage_108p_authorized_later":true,
+  "stage_108p_current_status":"CLOSED_COMMITTED",
   "next_eligible_stage":null,
   "telegram_callback_execution_authorized":false,
   "live_execution_authorized":false,
@@ -1067,11 +1078,11 @@ The stage registry records the 105P closed committed state after implementation,
 }
 ```
 
-105P implements a deterministic local Telegram async result delivery path for already-rendered 104P surfaces. It binds delivery to the owning user and robot through explicit Telegram owner bindings, uses injected local transport only, preserves 100P/101P/102P/103P/104P lineage internally, records delivery state locally, and keeps button labels passive. It does not authorize callback execution authority, new delegations, new approvals, Memory Center mutation, external effects, or 108P and later.
+105P implements a deterministic local Telegram async result delivery path for already-rendered 104P surfaces. It binds delivery to the owning user and robot through explicit Telegram owner bindings, uses injected local transport only, preserves 100P/101P/102P/103P/104P lineage internally, records delivery state locally, and keeps button labels passive. It does not authorize callback execution authority, new delegations, new approvals, Memory Center mutation, external effects, or 109P and later.
 
 ## Stage 106P implementation transition
 
-The stage registry records the 106P closed committed state after implementation, validation, and closeout review. 107P is closed committed after implementation, validation, and closeout review. 108P and later remain unauthorized. No stage is next eligible after 106P without explicit maintainer direction.
+The stage registry records the 106P closed committed state after implementation, validation, and closeout review. 107P and 108P are closed committed after implementation, validation, and closeout review. 109P and later remain unauthorized. No stage is next eligible after 106P without explicit maintainer direction.
 
 ```json stage-106p-implementation-transition
 {
@@ -1081,6 +1092,8 @@ The stage registry records the 106P closed committed state after implementation,
   "implementation_commit":"same_commit_as_106P_closeout",
   "stage_107p_authorized_later":true,
   "stage_107p_current_status":"CLOSED_COMMITTED",
+  "stage_108p_authorized_later":true,
+  "stage_108p_current_status":"CLOSED_COMMITTED",
   "next_eligible_stage":null,
   "telegram_callback_execution_authorized":false,
   "live_execution_authorized":false,
@@ -1104,11 +1117,11 @@ The stage registry records the 106P closed committed state after implementation,
 }
 ```
 
-106P implements a deterministic local Telegram result acknowledgement binding layer for already-delivered 105P records. It binds owner/robot/chat-scoped callback payloads to delivered notifications only, records acknowledgement state locally, can return safe lineage summaries, keeps request-followup as pending local intent only, and preserves 100P/101P/102P/103P/104P/105P lineage internally. It does not authorize callback execution authority, new delegations, new approvals, Memory Center mutation, external effects, or 108P and later.
+106P implements a deterministic local Telegram result acknowledgement binding layer for already-delivered 105P records. It binds owner/robot/chat-scoped callback payloads to delivered notifications only, records acknowledgement state locally, can return safe lineage summaries, keeps request-followup as pending local intent only, and preserves 100P/101P/102P/103P/104P/105P lineage internally. It does not authorize callback execution authority, new delegations, new approvals, Memory Center mutation, external effects, or 109P and later.
 
 ## Stage 107P implementation transition
 
-The stage registry records the 107P closed committed state after implementation, validation, and closeout review. 108P and later remain unauthorized. No stage is next eligible after 107P without explicit maintainer direction.
+The stage registry records the 107P closed committed state after implementation, validation, and closeout review. 108P is now closed committed after implementation, validation, and closeout review. 109P and later remain unauthorized. No stage is next eligible after 107P without explicit maintainer direction.
 
 ```json stage-107p-implementation-transition
 {
@@ -1116,7 +1129,9 @@ The stage registry records the 107P closed committed state after implementation,
   "stage":"107P",
   "stage_name":"Follow-up Intent Review Queue v0",
   "implementation_commit":"same_commit_as_107P_closeout",
-  "stage_108p_and_later_authorized":false,
+  "stage_108p_authorized_later":true,
+  "stage_108p_current_status":"CLOSED_COMMITTED",
+  "stage_109p_and_later_authorized":false,
   "next_eligible_stage":null,
   "followup_planning_authorized":false,
   "live_execution_authorized":false,
@@ -1143,7 +1158,46 @@ The stage registry records the 107P closed committed state after implementation,
 }
 ```
 
-107P implements a deterministic local follow-up intent review queue for 106P `request_followup_pending` acknowledgements. It preserves 100P/101P/102P/103P/104P/105P/106P lineage internally, records follow-up intent as reviewable local state only, supports limited deterministic non-executing status transitions, and can build a Telegram-compatible envelope with `send_allowed=false`. It does not authorize follow-up planning, new delegations, new approvals, new action packets, model/tool calls, Memory Center mutation, Telegram sends, external effects, or 108P and later.
+107P implements a deterministic local follow-up intent review queue for 106P `request_followup_pending` acknowledgements. It preserves 100P/101P/102P/103P/104P/105P/106P lineage internally, records follow-up intent as reviewable local state only, supports limited deterministic non-executing status transitions, and can build a Telegram-compatible envelope with `send_allowed=false`. It does not authorize follow-up execution, new delegations, new approvals, new action packets, model/tool calls, Memory Center mutation, Telegram sends, or external effects. 108P later added local-only draft planning; 109P and later remain unauthorized.
+
+## Stage 108P implementation transition
+
+The stage registry records the 108P closed committed state after implementation, validation, and closeout review. 109P and later remain unauthorized. No stage is next eligible after 108P without explicit maintainer direction.
+
+```json stage-108p-implementation-transition
+{
+  "implementation_status":"CLOSED_COMMITTED",
+  "stage":"108P",
+  "stage_name":"Follow-up Draft Planner v0",
+  "implementation_commit":"same_commit_as_108P_closeout",
+  "stage_109p_and_later_authorized":false,
+  "next_eligible_stage":null,
+  "telegram_display_authorized":false,
+  "followup_execution_authorized":false,
+  "async_delegation_dispatch_authorized":false,
+  "live_telegram_api_authorized":false,
+  "live_hermes_gateway_start_authorized":false,
+  "live_cron_authorized":false,
+  "connector_activation_authorized":false,
+  "provider_calls_authorized":false,
+  "model_calls_authorized":false,
+  "tool_calls_authorized":false,
+  "memory_center_mutation_authorized":false,
+  "callbacks_or_webhooks_authorized":false,
+  "new_approvals_authorized":false,
+  "new_action_packets_authorized":false,
+  "new_delegations_authorized":false,
+  "billing_or_token_reconciliation_authorized":false,
+  "credential_checks_authorized":false,
+  "database_migrations_authorized":false,
+  "ui_or_endpoints_authorized":false,
+  "external_effects_authorized":false,
+  "medical_behavior_authorized":false,
+  "automatic_caregiver_alerts_authorized":false
+}
+```
+
+108P implements a deterministic local follow-up draft planner for 107P pending follow-up intents. It preserves 100P/101P/102P/103P/104P/105P/106P/107P lineage internally, prepares local-only plan options and Telegram-compatible draft text with `send_allowed=false`, and keeps follow-up work in a user-reviewable drafted state only. It does not authorize Telegram display, follow-up execution, new delegations, new approvals, new action packets, model/tool calls, Memory Center mutation, Telegram sends, or external effects. 109P and later remain unauthorized.
 
 ## Sequencing and authorization rules
 
@@ -1180,7 +1234,8 @@ The stage registry records the 107P closed committed state after implementation,
   "stage_105P_is_closed_committed_after_telegram_async_result_delivery_closeout",
   "stage_106P_is_closed_committed_after_telegram_result_acknowledgement_binding_closeout",
   "stage_107P_is_closed_committed_after_followup_intent_review_queue_closeout",
-  "do_not_invent_108P_without_explicit_maintainer_direction_in_repo_evidence",
+  "stage_108P_is_closed_committed_after_followup_draft_planner_closeout",
+  "do_not_invent_109P_without_explicit_maintainer_direction_in_repo_evidence",
   "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
   "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence"
 ]

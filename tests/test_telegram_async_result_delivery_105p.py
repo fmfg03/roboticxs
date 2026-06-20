@@ -682,7 +682,12 @@ def test_105p_transport_failure_is_recorded_locally():
 def test_105p_106p_plus_remains_unauthorized():
     roadmap_text = ROADMAP_PATH.read_text()
 
-    assert "108P and later remain unauthorized" in roadmap_text or "108P+ remains unauthorized" in roadmap_text
+    assert (
+        "108P and later remain unauthorized" in roadmap_text
+        or "108P+ remains unauthorized" in roadmap_text
+        or "109P and later remain unauthorized" in roadmap_text
+        or "109P+ remains unauthorized" in roadmap_text
+    )
 
 
 def test_105p_module_exposes_only_local_delivery_surface():

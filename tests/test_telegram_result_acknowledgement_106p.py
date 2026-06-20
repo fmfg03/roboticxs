@@ -650,4 +650,9 @@ def test_106p_telegram_policy_boundaries_remain_intact():
 def test_106p_107p_plus_remains_unauthorized():
     roadmap_text = ROADMAP_PATH.read_text()
 
-    assert "108P and later remain unauthorized" in roadmap_text or "108P+ remains unauthorized" in roadmap_text
+    assert (
+        "108P and later remain unauthorized" in roadmap_text
+        or "108P+ remains unauthorized" in roadmap_text
+        or "109P and later remain unauthorized" in roadmap_text
+        or "109P+ remains unauthorized" in roadmap_text
+    )

@@ -17,18 +17,20 @@ from app.async_delegation_authority import (
 from app.async_delegation_inbox import AsyncDelegationCompletionInbox, AsyncDelegationInboxRecord, create_async_delegation_registry
 from app.async_result_surface import build_async_result_surface
 from app.cost_governor import BudgetPolicy, CostPreflightResult, CostTraceRecord, ModelRouteDecision, TaskCostRequest, TokenUsageEstimate, evaluate_cost_preflight
-from app.followup_intent_review import (
-    FOLLOWUP_INTENT_REVIEW_STAGE,
-    FollowUpIntentReviewQueue,
-    build_followup_intent_response_envelope,
-    create_followup_intent_from_acknowledgement,
+from app.followup_draft_planner import (
+    FOLLOWUP_DRAFT_PLANNER_STAGE,
+    FollowUpDraftPlanRegistry,
+    FollowUpDraftPlanResponseEnvelope,
+    create_followup_draft_plan,
+    build_followup_draft_plan_response_envelope,
 )
+from app.followup_intent_review import FOLLOWUP_INTENT_REVIEW_STAGE, FollowUpIntentReviewQueue, create_followup_intent_from_acknowledgement
 from app.telegram_async_result_delivery import TelegramAsyncResultDeliveryRecord, TelegramAsyncResultDeliveryRegistry, TelegramOwnerBinding, deliver_async_result_surface_to_telegram
 from app.telegram_result_acknowledgement import TelegramResultAcknowledgementRecord, TelegramResultAcknowledgementRegistry, TelegramResultCallbackPayload, bind_telegram_result_acknowledgement
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-FOLLOWUP_PATH = REPO_ROOT / "app/followup_intent_review.py"
+PLANNER_PATH = REPO_ROOT / "app/followup_draft_planner.py"
 ROADMAP_PATH = REPO_ROOT / "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md"
 
 
@@ -51,11 +53,11 @@ class FakeTelegramTransport:
 
 def delegation_request(**overrides) -> AsyncDelegationRequest:
     values = {
-        "delegation_id": "delegation-107p",
+        "delegation_id": "delegation-108p",
         "source_stage": "98P",
-        "owner_id": "owner-107p",
-        "robot_id": "robot-107p",
-        "actor_id": "actor-107p",
+        "owner_id": "owner-108p",
+        "robot_id": "robot-108p",
+        "actor_id": "actor-108p",
         "actor_role": "owner_admin",
         "task_class": "async_delegation",
         "requested_capability": "Preparar resumen del documento NDA",
@@ -67,7 +69,7 @@ def delegation_request(**overrides) -> AsyncDelegationRequest:
             "tool_authority_policy_92p",
         ),
         "required_memory_projection_request_id": None,
-        "required_routine_run_id": "routine-107p",
+        "required_routine_run_id": "routine-108p",
         "expires_at": "2026-06-20T00:00:00Z",
         "authority_expansion_requested": False,
         "live_dispatch_requested": False,
@@ -78,9 +80,9 @@ def delegation_request(**overrides) -> AsyncDelegationRequest:
 
 def task_cost_request(**overrides) -> TaskCostRequest:
     values = {
-        "request_id": "cost-request-107p",
-        "owner_id": "owner-107p",
-        "robot_id": "robot-107p",
+        "request_id": "cost-request-108p",
+        "owner_id": "owner-108p",
+        "robot_id": "robot-108p",
         "task_class": "async_delegation",
         "routing_mode": "balanced",
         "sensitivity": "ordinary",
@@ -134,7 +136,7 @@ def synthetic_allow_preflight(request: TaskCostRequest) -> CostPreflightResult:
     return CostPreflightResult(
         request_id=request.request_id,
         decision="allow",
-        budget_policy_id="policy-107p",
+        budget_policy_id="policy-108p",
         token_estimate=token_estimate,
         route_decision=route,
         estimated_cost_usd=0.03,
@@ -146,9 +148,9 @@ def synthetic_allow_preflight(request: TaskCostRequest) -> CostPreflightResult:
 
 def budget_policy(**overrides) -> BudgetPolicy:
     values = {
-        "policy_id": "policy-107p",
-        "owner_id": "owner-107p",
-        "robot_id": "robot-107p",
+        "policy_id": "policy-108p",
+        "owner_id": "owner-108p",
+        "robot_id": "robot-108p",
         "routing_mode_allowlist": ("economy", "balanced", "premium", "byok"),
         "default_routing_mode": "balanced",
         "max_estimated_cost_usd": 0.08,
@@ -292,9 +294,9 @@ def accepted_record(
 
 def owner_binding(**overrides) -> TelegramOwnerBinding:
     values = {
-        "owner_id": "owner-107p",
-        "robot_id": "robot-107p",
-        "telegram_chat_id": "telegram-chat-107p",
+        "owner_id": "owner-108p",
+        "robot_id": "robot-108p",
+        "telegram_chat_id": "telegram-chat-108p",
         "channel": "telegram",
         "enabled": True,
     }
@@ -340,320 +342,397 @@ def followup_acknowledgement(
 ) -> TelegramResultAcknowledgementRecord:
     if delivery is None:
         delivery = delivered_record(**(delivery_kwargs or {}))
-    record = bind_telegram_result_acknowledgement(
+    return bind_telegram_result_acknowledgement(
         delivery_registry=delivery_registry_with(delivery),
         callback_payload=callback_payload(delivery, **callback_overrides),
         registry=TelegramResultAcknowledgementRegistry(),
     )
-    return record
 
 
-def test_107p_request_followup_ack_creates_pending_review_intent():
-    record = create_followup_intent_from_acknowledgement(
-        acknowledgement_record=followup_acknowledgement(),
+def pending_followup_intent(**kwargs):
+    return create_followup_intent_from_acknowledgement(
+        acknowledgement_record=followup_acknowledgement(**kwargs),
         queue=FollowUpIntentReviewQueue(),
     )
 
-    assert record.status == "pending_review"
-    assert record.source_action == "request_followup_pending"
 
-
-def test_107p_acknowledge_ack_does_not_create_followup_intent():
-    record = create_followup_intent_from_acknowledgement(
-        acknowledgement_record=followup_acknowledgement(action="acknowledge"),
-        queue=FollowUpIntentReviewQueue(),
+def test_108p_pending_followup_intent_creates_draft_plan():
+    record = create_followup_draft_plan(
+        followup_intent_record=pending_followup_intent(),
+        registry=FollowUpDraftPlanRegistry(),
     )
 
-    assert record.status == "blocked"
-    assert record.rejection_reason == "rejected_non_followup_acknowledgement_action"
+    assert record.status == "drafted"
+    assert record.title == "Opciones de seguimiento preparadas localmente"
+    assert [option.option_kind for option in record.options] == [
+        "deeper_summary",
+        "extract_questions",
+        "human_review_checklist",
+        "cancel_followup",
+    ]
 
 
-def test_107p_dismiss_ack_does_not_create_followup_intent():
-    record = create_followup_intent_from_acknowledgement(
-        acknowledgement_record=followup_acknowledgement(action="dismiss"),
-        queue=FollowUpIntentReviewQueue(),
-    )
+def test_108p_blocked_intent_does_not_create_normal_plan():
+    intent = replace(pending_followup_intent(), status="blocked", rejection_reason="blocked_upstream")
 
-    assert record.status == "blocked"
-
-
-def test_107p_lineage_summary_ack_does_not_create_followup_intent():
-    record = create_followup_intent_from_acknowledgement(
-        acknowledgement_record=followup_acknowledgement(action="view_lineage_summary"),
-        queue=FollowUpIntentReviewQueue(),
+    record = create_followup_draft_plan(
+        followup_intent_record=intent,
+        registry=FollowUpDraftPlanRegistry(),
     )
 
     assert record.status == "blocked"
+    assert record.rejection_reason == "rejected_followup_intent_status_blocked"
+    assert record.options == ()
 
 
-def test_107p_unknown_acknowledgement_blocks_intent_creation():
-    blocked_ack = TelegramResultAcknowledgementRecord(
-        acknowledgement_id="ack-unknown-107p",
-        delivery_id="delivery-missing",
-        surface_id="surface-missing",
-        inbox_record_id="",
-        owner_id="owner-107p",
-        robot_id="robot-107p",
-        telegram_chat_id="telegram-chat-107p",
-        callback_action="request_followup_pending",
-        status="blocked",
-        response_text="No pude registrar esa interaccion en esta version.",
-        lineage_summary={"acknowledgement_stage": "106P", "callback_action": "request_followup_pending", "upstream_lineage": None},
-        rejection_reason="rejected_unknown_delivery_id",
-    )
+def test_108p_dismissed_intent_does_not_create_normal_plan():
+    intent = replace(pending_followup_intent(), status="dismissed")
 
-    record = create_followup_intent_from_acknowledgement(
-        acknowledgement_record=blocked_ack,
-        queue=FollowUpIntentReviewQueue(),
+    record = create_followup_draft_plan(
+        followup_intent_record=intent,
+        registry=FollowUpDraftPlanRegistry(),
     )
 
     assert record.status == "blocked"
-    assert record.rejection_reason == "rejected_unknown_delivery_id"
+    assert record.rejection_reason == "rejected_followup_intent_status_dismissed"
 
 
-def test_107p_blocked_acknowledgement_blocks_intent_creation():
-    acknowledgement = followup_acknowledgement()
-    blocked_ack = replace(acknowledgement, status="blocked", rejection_reason="rejected_owner_mismatch")
+def test_108p_resolved_no_action_intent_does_not_create_normal_plan():
+    intent = replace(pending_followup_intent(), status="resolved_no_action")
 
-    record = create_followup_intent_from_acknowledgement(
-        acknowledgement_record=blocked_ack,
-        queue=FollowUpIntentReviewQueue(),
+    record = create_followup_draft_plan(
+        followup_intent_record=intent,
+        registry=FollowUpDraftPlanRegistry(),
     )
 
     assert record.status == "blocked"
-    assert record.rejection_reason == "rejected_owner_mismatch"
+    assert record.rejection_reason == "rejected_followup_intent_status_resolved_no_action"
 
 
-def test_107p_duplicate_followup_intent_is_idempotent():
-    queue = FollowUpIntentReviewQueue()
-    acknowledgement = followup_acknowledgement()
+def test_108p_unknown_intent_blocks_plan_creation():
+    record = create_followup_draft_plan(
+        followup_intent_record={"followup_intent_id": "unknown"},
+        registry=FollowUpDraftPlanRegistry(),
+    )
 
-    first = create_followup_intent_from_acknowledgement(acknowledgement_record=acknowledgement, queue=queue)
-    duplicate = create_followup_intent_from_acknowledgement(acknowledgement_record=acknowledgement, queue=queue)
-
-    assert first.status == "pending_review"
-    assert duplicate.status == "duplicate"
-    assert duplicate.followup_intent_id == first.followup_intent_id
+    assert record.status == "blocked"
+    assert record.rejection_reason == "rejected_unknown_followup_intent_record"
 
 
-def test_107p_duplicate_does_not_create_multiple_active_intents():
-    queue = FollowUpIntentReviewQueue()
-    acknowledgement = followup_acknowledgement()
+def test_108p_missing_owner_blocks_plan_creation():
+    source = pending_followup_intent()
+    intent = replace(source, owner_id="", lineage_summary={**source.lineage_summary, "owner_id": ""})
 
-    create_followup_intent_from_acknowledgement(acknowledgement_record=acknowledgement, queue=queue)
-    create_followup_intent_from_acknowledgement(acknowledgement_record=acknowledgement, queue=queue)
-
-    assert len(queue.list_pending()) == 1
-    assert len(queue.records_by_id) == 1
-
-
-def test_107p_missing_owner_blocks_intent_creation():
-    source = followup_acknowledgement()
-    acknowledgement = replace(source, owner_id="", lineage_summary={**source.lineage_summary, "owner_id": ""})
-
-    record = create_followup_intent_from_acknowledgement(
-        acknowledgement_record=acknowledgement,
-        queue=FollowUpIntentReviewQueue(),
+    record = create_followup_draft_plan(
+        followup_intent_record=intent,
+        registry=FollowUpDraftPlanRegistry(),
     )
 
     assert record.status == "blocked"
     assert record.rejection_reason == "rejected_missing_owner_id"
 
 
-def test_107p_missing_robot_blocks_intent_creation():
-    source = followup_acknowledgement()
-    acknowledgement = replace(source, robot_id="", lineage_summary={**source.lineage_summary, "robot_id": ""})
+def test_108p_missing_robot_blocks_plan_creation():
+    source = pending_followup_intent()
+    intent = replace(source, robot_id="", lineage_summary={**source.lineage_summary, "robot_id": ""})
 
-    record = create_followup_intent_from_acknowledgement(
-        acknowledgement_record=acknowledgement,
-        queue=FollowUpIntentReviewQueue(),
+    record = create_followup_draft_plan(
+        followup_intent_record=intent,
+        registry=FollowUpDraftPlanRegistry(),
     )
 
     assert record.rejection_reason == "rejected_missing_robot_id"
 
 
-def test_107p_missing_chat_blocks_intent_creation():
-    source = followup_acknowledgement()
-    acknowledgement = replace(source, telegram_chat_id="", lineage_summary={**source.lineage_summary, "telegram_chat_id": ""})
+def test_108p_missing_chat_blocks_plan_creation():
+    source = pending_followup_intent()
+    intent = replace(source, telegram_chat_id="", lineage_summary={**source.lineage_summary, "telegram_chat_id": ""})
 
-    record = create_followup_intent_from_acknowledgement(
-        acknowledgement_record=acknowledgement,
-        queue=FollowUpIntentReviewQueue(),
+    record = create_followup_draft_plan(
+        followup_intent_record=intent,
+        registry=FollowUpDraftPlanRegistry(),
     )
 
     assert record.rejection_reason == "rejected_missing_telegram_chat_id"
 
 
-def test_107p_missing_delivery_surface_or_inbox_lineage_blocks_intent_creation():
-    source = followup_acknowledgement()
+def test_108p_missing_ack_delivery_surface_or_inbox_lineage_blocks_plan_creation():
+    source = pending_followup_intent()
+    missing_ack = replace(source, acknowledgement_id="", lineage_summary={**source.lineage_summary, "acknowledgement_id": ""})
     missing_delivery = replace(source, delivery_id="", lineage_summary={**source.lineage_summary, "delivery_id": ""})
     missing_surface = replace(source, surface_id="", lineage_summary={**source.lineage_summary, "surface_id": ""})
     missing_inbox = replace(source, inbox_record_id="", lineage_summary={**source.lineage_summary, "inbox_record_id": ""})
     missing_lineage = replace(source, lineage_summary={})
 
-    assert create_followup_intent_from_acknowledgement(
-        acknowledgement_record=missing_delivery,
-        queue=FollowUpIntentReviewQueue(),
+    assert create_followup_draft_plan(
+        followup_intent_record=missing_ack,
+        registry=FollowUpDraftPlanRegistry(),
+    ).rejection_reason == "rejected_missing_acknowledgement_id"
+    assert create_followup_draft_plan(
+        followup_intent_record=missing_delivery,
+        registry=FollowUpDraftPlanRegistry(),
     ).rejection_reason == "rejected_missing_delivery_id"
-    assert create_followup_intent_from_acknowledgement(
-        acknowledgement_record=missing_surface,
-        queue=FollowUpIntentReviewQueue(),
+    assert create_followup_draft_plan(
+        followup_intent_record=missing_surface,
+        registry=FollowUpDraftPlanRegistry(),
     ).rejection_reason == "rejected_missing_surface_id"
-    assert create_followup_intent_from_acknowledgement(
-        acknowledgement_record=missing_inbox,
-        queue=FollowUpIntentReviewQueue(),
+    assert create_followup_draft_plan(
+        followup_intent_record=missing_inbox,
+        registry=FollowUpDraftPlanRegistry(),
     ).rejection_reason == "rejected_missing_inbox_record_id"
-    assert create_followup_intent_from_acknowledgement(
-        acknowledgement_record=missing_lineage,
-        queue=FollowUpIntentReviewQueue(),
+    assert create_followup_draft_plan(
+        followup_intent_record=missing_lineage,
+        registry=FollowUpDraftPlanRegistry(),
     ).rejection_reason == "rejected_missing_lineage_summary"
 
 
-def test_107p_followup_intent_preserves_100p_101p_102p_103p_104p_105p_106p_lineage():
-    record = create_followup_intent_from_acknowledgement(
-        acknowledgement_record=followup_acknowledgement(delivery_kwargs={"require_approval": True}),
-        queue=FollowUpIntentReviewQueue(),
+def test_108p_duplicate_plan_creation_is_idempotent():
+    registry = FollowUpDraftPlanRegistry()
+    intent = pending_followup_intent()
+
+    first = create_followup_draft_plan(followup_intent_record=intent, registry=registry)
+    duplicate = create_followup_draft_plan(followup_intent_record=intent, registry=registry)
+
+    assert first.status == "drafted"
+    assert duplicate.status == "duplicate"
+    assert duplicate.draft_plan_id == first.draft_plan_id
+
+
+def test_108p_duplicate_does_not_create_multiple_active_plans():
+    registry = FollowUpDraftPlanRegistry()
+    intent = pending_followup_intent()
+
+    create_followup_draft_plan(followup_intent_record=intent, registry=registry)
+    create_followup_draft_plan(followup_intent_record=intent, registry=registry)
+
+    assert len(registry.list_drafted()) == 1
+    assert len(registry.plans_by_id) == 1
+
+
+def test_108p_draft_plan_preserves_100p_101p_102p_103p_104p_105p_106p_107p_lineage():
+    record = create_followup_draft_plan(
+        followup_intent_record=pending_followup_intent(delivery_kwargs={"require_approval": True}),
+        registry=FollowUpDraftPlanRegistry(),
     )
 
     lineage = record.lineage_summary
     upstream = lineage["upstream_lineage"]
+    surface_upstream = upstream["upstream_lineage"]
 
+    assert lineage["planner_stage"] == FOLLOWUP_DRAFT_PLANNER_STAGE
     assert lineage["followup_stage"] == FOLLOWUP_INTENT_REVIEW_STAGE
     assert lineage["acknowledgement_stage"] == "106P"
     assert lineage["delivery_stage"] == "105P"
     assert upstream["surface_stage"] == "104P"
-    assert upstream["upstream_lineage"]["inbox_stage"] == "103P"
-    assert upstream["upstream_lineage"]["cost_preflight_evidence"]["request_id"] == "cost-request-107p"
-    assert upstream["upstream_lineage"]["approval_evidence"]["action_packet_id"]
+    assert surface_upstream["inbox_stage"] == "103P"
+    assert surface_upstream["cost_preflight_evidence"]["request_id"] == "cost-request-108p"
+    assert surface_upstream["approval_evidence"]["action_packet_id"]
 
 
-def test_107p_review_summary_does_not_dump_raw_private_evidence():
-    record = create_followup_intent_from_acknowledgement(
-        acknowledgement_record=followup_acknowledgement(
-            delivery_kwargs={
-                "completion_payload_summary": {
-                    "summary": "Resumen seguro",
-                    "original_request_evidence": {"secret": "value"},
-                }
+def test_108p_plan_summary_does_not_dump_raw_private_evidence():
+    intent = pending_followup_intent(
+        delivery_kwargs={
+            "completion_payload_summary": {
+                "summary": "Resumen seguro",
+                "original_request_evidence": {"secret": "value"},
             }
-        ),
-        queue=FollowUpIntentReviewQueue(),
+        }
     )
 
-    assert "original_request_evidence" not in record.review_summary
-    assert "request_payload" not in record.review_summary
-    assert "approval_evidence" not in record.review_summary
-
-
-def test_107p_list_pending_is_deterministic():
-    queue = FollowUpIntentReviewQueue()
-    a = create_followup_intent_from_acknowledgement(
-        acknowledgement_record=followup_acknowledgement(),
-        queue=queue,
-    )
-    b = create_followup_intent_from_acknowledgement(
-        acknowledgement_record=followup_acknowledgement(delivery=delivered_record(completion_payload_summary={"summary": "Otro resultado"})),
-        queue=queue,
+    record = create_followup_draft_plan(
+        followup_intent_record=intent,
+        registry=FollowUpDraftPlanRegistry(),
     )
 
-    pending = queue.list_pending()
+    assert "original_request_evidence" not in record.summary
+    assert "request_payload" not in record.summary
+    assert "approval_evidence" not in record.summary
 
-    assert tuple(record.followup_intent_id for record in pending) == tuple(sorted([a.followup_intent_id, b.followup_intent_id]))
 
-
-def test_107p_allowed_status_transition_to_dismissed():
-    queue = FollowUpIntentReviewQueue()
-    record = create_followup_intent_from_acknowledgement(
-        acknowledgement_record=followup_acknowledgement(),
-        queue=queue,
+def test_108p_options_are_deterministic():
+    registry = FollowUpDraftPlanRegistry()
+    first = create_followup_draft_plan(
+        followup_intent_record=pending_followup_intent(),
+        registry=registry,
+    )
+    second = create_followup_draft_plan(
+        followup_intent_record=pending_followup_intent(delivery=delivered_record(completion_payload_summary={"summary": "Otro resultado"})),
+        registry=FollowUpDraftPlanRegistry(),
     )
 
-    updated = queue.update_status(followup_intent_id=record.followup_intent_id, status="dismissed")
-
-    assert updated.status == "dismissed"
-
-
-def test_107p_allowed_status_transition_to_resolved_no_action():
-    queue = FollowUpIntentReviewQueue()
-    record = create_followup_intent_from_acknowledgement(
-        acknowledgement_record=followup_acknowledgement(),
-        queue=queue,
+    assert tuple(option.option_kind for option in first.options) == (
+        "deeper_summary",
+        "extract_questions",
+        "human_review_checklist",
+        "cancel_followup",
+    )
+    assert tuple(option.option_kind for option in second.options) == (
+        "deeper_summary",
+        "extract_questions",
+        "human_review_checklist",
+        "cancel_followup",
     )
 
-    updated = queue.update_status(followup_intent_id=record.followup_intent_id, status="resolved_no_action")
 
-    assert updated.status == "resolved_no_action"
-
-
-def test_107p_blocks_execution_expanding_status_transition():
-    queue = FollowUpIntentReviewQueue()
-    record = create_followup_intent_from_acknowledgement(
-        acknowledgement_record=followup_acknowledgement(),
-        queue=queue,
+def test_108p_options_are_local_only_and_create_no_authority():
+    record = create_followup_draft_plan(
+        followup_intent_record=pending_followup_intent(),
+        registry=FollowUpDraftPlanRegistry(),
     )
 
-    with pytest.raises(ValueError):
-        queue.update_status(followup_intent_id=record.followup_intent_id, status="delegated")
+    assert all(option.local_only is True for option in record.options)
+    assert all(option.creates_authority is False for option in record.options)
 
 
-def test_107p_response_envelope_is_local_and_send_disallowed():
-    record = create_followup_intent_from_acknowledgement(
-        acknowledgement_record=followup_acknowledgement(),
-        queue=FollowUpIntentReviewQueue(),
+def test_108p_response_envelope_is_local_and_send_disallowed():
+    record = create_followup_draft_plan(
+        followup_intent_record=pending_followup_intent(),
+        registry=FollowUpDraftPlanRegistry(),
     )
 
-    envelope = build_followup_intent_response_envelope(record)
+    envelope = build_followup_draft_plan_response_envelope(record)
 
+    assert isinstance(envelope, FollowUpDraftPlanResponseEnvelope)
     assert envelope.channel == "telegram"
     assert envelope.send_allowed is False
-    assert "Todavía no ejecuté nada" in envelope.text
+    assert "Todavia no ejecute nada" in envelope.text
 
 
-def test_107p_does_not_create_async_delegation():
-    text = FOLLOWUP_PATH.read_text()
+def test_108p_failed_result_uses_failure_safe_options_only():
+    intent = pending_followup_intent()
+    delivery_lineage = intent.lineage_summary["upstream_lineage"]
+    surface_lineage = delivery_lineage["upstream_lineage"]
+    failed_surface_lineage = {
+        **surface_lineage,
+        "completion_status": "failed",
+        "completion_payload_summary": {"summary": "No se completo el resultado."},
+    }
+    failed_intent = replace(
+        intent,
+        lineage_summary={**intent.lineage_summary, "upstream_lineage": {**delivery_lineage, "upstream_lineage": failed_surface_lineage}},
+    )
+
+    record = create_followup_draft_plan(
+        followup_intent_record=failed_intent,
+        registry=FollowUpDraftPlanRegistry(),
+    )
+
+    assert [option.option_kind for option in record.options] == [
+        "review_failure_reason",
+        "human_review_checklist",
+        "cancel_followup",
+    ]
+
+
+def test_108p_prior_artifact_hint_adds_compare_option():
+    intent = pending_followup_intent()
+    delivery_lineage = intent.lineage_summary["upstream_lineage"]
+    surface_lineage = delivery_lineage["upstream_lineage"]
+    hinted_surface_lineage = {
+        **surface_lineage,
+        "completion_status": "completed",
+        "completion_payload_summary": {"prior_artifact_available": True},
+    }
+    hinted_intent = replace(
+        intent,
+        lineage_summary={**intent.lineage_summary, "upstream_lineage": {**delivery_lineage, "upstream_lineage": hinted_surface_lineage}},
+    )
+
+    record = create_followup_draft_plan(
+        followup_intent_record=hinted_intent,
+        registry=FollowUpDraftPlanRegistry(),
+    )
+
+    assert [option.option_kind for option in record.options] == [
+        "deeper_summary",
+        "extract_questions",
+        "human_review_checklist",
+        "compare_prior_version",
+        "cancel_followup",
+    ]
+
+
+def test_108p_owner_mismatch_blocks_plan_creation():
+    source = pending_followup_intent()
+    intent = replace(source, lineage_summary={**source.lineage_summary, "owner_id": "other-owner"})
+
+    record = create_followup_draft_plan(
+        followup_intent_record=intent,
+        registry=FollowUpDraftPlanRegistry(),
+    )
+
+    assert record.status == "blocked"
+    assert record.rejection_reason == "rejected_owner_mismatch"
+
+
+def test_108p_robot_mismatch_blocks_plan_creation():
+    source = pending_followup_intent()
+    intent = replace(source, lineage_summary={**source.lineage_summary, "robot_id": "other-robot"})
+
+    record = create_followup_draft_plan(
+        followup_intent_record=intent,
+        registry=FollowUpDraftPlanRegistry(),
+    )
+
+    assert record.rejection_reason == "rejected_robot_mismatch"
+
+
+def test_108p_chat_mismatch_blocks_plan_creation():
+    source = pending_followup_intent()
+    intent = replace(source, lineage_summary={**source.lineage_summary, "telegram_chat_id": "other-chat"})
+
+    record = create_followup_draft_plan(
+        followup_intent_record=intent,
+        registry=FollowUpDraftPlanRegistry(),
+    )
+
+    assert record.rejection_reason == "rejected_chat_mismatch"
+
+
+def test_108p_does_not_create_async_delegation():
+    text = PLANNER_PATH.read_text()
 
     assert "register_async_delegation_handle" not in text
     assert "delegate_task" not in text
 
 
-def test_107p_does_not_create_action_packet_or_approval():
-    text = FOLLOWUP_PATH.read_text()
+def test_108p_does_not_create_action_packet_or_approval():
+    text = PLANNER_PATH.read_text()
 
-    assert "create_action_packet" not in text
-    assert "submit_action_packet_for_approval" not in text
-    assert "approval" not in text
+    for forbidden in [
+        "create_action_packet",
+        "submit_action_packet_for_approval",
+        "apply_action_packet_decision",
+        "bind_async_delegation_approval",
+    ]:
+        assert forbidden not in text
 
 
-def test_107p_does_not_call_model_or_tool():
-    text = FOLLOWUP_PATH.read_text()
+def test_108p_does_not_call_model_or_tool():
+    text = PLANNER_PATH.read_text()
 
     for forbidden in ["openai", "anthropic", "tool_call", "run_tool", "httpx", "requests"]:
         assert forbidden not in text
 
 
-def test_107p_does_not_mutate_memory():
-    text = FOLLOWUP_PATH.read_text()
+def test_108p_does_not_mutate_memory():
+    text = PLANNER_PATH.read_text()
 
     assert "memory_center" not in text
     assert "writeback" not in text
     assert "memory_write" not in text
 
 
-def test_107p_no_live_telegram_api_call_is_used():
-    text = FOLLOWUP_PATH.read_text()
+def test_108p_no_live_telegram_api_call_is_used():
+    text = PLANNER_PATH.read_text()
 
     assert "telegram.Bot" not in text
     assert ".send_message" not in text
     assert "send_allowed=True" not in text
 
 
-def test_107p_108p_plus_remains_unauthorized():
+def test_108p_109p_plus_remains_unauthorized():
     text = ROADMAP_PATH.read_text()
 
-    assert (
-        "108P and later remain unauthorized" in text
-        or "108P+ remains unauthorized" in text
-        or "109P and later remain unauthorized" in text
-        or "109P+ remains unauthorized" in text
-    )
-    assert "108P+" not in FOLLOWUP_PATH.read_text()
+    assert "108P and later remain unauthorized" in text or "109P and later remain unauthorized" in text or "109P+ remains unauthorized" in text
+    assert "109P+" not in PLANNER_PATH.read_text()
