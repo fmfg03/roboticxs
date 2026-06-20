@@ -84,7 +84,7 @@ def test_129p_builds_runtime_online_status_for_valid_local_config():
     assert status.runtime_mode == "local-dev"
     assert status.robot_id == DEFAULT_ROBOT_ID
     assert status.owner_id == DEFAULT_OWNER_ID
-    assert status.roadmap_closed_through == "128P"
+    assert status.roadmap_closed_through == "130P"
     assert status.next_stage_authorized is False
     assert status.next_stage == NEXT_STAGE
     assert status.telegram_enabled is False
@@ -97,6 +97,7 @@ def test_129p_builds_runtime_online_status_for_valid_local_config():
     assert "meeting_brief_demo_flow" in status.available_local_features
     assert "document_review_demo_flow" in status.available_local_features
     assert "demo_result_delivery_surface" in status.available_local_features
+    assert "runnable_telegram_robot_mvp" in status.available_local_features
 
 
 def test_129p_reports_missing_optional_module_as_unavailable_not_crash():
@@ -119,24 +120,25 @@ def test_129p_text_report_contains_required_runtime_lines():
     assert f"Robot: {DEFAULT_ROBOT_ID}" in report.rendered_text
     assert f"Owner: {DEFAULT_OWNER_ID}" in report.rendered_text
     assert "Mode: local-dev" in report.rendered_text
-    assert "Roadmap: 95P-128P CLOSED_COMMITTED" in report.rendered_text
+    assert "Roadmap: 95P-130P CLOSED_COMMITTED" in report.rendered_text
     assert "Telegram: disabled" in report.rendered_text
     assert "Connectors: disabled" in report.rendered_text
     assert "LLM/model calls: disabled" in report.rendered_text
     assert "Tools: disabled" in report.rendered_text
     assert "Workers: disabled" in report.rendered_text
     assert "Memory Center: local/read-only bootstrap check" in report.rendered_text
+    assert "Telegram Robot MVP: available if env is configured" in report.rendered_text
     assert "Daily Brief: available if local records exist" in report.rendered_text
     assert "Meeting Brief Demo: available if local records exist" in report.rendered_text
     assert "Document Review Demo: available if local records exist" in report.rendered_text
-    assert "Next authorized stage: 130P Runnable Telegram Robot MVP is unauthorized." in report.rendered_text
+    assert "Next authorized stage: 131P+ remains unauthorized." in report.rendered_text
 
 
 def test_129p_json_report_is_renderable():
     report = run_hermes_runtime_bootstrap(output_format="json")
 
     assert '"runtime_online": true' in report.rendered_text
-    assert '"roadmap_closed_through": "128P"' in report.rendered_text
+    assert '"roadmap_closed_through": "130P"' in report.rendered_text
 
 
 def test_129p_main_prints_report_and_returns_zero(capsys: pytest.CaptureFixture[str]):
@@ -182,4 +184,5 @@ def test_129p_roadmap_registers_runtime_bootstrap_stage_and_130p_plus_block():
     roadmap = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"129P","stage_name":"Hermes Runtime Bootstrap v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "130P and later remain unauthorized" in roadmap
+    assert '"stage_id":"130P","stage_name":"Runnable Telegram Robot MVP v0","status":"CLOSED_COMMITTED"' in roadmap
+    assert "131P and later remain unauthorized" in roadmap

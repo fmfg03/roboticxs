@@ -270,7 +270,8 @@ def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
     assert '"stage_id":"127P","stage_name":"Demo Result Delivery Surface v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"stage_id":"128P","stage_name":"Document Review Demo Flow v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"stage_id":"129P","stage_name":"Hermes Runtime Bootstrap v0","status":"CLOSED_COMMITTED"' in roadmap_text
-    assert "130P and later remain unauthorized" in roadmap_text
+    assert '"stage_id":"130P","stage_name":"Runnable Telegram Robot MVP v0","status":"CLOSED_COMMITTED"' in roadmap_text
+    assert "131P and later remain unauthorized" in roadmap_text
     assert '"status":"NEXT_ELIGIBLE"' not in roadmap_text
 
 

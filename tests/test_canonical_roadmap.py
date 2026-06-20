@@ -105,7 +105,8 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_127P_is_closed_committed_after_demo_result_delivery_surface_closeout",
     "stage_128P_is_closed_committed_after_document_review_demo_flow_closeout",
     "stage_129P_is_closed_committed_after_hermes_runtime_bootstrap_closeout",
-    "do_not_invent_130P_without_explicit_maintainer_direction_in_repo_evidence",
+    "stage_130P_is_closed_committed_after_runnable_telegram_robot_mvp_closeout",
+    "do_not_invent_131P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -175,6 +176,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "127P": ("CLOSED_COMMITTED", "Demo Result Delivery Surface v0"),
     "128P": ("CLOSED_COMMITTED", "Document Review Demo Flow v0"),
     "129P": ("CLOSED_COMMITTED", "Hermes Runtime Bootstrap v0"),
+    "130P": ("CLOSED_COMMITTED", "Runnable Telegram Robot MVP v0"),
 }
 
 
@@ -197,7 +199,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_129P",
+        "local_evidence_scope": "stages_61P_through_130P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -209,7 +211,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 130)
+        f"{number}P" for number in range(67, 131)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -2503,7 +2505,7 @@ def test_123p_is_controlled_proactive_execution_skeleton_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic proactive execution skeleton baseline. 123P is closed committed after implementation, validation, and closeout review. It executes governed proactive-origin delegations through deterministic local skeleton behavior only and produces local completion or failure event candidates only. 124P later added deterministic read-only daily brief snapshots only, 125P later added deterministic read-only skill pack activation surfaces only, 126P later added a deterministic local first-demo composition flow only, 127P later added a deterministic local owner-facing demo result surface only, 128P later added a deterministic local document-review demo flow only, and 129P later added a runnable local Hermes runtime bootstrap shell only. Do not infer inbox routing, result surfaces beyond the closed local demo surfaces, Telegram delivery, Memory Center mutation, live connector reads, model/tool calls, worker dispatch, external effects, 130P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic proactive execution skeleton baseline. 123P is closed committed after implementation, validation, and closeout review. It executes governed proactive-origin delegations through deterministic local skeleton behavior only and produces local completion or failure event candidates only. 124P later added deterministic read-only daily brief snapshots only, 125P later added deterministic read-only skill pack activation surfaces only, 126P later added a deterministic local first-demo composition flow only, 127P later added a deterministic local owner-facing demo result surface only, 128P later added a deterministic local document-review demo flow only, 129P later added a runnable local Hermes runtime bootstrap shell only, and 130P later added a runnable owner-gated Telegram robot with deterministic replies only. Do not infer inbox routing, result surfaces beyond the closed local demo surfaces, Telegram delivery beyond the closed command replies, Memory Center mutation, live connector reads, model/tool calls, worker dispatch, external effects, 131P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["123P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2529,7 +2531,7 @@ def test_124p_is_what_did_i_miss_daily_brief_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic read-only daily brief baseline. 124P is closed committed after implementation, validation, and closeout review. It aggregates existing 103P through 123P local records into read-only daily brief snapshots and renderable local text only. 125P later added deterministic read-only skill pack classification surfaces only, 126P later added a deterministic local first-demo composition flow only, 127P later added a deterministic local owner-facing demo result surface only, 128P later added a deterministic local document-review demo flow only, and 129P later added a runnable local Hermes runtime bootstrap shell only. Do not infer Telegram delivery, callback binding, follow-up intent creation, async delegations, execution, Memory Center mutation, model/tool calls, live connector reads, external writes, worker dispatch, 130P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic read-only daily brief baseline. 124P is closed committed after implementation, validation, and closeout review. It aggregates existing 103P through 123P local records into read-only daily brief snapshots and renderable local text only. 125P later added deterministic read-only skill pack classification surfaces only, 126P later added a deterministic local first-demo composition flow only, 127P later added a deterministic local owner-facing demo result surface only, 128P later added a deterministic local document-review demo flow only, 129P later added a runnable local Hermes runtime bootstrap shell only, and 130P later added a runnable owner-gated Telegram robot with deterministic replies only. Do not infer Telegram delivery beyond the closed command replies, callback binding, follow-up intent creation, async delegations, execution, Memory Center mutation, model/tool calls, live connector reads, external writes, worker dispatch, 131P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["124P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2555,7 +2557,7 @@ def test_125p_is_skill_pack_activation_surface_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic read-only skill pack activation baseline. 125P is closed committed after implementation, validation, and closeout review. It classifies existing 103P through 124P local records into skill pack surfaces and renderable local text only. 126P later added a deterministic local first-demo composition flow only, 127P later added a deterministic local owner-facing demo result surface only, 128P later added a deterministic local document-review demo flow only, and 129P later added a runnable local Hermes runtime bootstrap shell only. Do not infer billing, entitlement enforcement, package activation, upgrade prompts, Telegram delivery, callback binding, follow-up intent creation, async delegations, execution, Memory Center mutation, model/tool calls, live connector reads, external writes, worker dispatch, 130P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic read-only skill pack activation baseline. 125P is closed committed after implementation, validation, and closeout review. It classifies existing 103P through 124P local records into skill pack surfaces and renderable local text only. 126P later added a deterministic local first-demo composition flow only, 127P later added a deterministic local owner-facing demo result surface only, 128P later added a deterministic local document-review demo flow only, 129P later added a runnable local Hermes runtime bootstrap shell only, and 130P later added a runnable owner-gated Telegram robot with deterministic replies only. Do not infer billing, entitlement enforcement, package activation, upgrade prompts, Telegram delivery beyond the closed command replies, callback binding, follow-up intent creation, async delegations, execution, Memory Center mutation, model/tool calls, live connector reads, external writes, worker dispatch, 131P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["125P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2581,7 +2583,7 @@ def test_126p_is_first_demo_flow_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic first product-demo baseline. 126P is closed committed after implementation, validation, and closeout review. It composes existing 118P through 125P local primitives into a deterministic local meeting-brief demo flow, preserves normalized_intent_kind=prepare_meeting_brief as product lineage, reuses the existing governed human_review_checklist / FOLLOWUP_HUMAN_REVIEW_CHECKLIST task class for deterministic local execution, and stops at local demo artifacts, daily brief inclusion, and skill pack inclusion only. 127P later added a deterministic local owner-facing demo result surface only. 128P later added a deterministic local document-review demo flow only. 129P later added a runnable local Hermes runtime bootstrap shell only. Do not infer new task classes, new authority paths, live connector reads, Telegram delivery, model/tool calls, worker dispatch, Memory Center mutation, billing, entitlement enforcement, external writes, 130P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic first product-demo baseline. 126P is closed committed after implementation, validation, and closeout review. It composes existing 118P through 125P local primitives into a deterministic local meeting-brief demo flow, preserves normalized_intent_kind=prepare_meeting_brief as product lineage, reuses the existing governed human_review_checklist / FOLLOWUP_HUMAN_REVIEW_CHECKLIST task class for deterministic local execution, and stops at local demo artifacts, daily brief inclusion, and skill pack inclusion only. 127P later added a deterministic local owner-facing demo result surface only. 128P later added a deterministic local document-review demo flow only. 129P later added a runnable local Hermes runtime bootstrap shell only. 130P later added a runnable owner-gated Telegram robot with deterministic replies only. Do not infer new task classes, new authority paths, live connector reads, Telegram delivery beyond the closed command replies, model/tool calls, worker dispatch, Memory Center mutation, billing, entitlement enforcement, external writes, 131P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["126P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2607,7 +2609,7 @@ def test_127p_is_demo_result_delivery_surface_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the deterministic local owner-facing demo result surface baseline. 127P is closed committed after implementation, validation, and closeout review. It consumes valid 126P meeting-brief demo flow and artifact records, preserves 118P through 126P lineage, renders only a deterministic local owner-facing result surface, and does not deliver through live Telegram, bind callbacks, create approvals or follow-up intents, delegate, execute, mutate Memory Center, call models/tools, read live connectors, dispatch workers, enforce billing or entitlements, or write external systems. 128P later added a deterministic local document-review demo flow only. 129P later added a runnable local Hermes runtime bootstrap shell only. Do not infer 130P+, NEXT_ELIGIBLE, or any new authority path from this status.",
+        "next_action": "Use as the deterministic local owner-facing demo result surface baseline. 127P is closed committed after implementation, validation, and closeout review. It consumes valid 126P meeting-brief demo flow and artifact records, preserves 118P through 126P lineage, renders only a deterministic local owner-facing result surface, and does not deliver through live Telegram, bind callbacks, create approvals or follow-up intents, delegate, execute, mutate Memory Center, call models/tools, read live connectors, dispatch workers, enforce billing or entitlements, or write external systems. 128P later added a deterministic local document-review demo flow only. 129P later added a runnable local Hermes runtime bootstrap shell only. 130P later added a runnable owner-gated Telegram robot with deterministic replies only. Do not infer 131P+, NEXT_ELIGIBLE, or any new authority path from this status.",
     }
     for path in stages_by_id["127P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2633,7 +2635,7 @@ def test_128p_is_document_review_demo_flow_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic document-review product-demo baseline. 128P is closed committed after implementation, validation, and closeout review. It composes existing 118P through 127P local primitives into a deterministic local document-review demo flow, preserves normalized_intent_kind=review_document as product lineage, reuses the existing governed human_review_checklist / FOLLOWUP_HUMAN_REVIEW_CHECKLIST task class for deterministic local execution, classifies the work under documents_pack, and stops at local demo artifacts and local owner-facing presentation only. 129P later added a runnable local Hermes runtime bootstrap shell only. Do not infer live document reads, OCR, legal advice, signature creation, new task classes, new authority paths, Telegram delivery, model/tool calls, worker dispatch, Memory Center mutation, billing, entitlement enforcement, external writes, 130P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic document-review product-demo baseline. 128P is closed committed after implementation, validation, and closeout review. It composes existing 118P through 127P local primitives into a deterministic local document-review demo flow, preserves normalized_intent_kind=review_document as product lineage, reuses the existing governed human_review_checklist / FOLLOWUP_HUMAN_REVIEW_CHECKLIST task class for deterministic local execution, classifies the work under documents_pack, and stops at local demo artifacts and local owner-facing presentation only. 129P later added a runnable local Hermes runtime bootstrap shell only. 130P later added a runnable owner-gated Telegram robot with deterministic replies only. Do not infer live document reads, OCR, legal advice, signature creation, new task classes, new authority paths, Telegram delivery beyond the closed command replies, model/tool calls, worker dispatch, Memory Center mutation, billing, entitlement enforcement, external writes, 131P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["128P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2659,9 +2661,35 @@ def test_129p_is_hermes_runtime_bootstrap_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the runnable local Hermes runtime bootstrap baseline. 129P is closed committed after implementation, validation, and closeout review. It loads deterministic local config, validates robot and owner identity, reports runtime health, local feature availability, and disabled live integrations, and stops before Telegram startup, connector reads, model/tool calls, worker dispatch, Memory Center mutation, billing, entitlement enforcement, or external writes. Do not infer 130P+, NEXT_ELIGIBLE, live runtime integrations, or any new execution authority from this status.",
+        "next_action": "Use as the runnable local Hermes runtime bootstrap baseline. 129P is closed committed after implementation, validation, and closeout review. It loads deterministic local config, validates robot and owner identity, reports runtime health, local feature availability, and disabled live integrations, and stops before Telegram startup, connector reads, model/tool calls, worker dispatch, Memory Center mutation, billing, entitlement enforcement, or external writes. 130P later added a runnable owner-gated Telegram robot with deterministic /start, /help, and /status replies only. Do not infer 131P+, NEXT_ELIGIBLE, live runtime integrations beyond the closed Telegram command surface, or any new execution authority from this status.",
     }
     for path in stages_by_id["129P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_130p_is_runnable_telegram_robot_mvp_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["130P"] == {
+        "stage_id": "130P",
+        "stage_name": "Runnable Telegram Robot MVP v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_130P_closeout",
+            "commit_message": "feat: add runnable telegram robot mvp",
+            "paths": [
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the runnable owner-gated Telegram robot baseline. 130P is closed committed after implementation, validation, and closeout review. It runs a live/dev Telegram bot with deterministic /start, /help, and /status replies, owner gating by Telegram user id, bounded polling helpers, and Telegram sendMessage replies only. Do not infer /miss, /brief, connectors, model/tool calls, workers, Memory Center mutation, async delegation, billing, entitlement enforcement, external writes beyond Telegram replies, 131P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["130P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 
@@ -3850,6 +3878,43 @@ def test_125p_transition_records_later_126p_through_129p_closeout_and_keeps_130p
     assert stages_by_id["127P"]["status"] == "CLOSED_COMMITTED"
     assert stages_by_id["128P"]["status"] == "CLOSED_COMMITTED"
     assert stages_by_id["129P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_129p_transition_records_130p_closeout_and_keeps_131p_plus_blocked():
+    transition = load_json_block("stage-129p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "129P",
+        "stage_name": "Hermes Runtime Bootstrap v0",
+        "implementation_commit": "same_commit_as_129P_closeout",
+        "stage_130p_authorized_later": True,
+        "stage_130p_current_status": "CLOSED_COMMITTED",
+        "stage_131p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "runtime_bootstrap_authorized": True,
+        "manual_local_run_authorized": True,
+        "deterministic_local_config_required": True,
+        "robot_identity_validation_required": True,
+        "owner_identity_validation_required": True,
+        "module_availability_check_authorized": True,
+        "runtime_health_report_authorized": True,
+        "telegram_startup_authorized": False,
+        "live_connector_read_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "worker_dispatch_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "billing_authorized": False,
+        "entitlement_enforcement_authorized": False,
+        "external_write_authorized": False,
+        "external_effects_authorized": False,
+    }
+    assert stages_by_id["129P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["130P"]["status"] == "CLOSED_COMMITTED"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 

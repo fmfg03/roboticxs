@@ -9,9 +9,9 @@ import sys
 
 
 HERMES_RUNTIME_BOOTSTRAP_STAGE = "129P"
-ROADMAP_CLOSED_THROUGH = "128P"
-NEXT_STAGE = "130P"
-NEXT_STAGE_LABEL = "130P Runnable Telegram Robot MVP is unauthorized."
+ROADMAP_CLOSED_THROUGH = "130P"
+NEXT_STAGE = "131P"
+NEXT_STAGE_LABEL = "131P+ remains unauthorized."
 DEFAULT_RUNTIME_MODE = "local-dev"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
@@ -19,6 +19,7 @@ DEFAULT_OWNER_DISPLAY_NAME = "Local Owner"
 DEFAULT_LOCAL_STATE_DIR = ".roboticxs_state"
 DEFAULT_GENERATED_AT = "2026-06-21T00:00:00Z"
 FEATURE_MODULES = (
+    ("runnable_telegram_robot_mvp", "app.runnable_telegram_robot_mvp", False),
     ("daily_brief_what_did_i_miss", "app.daily_brief_what_did_i_miss", False),
     ("meeting_brief_demo_flow", "app.meeting_brief_demo_flow", False),
     ("document_review_demo_flow", "app.document_review_demo_flow", False),
@@ -229,7 +230,7 @@ def render_hermes_runtime_bootstrap_report(
             f"Owner: {status.owner_id}",
             f"Owner Display Name: {status.owner_display_name}",
             f"Mode: {status.runtime_mode}",
-            f"Roadmap: 95P-128P CLOSED_COMMITTED",
+            f"Roadmap: 95P-130P CLOSED_COMMITTED",
             f"Roadmap Closed Through: {status.roadmap_closed_through}",
             f"Telegram: {'enabled' if status.telegram_enabled else 'disabled'}",
             f"Connectors: {'enabled' if status.connectors_enabled else 'disabled'}",
@@ -255,6 +256,7 @@ def render_hermes_runtime_bootstrap_report(
         lines.extend(
             [
                 "Daily Brief: available if local records exist",
+                "Telegram Robot MVP: available if env is configured",
                 "Meeting Brief Demo: available if local records exist",
                 "Document Review Demo: available if local records exist",
                 f"Next authorized stage: {NEXT_STAGE_LABEL}",
