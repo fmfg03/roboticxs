@@ -97,7 +97,8 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_119P_is_closed_committed_after_proactive_opportunity_detection_closeout",
     "stage_120P_is_closed_committed_after_proactive_telegram_suggestion_closeout",
     "stage_121P_is_closed_committed_after_proactive_suggestion_adapter_closeout",
-    "do_not_invent_122P_without_explicit_maintainer_direction_in_repo_evidence",
+    "stage_122P_is_closed_committed_after_proactive_delegation_adapter_closeout",
+    "do_not_invent_123P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -159,6 +160,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "119P": ("CLOSED_COMMITTED", "Proactive Opportunity Detection v0"),
     "120P": ("CLOSED_COMMITTED", "Proactive Telegram Suggestion v0"),
     "121P": ("CLOSED_COMMITTED", "Proactive Suggestion Adapter to Follow-up Loop v0"),
+    "122P": ("CLOSED_COMMITTED", "Proactive Delegation Adapter v0"),
 }
 
 
@@ -181,7 +183,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_120P",
+        "local_evidence_scope": "stages_61P_through_122P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -193,7 +195,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 122)
+        f"{number}P" for number in range(67, 123)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -2253,7 +2255,7 @@ def test_114p_is_followup_result_acknowledgement_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic follow-up result acknowledgement baseline. 114P is closed committed after implementation, validation, and closeout review. 115P later added local memory proposal candidates only, 116P later added local Telegram-facing approval surfaces and approval binding only, 117P later added local Memory Center writeback only, 118P later added local context scan candidate source records only, 119P later added local proactive opportunity candidate detection only, 120P later added local proactive Telegram suggestion surfaces and local delivery only, and 121P later added local adaptation into a 107P-compatible follow-up intent-review record only. Do not infer new follow-up execution, new draft options, selections, delegations, executions, routes, live connector reads, model/tool calls, external effects, 122P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic follow-up result acknowledgement baseline. 114P is closed committed after implementation, validation, and closeout review. 115P later added local memory proposal candidates only, 116P later added local Telegram-facing approval surfaces and approval binding only, 117P later added local Memory Center writeback only, 118P later added local context scan candidate source records only, 119P later added local proactive opportunity candidate detection only, 120P later added local proactive Telegram suggestion surfaces and local delivery only, and 121P later added local adaptation into a 107P-compatible follow-up intent-review record only. Do not infer new follow-up execution, new draft options, selections, delegations, executions, routes, live connector reads, model/tool calls, external effects, 123P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["114P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2279,7 +2281,7 @@ def test_115p_is_followup_memory_proposal_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic follow-up memory proposal candidate baseline. 115P is closed committed after implementation, validation, and closeout review. 116P later added Telegram-facing approval surfaces and local approval binding only, 117P later added local Memory Center writeback only, 118P later added local context scan candidate source records only, 119P later added local proactive opportunity candidate detection only, 120P later added local proactive Telegram suggestion surfaces and local delivery only, and 121P later added local adaptation into a 107P-compatible follow-up intent-review record only. Do not infer new action packets, new delegations, new follow-up execution, live connector reads, model/tool calls, live Telegram APIs, external effects, 122P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic follow-up memory proposal candidate baseline. 115P is closed committed after implementation, validation, and closeout review. 116P later added Telegram-facing approval surfaces and local approval binding only, 117P later added local Memory Center writeback only, 118P later added local context scan candidate source records only, 119P later added local proactive opportunity candidate detection only, 120P later added local proactive Telegram suggestion surfaces and local delivery only, and 121P later added local adaptation into a 107P-compatible follow-up intent-review record only. Do not infer new action packets, new delegations, new follow-up execution, live connector reads, model/tool calls, live Telegram APIs, external effects, 123P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["115P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2305,7 +2307,7 @@ def test_116p_is_telegram_memory_proposal_approval_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic Telegram memory proposal approval baseline. 116P is closed committed after implementation, validation, and closeout review. 117P later added local Memory Center writeback only, 118P later added local context scan candidate source records only, 119P later added local proactive opportunity candidate detection only, 120P later added local proactive Telegram suggestion surfaces and local delivery only, and 121P later added local adaptation into a 107P-compatible follow-up intent-review record only. Do not infer automatic later-stage execution, new action packets, new delegations, new follow-up execution, live connector reads, model/tool calls, live Telegram APIs, external effects, 122P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic Telegram memory proposal approval baseline. 116P is closed committed after implementation, validation, and closeout review. 117P later added local Memory Center writeback only, 118P later added local context scan candidate source records only, 119P later added local proactive opportunity candidate detection only, 120P later added local proactive Telegram suggestion surfaces and local delivery only, and 121P later added local adaptation into a 107P-compatible follow-up intent-review record only. Do not infer automatic later-stage execution, new action packets, new delegations, new follow-up execution, live connector reads, model/tool calls, live Telegram APIs, external effects, 123P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["116P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2331,7 +2333,7 @@ def test_117p_is_memory_center_writeback_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic Memory Center writeback baseline. 117P is closed committed after implementation, validation, and closeout review. 118P later added local context scan candidate source records only, 119P later added local proactive opportunity candidate detection only, 120P later added local proactive Telegram suggestion surfaces and local delivery only, and 121P later added local adaptation into a 107P-compatible follow-up intent-review record only. Do not infer live connector reads, model/tool calls, external effects, 122P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic Memory Center writeback baseline. 117P is closed committed after implementation, validation, and closeout review. 118P later added local context scan candidate source records only, 119P later added local proactive opportunity candidate detection only, 120P later added local proactive Telegram suggestion surfaces and local delivery only, and 121P later added local adaptation into a 107P-compatible follow-up intent-review record only. Do not infer live connector reads, model/tool calls, external effects, 123P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["117P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2357,7 +2359,7 @@ def test_118p_is_context_scan_candidate_source_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic Context Scan candidate source baseline. 118P is closed committed after implementation, validation, and closeout review. 119P later added local proactive opportunity candidate detection only, 120P later added local proactive Telegram suggestion surfaces and local delivery only, and 121P later added local adaptation into a 107P-compatible follow-up intent-review record only. Do not infer live connector reads, scan extraction, memory proposals, memory writes, model/tool calls, external effects, 122P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic Context Scan candidate source baseline. 118P is closed committed after implementation, validation, and closeout review. 119P later added local proactive opportunity candidate detection only, 120P later added local proactive Telegram suggestion surfaces and local delivery only, and 121P later added local adaptation into a 107P-compatible follow-up intent-review record only. Do not infer live connector reads, scan extraction, memory proposals, memory writes, model/tool calls, external effects, 123P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["118P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2383,7 +2385,7 @@ def test_119p_is_proactive_opportunity_detection_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic proactive opportunity detection baseline. 119P is closed committed after implementation, validation, and closeout review. 120P later added local proactive Telegram suggestion surfaces and local delivery only, and 121P later added local adaptation into a 107P-compatible follow-up intent-review record only. Do not infer planning, choice surfaces, selections, delegations, execution, Memory Center mutation, live connector reads, model/tool calls, external effects, 122P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic proactive opportunity detection baseline. 119P is closed committed after implementation, validation, and closeout review. 120P later added local proactive Telegram suggestion surfaces and local delivery only, and 121P later added local adaptation into a 107P-compatible follow-up intent-review record only. Do not infer planning, choice surfaces, selections, delegations, execution, Memory Center mutation, live connector reads, model/tool calls, external effects, 123P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["119P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2409,7 +2411,7 @@ def test_120p_is_proactive_telegram_suggestion_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic proactive Telegram suggestion baseline. 120P is closed committed after implementation, validation, and closeout review. 121P later added local adaptation into a 107P-compatible follow-up intent-review record only. Do not infer callback binding, acknowledgement, planner execution, choice surfaces, selections, delegations, execution, Memory Center mutation, live Telegram APIs, model/tool calls, external effects, 122P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic proactive Telegram suggestion baseline. 120P is closed committed after implementation, validation, and closeout review. 121P later added local adaptation into a 107P-compatible follow-up intent-review record only. Do not infer callback binding, acknowledgement, planner execution, choice surfaces, selections, delegations, execution, Memory Center mutation, live Telegram APIs, model/tool calls, external effects, 123P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["120P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2435,9 +2437,35 @@ def test_121p_is_proactive_suggestion_adapter_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic proactive suggestion adapter baseline. 121P is closed committed after implementation, validation, and closeout review. Do not infer planner execution, Telegram choice surfaces, selection binding, delegations, execution, Memory Center mutation, live Telegram APIs, model/tool calls, external effects, 122P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic proactive suggestion adapter baseline. 121P is closed committed after implementation, validation, and closeout review. 122P later added local governed delegation registration for explicitly authorized proactive-sourced selections only. Do not infer planner execution, Telegram choice surfaces, selection binding outside the existing follow-up path, execution, Memory Center mutation, live Telegram APIs, model/tool calls, external effects, 123P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["121P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_122p_is_proactive_delegation_adapter_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["122P"] == {
+        "stage_id": "122P",
+        "stage_name": "Proactive Delegation Adapter v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_122P_closeout",
+            "commit_message": "feat: add proactive delegation adapter",
+            "paths": [
+                "app/proactive_delegation_adapter.py",
+                "tests/test_proactive_delegation_adapter_122p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic proactive delegation adapter baseline. 122P is closed committed after implementation, validation, and closeout review. It reuses the existing 111P-style governed delegation authority path for explicitly authorized proactive-sourced work and stops at packet and handle registration only. Do not infer execution, worker dispatch, completion routing, Telegram delivery, Memory Center mutation, live connector reads, model/tool calls, external effects, 123P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["122P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 
@@ -3395,7 +3423,7 @@ def test_120p_transition_records_later_121p_authorization_and_keeps_122p_plus_bl
     assert stages_by_id["121P"]["status"] == "CLOSED_COMMITTED"
 
 
-def test_121p_transition_keeps_122p_plus_blocked():
+def test_121p_transition_records_122p_closeout_and_keeps_123p_plus_blocked():
     transition = load_json_block("stage-121p-implementation-transition")
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
@@ -3404,7 +3432,9 @@ def test_121p_transition_keeps_122p_plus_blocked():
         "stage": "121P",
         "stage_name": "Proactive Suggestion Adapter to Follow-up Loop v0",
         "implementation_commit": "same_commit_as_121P_closeout",
-        "stage_122p_and_later_authorized": False,
+        "stage_122p_authorized_later": True,
+        "stage_122p_current_status": "CLOSED_COMMITTED",
+        "stage_123p_and_later_authorized": False,
         "next_eligible_stage": None,
         "followup_intent_authorized": True,
         "followup_intent_review_record_authorized": True,
@@ -3428,6 +3458,44 @@ def test_121p_transition_keeps_122p_plus_blocked():
         "external_effects_authorized": False,
     }
     assert stages_by_id["121P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["122P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_122p_transition_keeps_123p_plus_blocked():
+    transition = load_json_block("stage-122p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "122P",
+        "stage_name": "Proactive Delegation Adapter v0",
+        "implementation_commit": "same_commit_as_122P_closeout",
+        "stage_123p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "proactive_delegation_adapter_authorized": True,
+        "explicit_owner_delegation_authorization_required": True,
+        "existing_111p_authority_reused": True,
+        "governed_async_delegation_registration_authorized": True,
+        "delegation_packet_registration_authorized": True,
+        "delegation_handle_registration_authorized": True,
+        "planner_execution_authorized": False,
+        "telegram_choice_surface_authorized": False,
+        "selection_binding_authorized": False,
+        "execution_authorized": False,
+        "worker_dispatch_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "memory_proposal_creation_authorized": False,
+        "telegram_delivery_authorized": False,
+        "live_connector_read_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "live_telegram_api_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "external_effects_authorized": False,
+    }
+    assert stages_by_id["122P"]["status"] == "CLOSED_COMMITTED"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
