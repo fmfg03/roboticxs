@@ -258,7 +258,8 @@ def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
     assert '"stage_id":"107P","stage_name":"Follow-up Intent Review Queue v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"stage_id":"108P","stage_name":"Follow-up Draft Planner v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"stage_id":"109P","stage_name":"Telegram Follow-up Choice Surface v0","status":"CLOSED_COMMITTED"' in roadmap_text
-    assert "110P and later remain unauthorized" in roadmap_text
+    assert '"stage_id":"110P","stage_name":"Telegram Follow-up Choice Selection Binding v0","status":"CLOSED_COMMITTED"' in roadmap_text
+    assert "111P and later remain unauthorized" in roadmap_text
     assert '"status":"NEXT_ELIGIBLE"' not in roadmap_text
 
 

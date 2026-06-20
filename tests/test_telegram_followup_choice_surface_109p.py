@@ -703,5 +703,9 @@ def test_109p_envelope_is_telegram_compatible_and_send_disallowed():
 def test_109p_110p_plus_remains_unauthorized():
     roadmap_text = ROADMAP_PATH.read_text()
 
-    assert "110P and later remain unauthorized" in roadmap_text or "109P and later remain unauthorized" in roadmap_text
+    assert (
+        "109P and later remain unauthorized" in roadmap_text
+        or "110P and later remain unauthorized" in roadmap_text
+        or "111P and later remain unauthorized" in roadmap_text
+    )
     assert "110P+" not in SURFACE_PATH.read_text()

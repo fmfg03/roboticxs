@@ -738,7 +738,9 @@ def test_108p_109p_plus_remains_unauthorized():
         "108P and later remain unauthorized" in text
         or "109P and later remain unauthorized" in text
         or "110P and later remain unauthorized" in text
+        or "111P and later remain unauthorized" in text
         or "109P+ remains unauthorized" in text
         or "110P+ remains unauthorized" in text
+        or "111P+ remains unauthorized" in text
     )
     assert "109P+" not in PLANNER_PATH.read_text()

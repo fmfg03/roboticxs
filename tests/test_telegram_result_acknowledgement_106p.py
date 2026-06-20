@@ -655,6 +655,8 @@ def test_106p_107p_plus_remains_unauthorized():
         or "108P+ remains unauthorized" in roadmap_text
         or "109P and later remain unauthorized" in roadmap_text
         or "110P and later remain unauthorized" in roadmap_text
+        or "111P and later remain unauthorized" in roadmap_text
         or "109P+ remains unauthorized" in roadmap_text
         or "110P+ remains unauthorized" in roadmap_text
+        or "111P+ remains unauthorized" in roadmap_text
     )

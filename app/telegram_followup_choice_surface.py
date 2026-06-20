@@ -410,6 +410,24 @@ def _record(
             "robot_id": draft_plan_record.robot_id,
             "telegram_chat_id": telegram_chat_id,
             "option_refs": tuple(getattr(option, "option_id", "") for option in draft_plan_record.options),
+            "option_metadata_by_ref": {
+                getattr(option, "option_id", ""): {
+                    "option_id": getattr(option, "option_id", ""),
+                    "option_kind": getattr(option, "option_kind", None),
+                    "label": getattr(option, "label", ""),
+                    "local_only": getattr(option, "local_only", False),
+                    "creates_authority": getattr(option, "creates_authority", False),
+                    "implies_execution": getattr(option, "implies_execution", False),
+                    "implies_memory_mutation": getattr(option, "implies_memory_mutation", False),
+                    "implies_external_send": getattr(option, "implies_external_send", False),
+                    "implies_model_call": getattr(option, "implies_model_call", False),
+                    "implies_tool_call": getattr(option, "implies_tool_call", False),
+                    "implies_delegation_creation": getattr(option, "implies_delegation_creation", False),
+                    "implies_action_packet_creation": getattr(option, "implies_action_packet_creation", False),
+                    "implies_approval_creation": getattr(option, "implies_approval_creation", False),
+                }
+                for option in draft_plan_record.options
+            },
             "upstream_lineage": draft_plan_record.lineage_summary,
         },
         transport_receipt=transport_receipt,

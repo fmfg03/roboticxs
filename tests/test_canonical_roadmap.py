@@ -85,7 +85,8 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_107P_is_closed_committed_after_followup_intent_review_queue_closeout",
     "stage_108P_is_closed_committed_after_followup_draft_planner_closeout",
     "stage_109P_is_closed_committed_after_telegram_followup_choice_surface_closeout",
-    "do_not_invent_110P_without_explicit_maintainer_direction_in_repo_evidence",
+    "stage_110P_is_closed_committed_after_telegram_followup_choice_selection_binding_closeout",
+    "do_not_invent_111P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -135,6 +136,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "107P": ("CLOSED_COMMITTED", "Follow-up Intent Review Queue v0"),
     "108P": ("CLOSED_COMMITTED", "Follow-up Draft Planner v0"),
     "109P": ("CLOSED_COMMITTED", "Telegram Follow-up Choice Surface v0"),
+    "110P": ("CLOSED_COMMITTED", "Telegram Follow-up Choice Selection Binding v0"),
 }
 
 
@@ -157,7 +159,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_109P",
+        "local_evidence_scope": "stages_61P_through_110P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -169,7 +171,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 110)
+        f"{number}P" for number in range(67, 111)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -1853,7 +1855,7 @@ def test_100p_is_cost_governor_model_routing_runtime_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic cost governor and model-routing runtime baseline. 101P and 102P are closed committed; 103P, 104P, 105P, 106P, 107P, 108P, and 109P are closed committed; 110P and later remain unauthorized. Do not infer async delegation dispatch, live Telegram sends, live Hermes startup, live cron scheduling, connectors, provider calls, billing, credential checks, migrations, UI, endpoints, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, medical decisions, emergency monitoring, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic cost governor and model-routing runtime baseline. 101P and 102P are closed committed; 103P, 104P, 105P, 106P, 107P, 108P, 109P, and 110P are closed committed; 111P and later remain unauthorized. Do not infer async delegation dispatch, live Telegram sends, live Hermes startup, live cron scheduling, connectors, provider calls, billing, credential checks, migrations, UI, endpoints, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, medical decisions, emergency monitoring, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["100P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -1888,7 +1890,7 @@ def test_101p_is_action_packet_approval_loop_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic Action Packet approval loop baseline. 102P is closed committed; 103P, 104P, 105P, 106P, 107P, 108P, and 109P are closed committed; 110P and later remain unauthorized. Do not infer live execution, async delegation dispatch, live Telegram sends, live Hermes startup, live cron scheduling, connectors, provider calls, billing, credential checks, migrations, UI, endpoints, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, medical decisions, emergency monitoring, automatic caregiver alerts, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic Action Packet approval loop baseline. 102P is closed committed; 103P, 104P, 105P, 106P, 107P, 108P, 109P, and 110P are closed committed; 111P and later remain unauthorized. Do not infer live execution, async delegation dispatch, live Telegram sends, live Hermes startup, live cron scheduling, connectors, provider calls, billing, credential checks, migrations, UI, endpoints, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, medical decisions, emergency monitoring, automatic caregiver alerts, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["101P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2045,7 +2047,7 @@ def test_107p_is_followup_intent_review_queue_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic follow-up intent review queue baseline. 107P is closed committed after implementation, validation, and closeout review. 108P and 109P are closed committed after follow-up planning and Telegram choice-surface validation. Do not infer follow-up execution, new delegations, new approvals, new action packets, model/tool calls, Memory Center mutation, Telegram sends beyond approved owner-scoped local transport, external effects, 110P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic follow-up intent review queue baseline. 107P is closed committed after implementation, validation, and closeout review. 108P, 109P, and 110P are closed committed after follow-up planning, Telegram choice-surface validation, and local selection binding validation. Do not infer follow-up execution, new delegations, new approvals, new action packets, model/tool calls, Memory Center mutation, Telegram sends beyond approved owner-scoped local transport, external effects, 111P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["107P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2071,7 +2073,7 @@ def test_108p_is_followup_draft_planner_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic follow-up draft planner baseline. 108P is closed committed after implementation, validation, and closeout review. 109P later added Telegram-facing choice surfaces only. Do not infer follow-up execution, new delegations, new approvals, new action packets, model/tool calls, Memory Center mutation, live Telegram APIs, external effects, 110P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic follow-up draft planner baseline. 108P is closed committed after implementation, validation, and closeout review. 109P later added Telegram-facing choice surfaces only, and 110P later added local option selection binding only. Do not infer follow-up execution, new delegations, new approvals, new action packets, model/tool calls, Memory Center mutation, live Telegram APIs, external effects, 111P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["108P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2097,9 +2099,36 @@ def test_109p_is_telegram_followup_choice_surface_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic Telegram follow-up choice surface baseline. 109P is closed committed after implementation, validation, and closeout review. Do not infer option selection binding, follow-up execution, new delegations, new approvals, new action packets, model/tool calls, Memory Center mutation, live Telegram APIs, external effects, 110P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic Telegram follow-up choice surface baseline. 109P is closed committed after implementation, validation, and closeout review. 110P later added local selection binding only. Do not infer follow-up execution, new delegations, new approvals, new action packets, model/tool calls, Memory Center mutation, live Telegram APIs, external effects, 111P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["109P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_110p_is_telegram_followup_choice_selection_binding_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["110P"] == {
+        "stage_id": "110P",
+        "stage_name": "Telegram Follow-up Choice Selection Binding v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_110P_closeout",
+            "commit_message": "feat: add telegram follow-up choice selection binding",
+            "paths": [
+                "app/telegram_followup_choice_selection.py",
+                "app/telegram_followup_choice_surface.py",
+                "tests/test_telegram_followup_choice_selection_110p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic Telegram follow-up choice selection binding baseline. 110P is closed committed after implementation, validation, and closeout review. Do not infer follow-up execution, new delegations, new approvals, new action packets, model/tool calls, Memory Center mutation, live Telegram APIs, external effects, 111P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["110P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 
@@ -2460,7 +2489,7 @@ def test_108p_transition_keeps_109p_plus_blocked():
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
-def test_109p_transition_keeps_110p_plus_blocked():
+def test_109p_transition_records_later_110p_authorization_and_keeps_111p_plus_blocked():
     transition = load_json_block("stage-109p-implementation-transition")
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
@@ -2469,7 +2498,8 @@ def test_109p_transition_keeps_110p_plus_blocked():
         "stage": "109P",
         "stage_name": "Telegram Follow-up Choice Surface v0",
         "implementation_commit": "same_commit_as_109P_closeout",
-        "stage_110p_and_later_authorized": False,
+        "stage_110p_authorized_later": True,
+        "stage_110p_current_status": "CLOSED_COMMITTED",
         "next_eligible_stage": None,
         "telegram_choice_surface_authorized": True,
         "injected_local_transport_authorized": True,
@@ -2497,6 +2527,47 @@ def test_109p_transition_keeps_110p_plus_blocked():
         "automatic_caregiver_alerts_authorized": False,
     }
     assert stages_by_id["109P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_110p_transition_keeps_111p_plus_blocked():
+    transition = load_json_block("stage-110p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "110P",
+        "stage_name": "Telegram Follow-up Choice Selection Binding v0",
+        "implementation_commit": "same_commit_as_110P_closeout",
+        "stage_111p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "telegram_choice_surface_authorized": True,
+        "option_selection_binding_authorized": True,
+        "selection_record_authorized": True,
+        "selection_response_envelope_authorized": True,
+        "followup_execution_authorized": False,
+        "async_delegation_dispatch_authorized": False,
+        "live_telegram_api_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "new_approvals_authorized": False,
+        "new_action_packets_authorized": False,
+        "new_delegations_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["110P"]["status"] == "CLOSED_COMMITTED"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
