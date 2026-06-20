@@ -13,7 +13,7 @@ The forward sequence comes from explicit maintainer direction in the maintainer-
 ```json canonical-roadmap-authority
 {
   "authority_source":"maintainer_approved_chatgpt_web_planning_thread",
-  "local_evidence_scope":"stages_61P_through_114P",
+  "local_evidence_scope":"stages_61P_through_115P",
   "forward_sequence_source":"explicit_maintainer_direction",
   "runtime_truth_source":"local_repo",
   "roadmap_inclusion_authorizes_implementation":false
@@ -67,7 +67,7 @@ The repository confirms these fixed baselines:
 - 100P adds Cost Governor / Model Routing Runtime v0 as a deterministic local cost/model-routing preflight layer integrated with 95P through 99P while preserving non-authority execution boundaries.
 - 101P adds Action Packet Approval Loop v0 as a deterministic local approval-governance layer that preserves upstream owner/robot/runtime/cost evidence, blocks missing or mismatched robot boundaries, issues bounded non-executing resume tokens, and remains non-authority-expanding.
 
-Local implementation evidence is now claimed through 114P only. Stage 89P - Roboticxs Automation Blueprints v0 - is closed committed. Stage 90P - Roboticxs Command Surface Policy v0 - is closed committed. Stage 91P - Skill Activation Scope Guard v0 - is closed committed. Stage 92P - Hermes Tool Authority Guard v0 - is closed committed. Stage 93P - Roboticxs Memory Center Bridge v0 - is closed committed. Stage 94P - Telegram MVP on Hermes Gateway v0 - is closed committed as story/spec/test work only. Stage 95P - Telegram-Hermes Policy Chain Runtime Skeleton v0 - is closed committed. Stage 96P - Hermes OS Runtime Contract v0 - is closed committed. Stage 97P - Caregiver Telegram MVP v0 - is closed committed. Stage 98P - Routine Execution Engine Skeleton v0 - is closed committed. Stage 99P - Memory Center Projection Runtime Slice v0 - is closed committed. Stage 100P - Cost Governor / Model Routing Runtime v0 - is closed committed after remediation review and validation. Stage 101P - Action Packet Approval Loop v0 - is closed committed after remediation review and validation. Stage 102P - Hermes Async Delegation Authority Adapter v0 - is closed committed after remediation review and validation. Stage 103P - Async Delegation Completion Inbox v0 - is closed committed after implementation, validation, and closeout review. Stage 104P - Async Result User Surface v0 - is closed committed after implementation, validation, and closeout review. Stage 105P - Telegram Async Result Delivery v0 - is closed committed after implementation, validation, and closeout review. Stage 106P - Telegram Result Acknowledgement Binding v0 - is closed committed after implementation, validation, and closeout review. Stage 107P - Follow-up Intent Review Queue v0 - is closed committed after implementation, validation, and closeout review. Stage 108P - Follow-up Draft Planner v0 - is closed committed after implementation, validation, and closeout review. Stage 109P - Telegram Follow-up Choice Surface v0 - is closed committed after implementation, validation, and closeout review. Stage 110P - Telegram Follow-up Choice Selection Binding v0 - is closed committed after implementation, validation, and closeout review. Stage 111P - User-Approved Follow-up Delegation v0 - is closed committed after implementation, validation, and closeout review. Stage 112P - Controlled Follow-up Execution Skeleton v0 - is closed committed after implementation, validation, and closeout review. Stage 113P - Follow-up Completion Loop Integration v0 - is closed committed after implementation, validation, and closeout review. Stage 114P - Follow-up Result Acknowledgement v0 - is closed committed after implementation, validation, and closeout review. 115P and later remain unauthorized.
+Local implementation evidence is now claimed through 115P only. Stage 89P - Roboticxs Automation Blueprints v0 - is closed committed. Stage 90P - Roboticxs Command Surface Policy v0 - is closed committed. Stage 91P - Skill Activation Scope Guard v0 - is closed committed. Stage 92P - Hermes Tool Authority Guard v0 - is closed committed. Stage 93P - Roboticxs Memory Center Bridge v0 - is closed committed. Stage 94P - Telegram MVP on Hermes Gateway v0 - is closed committed as story/spec/test work only. Stage 95P - Telegram-Hermes Policy Chain Runtime Skeleton v0 - is closed committed. Stage 96P - Hermes OS Runtime Contract v0 - is closed committed. Stage 97P - Caregiver Telegram MVP v0 - is closed committed. Stage 98P - Routine Execution Engine Skeleton v0 - is closed committed. Stage 99P - Memory Center Projection Runtime Slice v0 - is closed committed. Stage 100P - Cost Governor / Model Routing Runtime v0 - is closed committed after remediation review and validation. Stage 101P - Action Packet Approval Loop v0 - is closed committed after remediation review and validation. Stage 102P - Hermes Async Delegation Authority Adapter v0 - is closed committed after remediation review and validation. Stage 103P - Async Delegation Completion Inbox v0 - is closed committed after implementation, validation, and closeout review. Stage 104P - Async Result User Surface v0 - is closed committed after implementation, validation, and closeout review. Stage 105P - Telegram Async Result Delivery v0 - is closed committed after implementation, validation, and closeout review. Stage 106P - Telegram Result Acknowledgement Binding v0 - is closed committed after implementation, validation, and closeout review. Stage 107P - Follow-up Intent Review Queue v0 - is closed committed after implementation, validation, and closeout review. Stage 108P - Follow-up Draft Planner v0 - is closed committed after implementation, validation, and closeout review. Stage 109P - Telegram Follow-up Choice Surface v0 - is closed committed after implementation, validation, and closeout review. Stage 110P - Telegram Follow-up Choice Selection Binding v0 - is closed committed after implementation, validation, and closeout review. Stage 111P - User-Approved Follow-up Delegation v0 - is closed committed after implementation, validation, and closeout review. Stage 112P - Controlled Follow-up Execution Skeleton v0 - is closed committed after implementation, validation, and closeout review. Stage 113P - Follow-up Completion Loop Integration v0 - is closed committed after implementation, validation, and closeout review. Stage 114P - Follow-up Result Acknowledgement v0 - is closed committed after implementation, validation, and closeout review. Stage 115P - Memory Proposal from Follow-up Result v0 - is closed committed after implementation, validation, and closeout review. 116P and later remain unauthorized.
 
 ## Canonical stage registry
 
@@ -127,7 +127,8 @@ Local implementation evidence is now claimed through 114P only. Stage 89P - Robo
   {"stage_id":"111P","stage_name":"User-Approved Follow-up Delegation v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_111P_closeout","commit_message":"feat: add follow-up delegation authority","paths":["app/followup_delegation_authority.py","app/async_delegation_authority.py","tests/test_followup_delegation_authority_111p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic follow-up delegation authority baseline. 111P is closed committed after implementation, validation, and closeout review. Do not infer follow-up execution, worker dispatch, completion or failure events, model/tool calls, Memory Center mutation, live Telegram APIs, external effects, 112P+, or NEXT_ELIGIBLE from this status."},
   {"stage_id":"112P","stage_name":"Controlled Follow-up Execution Skeleton v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_112P_closeout","commit_message":"feat: add controlled follow-up execution skeleton","paths":["app/followup_execution_skeleton.py","tests/test_followup_execution_skeleton_112p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic controlled follow-up execution skeleton baseline. 112P is closed committed after implementation, validation, and closeout review. Do not infer 103P inbox insertion, 104P result surfaces, 105P Telegram delivery, model/tool calls, worker dispatch, Memory Center mutation, live Telegram APIs, external effects, 113P+, or NEXT_ELIGIBLE from this status."},
   {"stage_id":"113P","stage_name":"Follow-up Completion Loop Integration v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_113P_closeout","commit_message":"feat: add follow-up completion loop integration","paths":["app/followup_completion_loop.py","tests/test_followup_completion_loop_113p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic follow-up completion loop integration baseline. 113P is closed committed after implementation, validation, and closeout review. 114P later added local acknowledgement binding only. Do not infer new follow-up execution, live Telegram APIs, memory proposal/writeback behavior, model/tool calls, worker dispatch, external effects, 115P+, or NEXT_ELIGIBLE from this status."},
-  {"stage_id":"114P","stage_name":"Follow-up Result Acknowledgement v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_114P_closeout","commit_message":"feat: add follow-up result acknowledgement","paths":["app/followup_result_acknowledgement.py","tests/test_followup_result_acknowledgement_114p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic follow-up result acknowledgement baseline. 114P is closed committed after implementation, validation, and closeout review. Do not infer memory proposal or writeback behavior, new follow-up execution, new draft options, selections, delegations, executions, routes, model/tool calls, live Telegram APIs, external effects, 115P+, or NEXT_ELIGIBLE from this status."}
+  {"stage_id":"114P","stage_name":"Follow-up Result Acknowledgement v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_114P_closeout","commit_message":"feat: add follow-up result acknowledgement","paths":["app/followup_result_acknowledgement.py","tests/test_followup_result_acknowledgement_114p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic follow-up result acknowledgement baseline. 114P is closed committed after implementation, validation, and closeout review. 115P later added local memory proposal candidates only. Do not infer memory writeback behavior, new follow-up execution, new draft options, selections, delegations, executions, routes, model/tool calls, live Telegram APIs, external effects, 116P+, or NEXT_ELIGIBLE from this status."},
+  {"stage_id":"115P","stage_name":"Memory Proposal from Follow-up Result v0","status":"CLOSED_COMMITTED","authority_source":"explicit_maintainer_authorization","local_evidence":{"commit":"same_commit_as_115P_closeout","commit_message":"feat: add follow-up memory proposal candidates","paths":["app/followup_memory_proposal.py","tests/test_followup_memory_proposal_115p.py","docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md","tests/test_canonical_roadmap.py","tests/test_roadmap_continuation_authorization_gate.py"]},"implementation_authorized":false,"next_action":"Use as the local deterministic follow-up memory proposal candidate baseline. 115P is closed committed after implementation, validation, and closeout review. Do not infer Telegram approval surfaces, approval binding, Memory Center writeback, new action packets, new delegations, new follow-up execution, model/tool calls, live Telegram APIs, external effects, 116P+, or NEXT_ELIGIBLE from this status."}
 ]
 ```
 
@@ -1423,7 +1424,7 @@ The stage registry records the 113P closed committed state after implementation,
 
 ## Stage 114P implementation transition
 
-The stage registry records the 114P closed committed state after implementation, validation, and closeout review. 115P and later remain unauthorized. No stage is next eligible after 114P without explicit maintainer direction.
+The stage registry records the 114P closed committed state after implementation, validation, and closeout review. 115P was later explicitly authorized and is now closed committed for local memory proposal candidates only. 116P and later remain unauthorized. No stage is next eligible after 114P without explicit maintainer direction.
 
 ```json stage-114p-implementation-transition
 {
@@ -1431,7 +1432,9 @@ The stage registry records the 114P closed committed state after implementation,
   "stage":"114P",
   "stage_name":"Follow-up Result Acknowledgement v0",
   "implementation_commit":"same_commit_as_114P_closeout",
-  "stage_115p_and_later_authorized":false,
+  "stage_115p_authorized_later":true,
+  "stage_115p_current_status":"CLOSED_COMMITTED",
+  "stage_116p_and_later_authorized":false,
   "next_eligible_stage":null,
   "followup_execution_authorized":false,
   "acknowledgement_binding_authorized":true,
@@ -1465,7 +1468,54 @@ The stage registry records the 114P closed committed state after implementation,
 }
 ```
 
-114P implements a deterministic local acknowledgement layer for 113P follow-up result deliveries. It preserves 100P/101P/102P/103P/104P/105P/106P/107P/108P/109P/110P/111P/112P/113P lineage internally, accepts owner-only local acknowledgement, dismiss, and lineage-summary callbacks for already-delivered follow-up results, records acknowledgement state locally, returns Telegram-compatible envelopes with `live_send_allowed=false`, and keeps all output local and inspectable. It does not authorize memory proposal or writeback behavior, new follow-up execution, new intent creation, new draft options, selections, delegations, executions, routes, model/tool calls, worker dispatch, live Telegram APIs, or external effects. 115P and later remain unauthorized.
+114P implements a deterministic local acknowledgement layer for 113P follow-up result deliveries. It preserves 100P/101P/102P/103P/104P/105P/106P/107P/108P/109P/110P/111P/112P/113P lineage internally, accepts owner-only local acknowledgement, dismiss, and lineage-summary callbacks for already-delivered follow-up results, records acknowledgement state locally, returns Telegram-compatible envelopes with `live_send_allowed=false`, and keeps all output local and inspectable. It does not authorize writeback behavior, new follow-up execution, new intent creation, new draft options, selections, delegations, executions, routes, model/tool calls, worker dispatch, live Telegram APIs, or external effects. 115P later added local memory proposal candidates only, and 116P and later remain unauthorized.
+
+## Stage 115P implementation transition
+
+The stage registry records the 115P closed committed state after implementation, validation, and closeout review. 116P and later remain unauthorized. No stage is next eligible after 115P without explicit maintainer direction.
+
+```json stage-115p-implementation-transition
+{
+  "implementation_status":"CLOSED_COMMITTED",
+  "stage":"115P",
+  "stage_name":"Memory Proposal from Follow-up Result v0",
+  "implementation_commit":"same_commit_as_115P_closeout",
+  "stage_116p_and_later_authorized":false,
+  "next_eligible_stage":null,
+  "followup_execution_authorized":false,
+  "memory_proposal_candidate_authorized":true,
+  "pending_user_review_authorized":true,
+  "telegram_approval_surface_authorized":false,
+  "memory_approval_binding_authorized":false,
+  "memory_center_writeback_authorized":false,
+  "memory_center_mutation_authorized":false,
+  "new_followup_intent_authorized":false,
+  "new_draft_options_authorized":false,
+  "new_delegations_authorized":false,
+  "new_executions_authorized":false,
+  "new_routes_authorized":false,
+  "worker_dispatch_authorized":false,
+  "provider_calls_authorized":false,
+  "model_calls_authorized":false,
+  "tool_calls_authorized":false,
+  "live_telegram_api_authorized":false,
+  "live_hermes_gateway_start_authorized":false,
+  "live_cron_authorized":false,
+  "connector_activation_authorized":false,
+  "callbacks_or_webhooks_authorized":false,
+  "new_approvals_authorized":false,
+  "new_action_packets_authorized":false,
+  "billing_or_token_reconciliation_authorized":false,
+  "credential_checks_authorized":false,
+  "database_migrations_authorized":false,
+  "ui_or_endpoints_authorized":false,
+  "external_effects_authorized":false,
+  "medical_behavior_authorized":false,
+  "automatic_caregiver_alerts_authorized":false
+}
+```
+
+115P implements a deterministic local memory proposal candidate layer for acknowledged 113P follow-up results. It preserves 100P/101P/102P/103P/104P/105P/106P/107P/108P/109P/110P/111P/112P/113P/114P lineage internally, creates owner-scoped local proposal candidates only from valid 114P acknowledgements, classifies candidate type with deterministic rules, returns pending local review state or no-memory recommendation, and keeps all output local and inspectable. It does not authorize Telegram approval surfaces, approval binding, Memory Center writeback, new action packets, new delegations, new follow-up execution, model/tool calls, worker dispatch, live Telegram APIs, or external effects. 116P and later remain unauthorized.
 
 ## Sequencing and authorization rules
 
@@ -1509,7 +1559,8 @@ The stage registry records the 114P closed committed state after implementation,
   "stage_112P_is_closed_committed_after_controlled_followup_execution_skeleton_closeout",
   "stage_113P_is_closed_committed_after_followup_completion_loop_integration_closeout",
   "stage_114P_is_closed_committed_after_followup_result_acknowledgement_closeout",
-  "do_not_invent_115P_without_explicit_maintainer_direction_in_repo_evidence",
+  "stage_115P_is_closed_committed_after_followup_memory_proposal_closeout",
+  "do_not_invent_116P_without_explicit_maintainer_direction_in_repo_evidence",
   "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
   "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence"
 ]
