@@ -100,7 +100,8 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_122P_is_closed_committed_after_proactive_delegation_adapter_closeout",
     "stage_123P_is_closed_committed_after_controlled_proactive_execution_skeleton_closeout",
     "stage_124P_is_closed_committed_after_what_did_i_miss_daily_brief_closeout",
-    "do_not_invent_125P_without_explicit_maintainer_direction_in_repo_evidence",
+    "stage_125P_is_closed_committed_after_skill_pack_activation_surface_closeout",
+    "do_not_invent_126P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -165,6 +166,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "122P": ("CLOSED_COMMITTED", "Proactive Delegation Adapter v0"),
     "123P": ("CLOSED_COMMITTED", "Controlled Proactive Execution Skeleton v0"),
     "124P": ("CLOSED_COMMITTED", "What Did I Miss? Daily Brief v0"),
+    "125P": ("CLOSED_COMMITTED", "Skill Pack Activation Surface v0"),
 }
 
 
@@ -187,7 +189,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_124P",
+        "local_evidence_scope": "stages_61P_through_125P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -199,7 +201,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 125)
+        f"{number}P" for number in range(67, 126)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -2519,9 +2521,35 @@ def test_124p_is_what_did_i_miss_daily_brief_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic read-only daily brief baseline. 124P is closed committed after implementation, validation, and closeout review. It aggregates existing 103P through 123P local records into read-only daily brief snapshots and renderable local text only. Do not infer Telegram delivery, callback binding, follow-up intent creation, async delegations, execution, Memory Center mutation, model/tool calls, live connector reads, external writes, worker dispatch, 125P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic read-only daily brief baseline. 124P is closed committed after implementation, validation, and closeout review. It aggregates existing 103P through 123P local records into read-only daily brief snapshots and renderable local text only. 125P later added deterministic read-only skill pack classification surfaces only. Do not infer Telegram delivery, callback binding, follow-up intent creation, async delegations, execution, Memory Center mutation, model/tool calls, live connector reads, external writes, worker dispatch, 126P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["124P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_125p_is_skill_pack_activation_surface_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["125P"] == {
+        "stage_id": "125P",
+        "stage_name": "Skill Pack Activation Surface v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_125P_closeout",
+            "commit_message": "feat: add skill pack activation surface",
+            "paths": [
+                "app/skill_pack_activation_surface.py",
+                "tests/test_skill_pack_activation_surface_125p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic read-only skill pack activation baseline. 125P is closed committed after implementation, validation, and closeout review. It classifies existing 103P through 124P local records into skill pack surfaces and renderable local text only. Do not infer billing, entitlement enforcement, package activation, upgrade prompts, Telegram delivery, callback binding, follow-up intent creation, async delegations, execution, Memory Center mutation, model/tool calls, live connector reads, external writes, worker dispatch, 126P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["125P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 
@@ -3558,7 +3586,7 @@ def test_122p_transition_records_123p_closeout_and_keeps_124p_plus_blocked():
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
-def test_123p_transition_records_124p_closeout_and_keeps_125p_plus_blocked():
+def test_123p_transition_records_124p_and_125p_closeout_and_keeps_126p_plus_blocked():
     transition = load_json_block("stage-123p-implementation-transition")
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
@@ -3569,7 +3597,9 @@ def test_123p_transition_records_124p_closeout_and_keeps_125p_plus_blocked():
         "implementation_commit": "same_commit_as_123P_closeout",
         "stage_124p_authorized_later": True,
         "stage_124p_current_status": "CLOSED_COMMITTED",
-        "stage_125p_and_later_authorized": False,
+        "stage_125p_authorized_later": True,
+        "stage_125p_current_status": "CLOSED_COMMITTED",
+        "stage_126p_and_later_authorized": False,
         "next_eligible_stage": None,
         "proactive_execution_authorized": True,
         "local_completion_failure_candidate_creation_authorized": True,
@@ -3594,10 +3624,11 @@ def test_123p_transition_records_124p_closeout_and_keeps_125p_plus_blocked():
     }
     assert stages_by_id["123P"]["status"] == "CLOSED_COMMITTED"
     assert stages_by_id["124P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["125P"]["status"] == "CLOSED_COMMITTED"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
-def test_124p_transition_keeps_125p_plus_blocked():
+def test_124p_transition_records_125p_closeout_and_keeps_126p_plus_blocked():
     transition = load_json_block("stage-124p-implementation-transition")
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
@@ -3606,12 +3637,15 @@ def test_124p_transition_keeps_125p_plus_blocked():
         "stage": "124P",
         "stage_name": "What Did I Miss? Daily Brief v0",
         "implementation_commit": "same_commit_as_124P_closeout",
-        "stage_125p_and_later_authorized": False,
+        "stage_125p_authorized_later": True,
+        "stage_125p_current_status": "CLOSED_COMMITTED",
+        "stage_126p_and_later_authorized": False,
         "next_eligible_stage": None,
         "daily_brief_snapshot_authorized": True,
         "renderable_local_brief_text_authorized": True,
         "read_only_local_aggregation_authorized": True,
         "existing_103p_through_123p_local_records_required": True,
+        "skill_pack_activation_surface_authorized": True,
         "telegram_delivery_authorized": False,
         "callback_binding_authorized": False,
         "followup_intent_creation_authorized": False,
@@ -3630,6 +3664,47 @@ def test_124p_transition_keeps_125p_plus_blocked():
         "external_effects_authorized": False,
     }
     assert stages_by_id["124P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["125P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_125p_transition_keeps_126p_plus_blocked():
+    transition = load_json_block("stage-125p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "125P",
+        "stage_name": "Skill Pack Activation Surface v0",
+        "implementation_commit": "same_commit_as_125P_closeout",
+        "stage_126p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "skill_pack_activation_surface_authorized": True,
+        "read_only_skill_pack_classification_authorized": True,
+        "renderable_local_skill_pack_surface_authorized": True,
+        "existing_103p_through_124p_local_records_required": True,
+        "billing_authorized": False,
+        "entitlement_enforcement_authorized": False,
+        "package_activation_authorized": False,
+        "upgrade_prompt_authorized": False,
+        "telegram_delivery_authorized": False,
+        "callback_binding_authorized": False,
+        "followup_intent_creation_authorized": False,
+        "async_delegation_authorized": False,
+        "execution_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "memory_proposal_creation_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "live_connector_read_authorized": False,
+        "external_write_authorized": False,
+        "worker_dispatch_authorized": False,
+        "live_telegram_api_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "external_effects_authorized": False,
+    }
+    assert stages_by_id["125P"]["status"] == "CLOSED_COMMITTED"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 

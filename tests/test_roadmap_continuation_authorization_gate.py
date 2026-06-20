@@ -265,7 +265,8 @@ def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
     assert '"stage_id":"114P","stage_name":"Follow-up Result Acknowledgement v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"stage_id":"115P","stage_name":"Memory Proposal from Follow-up Result v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"stage_id":"124P","stage_name":"What Did I Miss? Daily Brief v0","status":"CLOSED_COMMITTED"' in roadmap_text
-    assert "125P and later remain unauthorized" in roadmap_text
+    assert '"stage_id":"125P","stage_name":"Skill Pack Activation Surface v0","status":"CLOSED_COMMITTED"' in roadmap_text
+    assert "126P and later remain unauthorized" in roadmap_text
     assert '"status":"NEXT_ELIGIBLE"' not in roadmap_text
 
 
