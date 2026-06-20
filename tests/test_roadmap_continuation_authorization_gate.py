@@ -262,7 +262,8 @@ def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
     assert '"stage_id":"111P","stage_name":"User-Approved Follow-up Delegation v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"stage_id":"112P","stage_name":"Controlled Follow-up Execution Skeleton v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"stage_id":"113P","stage_name":"Follow-up Completion Loop Integration v0","status":"CLOSED_COMMITTED"' in roadmap_text
-    assert "114P and later remain unauthorized" in roadmap_text
+    assert '"stage_id":"114P","stage_name":"Follow-up Result Acknowledgement v0","status":"CLOSED_COMMITTED"' in roadmap_text
+    assert "115P and later remain unauthorized" in roadmap_text
     assert '"status":"NEXT_ELIGIBLE"' not in roadmap_text
 
 
