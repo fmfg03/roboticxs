@@ -995,6 +995,8 @@ def _build_packet(
 
 
 def _source_stage_unauthorized(stage: str) -> bool:
+    if stage == "111P":
+        return False
     if stage.endswith("P"):
         numeric = stage[:-1]
         if numeric.isdigit():
