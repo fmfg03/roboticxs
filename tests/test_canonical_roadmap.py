@@ -102,7 +102,8 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_124P_is_closed_committed_after_what_did_i_miss_daily_brief_closeout",
     "stage_125P_is_closed_committed_after_skill_pack_activation_surface_closeout",
     "stage_126P_is_closed_committed_after_first_demo_flow_meeting_brief_from_context_closeout",
-    "do_not_invent_127P_without_explicit_maintainer_direction_in_repo_evidence",
+    "stage_127P_is_closed_committed_after_demo_result_delivery_surface_closeout",
+    "do_not_invent_128P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -169,6 +170,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "124P": ("CLOSED_COMMITTED", "What Did I Miss? Daily Brief v0"),
     "125P": ("CLOSED_COMMITTED", "Skill Pack Activation Surface v0"),
     "126P": ("CLOSED_COMMITTED", "First Demo Flow: Meeting Brief from Context v0"),
+    "127P": ("CLOSED_COMMITTED", "Demo Result Delivery Surface v0"),
 }
 
 
@@ -191,7 +193,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_126P",
+        "local_evidence_scope": "stages_61P_through_127P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -203,7 +205,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 127)
+        f"{number}P" for number in range(67, 128)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -2497,7 +2499,7 @@ def test_123p_is_controlled_proactive_execution_skeleton_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic proactive execution skeleton baseline. 123P is closed committed after implementation, validation, and closeout review. It executes governed proactive-origin delegations through deterministic local skeleton behavior only and produces local completion or failure event candidates only. 124P later added deterministic read-only daily brief snapshots only, 125P later added deterministic read-only skill pack activation surfaces only, and 126P later added a deterministic local first-demo composition flow only. Do not infer inbox routing, result surfaces, Telegram delivery, Memory Center mutation, live connector reads, model/tool calls, worker dispatch, external effects, 127P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic proactive execution skeleton baseline. 123P is closed committed after implementation, validation, and closeout review. It executes governed proactive-origin delegations through deterministic local skeleton behavior only and produces local completion or failure event candidates only. 124P later added deterministic read-only daily brief snapshots only, 125P later added deterministic read-only skill pack activation surfaces only, 126P later added a deterministic local first-demo composition flow only, and 127P later added a deterministic local owner-facing demo result surface only. Do not infer inbox routing, result surfaces beyond the closed 127P local demo surface, Telegram delivery, Memory Center mutation, live connector reads, model/tool calls, worker dispatch, external effects, 128P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["123P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2523,7 +2525,7 @@ def test_124p_is_what_did_i_miss_daily_brief_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic read-only daily brief baseline. 124P is closed committed after implementation, validation, and closeout review. It aggregates existing 103P through 123P local records into read-only daily brief snapshots and renderable local text only. 125P later added deterministic read-only skill pack classification surfaces only, and 126P later added a deterministic local first-demo composition flow only. Do not infer Telegram delivery, callback binding, follow-up intent creation, async delegations, execution, Memory Center mutation, model/tool calls, live connector reads, external writes, worker dispatch, 127P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic read-only daily brief baseline. 124P is closed committed after implementation, validation, and closeout review. It aggregates existing 103P through 123P local records into read-only daily brief snapshots and renderable local text only. 125P later added deterministic read-only skill pack classification surfaces only, 126P later added a deterministic local first-demo composition flow only, and 127P later added a deterministic local owner-facing demo result surface only. Do not infer Telegram delivery, callback binding, follow-up intent creation, async delegations, execution, Memory Center mutation, model/tool calls, live connector reads, external writes, worker dispatch, 128P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["124P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2549,7 +2551,7 @@ def test_125p_is_skill_pack_activation_surface_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic read-only skill pack activation baseline. 125P is closed committed after implementation, validation, and closeout review. It classifies existing 103P through 124P local records into skill pack surfaces and renderable local text only. 126P later added a deterministic local first-demo composition flow only. Do not infer billing, entitlement enforcement, package activation, upgrade prompts, Telegram delivery, callback binding, follow-up intent creation, async delegations, execution, Memory Center mutation, model/tool calls, live connector reads, external writes, worker dispatch, 127P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic read-only skill pack activation baseline. 125P is closed committed after implementation, validation, and closeout review. It classifies existing 103P through 124P local records into skill pack surfaces and renderable local text only. 126P later added a deterministic local first-demo composition flow only, and 127P later added a deterministic local owner-facing demo result surface only. Do not infer billing, entitlement enforcement, package activation, upgrade prompts, Telegram delivery, callback binding, follow-up intent creation, async delegations, execution, Memory Center mutation, model/tool calls, live connector reads, external writes, worker dispatch, 128P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["125P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2575,9 +2577,35 @@ def test_126p_is_first_demo_flow_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic first product-demo baseline. 126P is closed committed after implementation, validation, and closeout review. It composes existing 118P through 125P local primitives into a deterministic local meeting-brief demo flow, preserves normalized_intent_kind=prepare_meeting_brief as product lineage, reuses the existing governed human_review_checklist / FOLLOWUP_HUMAN_REVIEW_CHECKLIST task class for deterministic local execution, and stops at local demo artifacts, daily brief inclusion, and skill pack inclusion only. Do not infer new task classes, new authority paths, live connector reads, Telegram delivery, model/tool calls, worker dispatch, Memory Center mutation, billing, entitlement enforcement, external writes, 127P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic first product-demo baseline. 126P is closed committed after implementation, validation, and closeout review. It composes existing 118P through 125P local primitives into a deterministic local meeting-brief demo flow, preserves normalized_intent_kind=prepare_meeting_brief as product lineage, reuses the existing governed human_review_checklist / FOLLOWUP_HUMAN_REVIEW_CHECKLIST task class for deterministic local execution, and stops at local demo artifacts, daily brief inclusion, and skill pack inclusion only. 127P later added a deterministic local owner-facing demo result surface only. Do not infer new task classes, new authority paths, live connector reads, Telegram delivery, model/tool calls, worker dispatch, Memory Center mutation, billing, entitlement enforcement, external writes, 128P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["126P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_127p_is_demo_result_delivery_surface_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["127P"] == {
+        "stage_id": "127P",
+        "stage_name": "Demo Result Delivery Surface v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_127P_closeout",
+            "commit_message": "feat: add demo result delivery surface",
+            "paths": [
+                "app/demo_result_delivery_surface.py",
+                "tests/test_demo_result_delivery_surface_127p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the deterministic local owner-facing demo result surface baseline. 127P is closed committed after implementation, validation, and closeout review. It consumes valid 126P meeting-brief demo flow and artifact records, preserves 118P through 126P lineage, renders only a deterministic local owner-facing result surface, and does not deliver through live Telegram, bind callbacks, create approvals or follow-up intents, delegate, execute, mutate Memory Center, call models/tools, read live connectors, dispatch workers, enforce billing or entitlements, or write external systems. Do not infer 128P+, NEXT_ELIGIBLE, or any new authority path from this status.",
+    }
+    for path in stages_by_id["127P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 
