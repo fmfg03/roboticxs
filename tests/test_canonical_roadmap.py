@@ -92,7 +92,8 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_114P_is_closed_committed_after_followup_result_acknowledgement_closeout",
     "stage_115P_is_closed_committed_after_followup_memory_proposal_closeout",
     "stage_116P_is_closed_committed_after_telegram_memory_proposal_approval_closeout",
-    "do_not_invent_117P_without_explicit_maintainer_direction_in_repo_evidence",
+    "stage_117P_is_closed_committed_after_memory_center_writeback_closeout",
+    "do_not_invent_118P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -149,6 +150,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "114P": ("CLOSED_COMMITTED", "Follow-up Result Acknowledgement v0"),
     "115P": ("CLOSED_COMMITTED", "Memory Proposal from Follow-up Result v0"),
     "116P": ("CLOSED_COMMITTED", "Telegram Memory Proposal Approval v0"),
+    "117P": ("CLOSED_COMMITTED", "Memory Center Writeback v0"),
 }
 
 
@@ -183,7 +185,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 117)
+        f"{number}P" for number in range(67, 118)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -2243,7 +2245,7 @@ def test_114p_is_followup_result_acknowledgement_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic follow-up result acknowledgement baseline. 114P is closed committed after implementation, validation, and closeout review. 115P later added local memory proposal candidates only, and 116P later added local Telegram-facing approval surfaces and approval binding only. Do not infer memory writeback behavior, new follow-up execution, new draft options, selections, delegations, executions, routes, model/tool calls, live Telegram APIs, external effects, 117P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic follow-up result acknowledgement baseline. 114P is closed committed after implementation, validation, and closeout review. 115P later added local memory proposal candidates only, 116P later added local Telegram-facing approval surfaces and approval binding only, and 117P later added local Memory Center writeback only. Do not infer new follow-up execution, new draft options, selections, delegations, executions, routes, model/tool calls, live Telegram APIs, external effects, 118P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["114P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2269,7 +2271,7 @@ def test_115p_is_followup_memory_proposal_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic follow-up memory proposal candidate baseline. 115P is closed committed after implementation, validation, and closeout review. 116P later added Telegram-facing approval surfaces and local approval binding only. Do not infer Memory Center writeback, new action packets, new delegations, new follow-up execution, model/tool calls, live Telegram APIs, external effects, 117P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic follow-up memory proposal candidate baseline. 115P is closed committed after implementation, validation, and closeout review. 116P later added Telegram-facing approval surfaces and local approval binding only, and 117P later added local Memory Center writeback only. Do not infer new action packets, new delegations, new follow-up execution, model/tool calls, live Telegram APIs, external effects, 118P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["115P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2295,9 +2297,35 @@ def test_116p_is_telegram_memory_proposal_approval_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local deterministic Telegram memory proposal approval baseline. 116P is closed committed after implementation, validation, and closeout review. Do not infer Memory Center writeback, MemoryItem mutation, automatic later-stage execution, new action packets, new delegations, new follow-up execution, model/tool calls, live Telegram APIs, external effects, 117P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the local deterministic Telegram memory proposal approval baseline. 116P is closed committed after implementation, validation, and closeout review. 117P later added local Memory Center writeback only. Do not infer automatic later-stage execution, new action packets, new delegations, new follow-up execution, model/tool calls, live Telegram APIs, external effects, 118P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["116P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_117p_is_memory_center_writeback_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["117P"] == {
+        "stage_id": "117P",
+        "stage_name": "Memory Center Writeback v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_117P_closeout",
+            "commit_message": "feat: add memory center writeback",
+            "paths": [
+                "app/memory_center_writeback.py",
+                "tests/test_memory_center_writeback_117p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic Memory Center writeback baseline. 117P is closed committed after implementation, validation, and closeout review. Do not infer context scans, proactive opportunity detection, proactive Telegram suggestions, new follow-up loops, live Telegram APIs, model/tool calls, external effects, 118P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["117P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 
@@ -2964,7 +2992,7 @@ def test_115p_transition_records_later_116p_authorization_and_keeps_117p_plus_bl
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
-def test_116p_transition_keeps_117p_plus_blocked():
+def test_116p_transition_records_later_117p_authorization_and_keeps_118p_plus_blocked():
     transition = load_json_block("stage-116p-implementation-transition")
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
 
@@ -2973,15 +3001,16 @@ def test_116p_transition_keeps_117p_plus_blocked():
         "stage": "116P",
         "stage_name": "Telegram Memory Proposal Approval v0",
         "implementation_commit": "same_commit_as_116P_closeout",
-        "stage_117p_and_later_authorized": False,
+        "stage_117p_authorized_later": True,
+        "stage_117p_current_status": "CLOSED_COMMITTED",
         "next_eligible_stage": None,
         "followup_execution_authorized": False,
         "memory_proposal_candidate_authorized": True,
         "telegram_approval_surface_authorized": True,
         "memory_approval_binding_authorized": True,
-        "memory_center_writeback_authorized": False,
-        "memory_center_mutation_authorized": False,
-        "memory_item_creation_authorized": False,
+        "memory_center_writeback_authorized": True,
+        "memory_center_mutation_authorized": True,
+        "memory_item_creation_authorized": True,
         "memory_item_update_authorized": False,
         "new_followup_intent_authorized": False,
         "new_draft_options_authorized": False,
@@ -3008,6 +3037,57 @@ def test_116p_transition_keeps_117p_plus_blocked():
         "automatic_caregiver_alerts_authorized": False,
     }
     assert stages_by_id["116P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["117P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_117p_transition_keeps_118p_plus_blocked():
+    transition = load_json_block("stage-117p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "117P",
+        "stage_name": "Memory Center Writeback v0",
+        "implementation_commit": "same_commit_as_117P_closeout",
+        "stage_118p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "followup_execution_authorized": False,
+        "memory_proposal_candidate_authorized": True,
+        "telegram_approval_surface_authorized": True,
+        "memory_approval_binding_authorized": True,
+        "memory_center_writeback_authorized": True,
+        "memory_center_mutation_authorized": True,
+        "memory_item_creation_authorized": True,
+        "memory_item_update_authorized": False,
+        "context_scan_authorized": False,
+        "proactive_detection_authorized": False,
+        "proactive_suggestion_authorized": False,
+        "new_followup_intent_authorized": False,
+        "new_draft_options_authorized": False,
+        "new_delegations_authorized": False,
+        "new_executions_authorized": False,
+        "new_routes_authorized": False,
+        "worker_dispatch_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "live_telegram_api_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "new_approvals_authorized": False,
+        "new_action_packets_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["117P"]["status"] == "CLOSED_COMMITTED"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
