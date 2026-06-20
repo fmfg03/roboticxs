@@ -488,4 +488,4 @@ def test_104p_regression_103p_inbox_still_passes():
 def test_104p_105p_plus_remains_unauthorized():
     roadmap_text = ROADMAP_PATH.read_text()
 
-    assert "107P and later remain unauthorized" in roadmap_text or "107P+ remains unauthorized" in roadmap_text
+    assert "108P and later remain unauthorized" in roadmap_text or "108P+ remains unauthorized" in roadmap_text
