@@ -558,8 +558,19 @@ def compare_prior_version_record():
     record, registry = create_followup_record()
     state = registry.get_authority_state(record.followup_delegation_id)
     assert state is not None and state.handle is not None
+    updated_request_snapshot = {
+        **state.packet.request_snapshot,
+        "request_payload": {
+            **state.packet.request_snapshot["request_payload"],
+            "followup_task_class": "FOLLOWUP_COMPARE_PRIOR_VERSION",
+        },
+    }
     registry.authority_states_by_id[record.followup_delegation_id] = replace(
         state,
+        packet=replace(
+            state.packet,
+            request_snapshot=updated_request_snapshot,
+        ),
         handle=replace(
             state.handle,
             original_request_evidence={

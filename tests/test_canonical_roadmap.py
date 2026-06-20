@@ -88,7 +88,8 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_110P_is_closed_committed_after_telegram_followup_choice_selection_binding_closeout",
     "stage_111P_is_closed_committed_after_user_approved_followup_delegation_closeout",
     "stage_112P_is_closed_committed_after_controlled_followup_execution_skeleton_closeout",
-    "do_not_invent_113P_without_explicit_maintainer_direction_in_repo_evidence",
+    "stage_113P_is_closed_committed_after_followup_completion_loop_integration_closeout",
+    "do_not_invent_114P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -141,6 +142,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "110P": ("CLOSED_COMMITTED", "Telegram Follow-up Choice Selection Binding v0"),
     "111P": ("CLOSED_COMMITTED", "User-Approved Follow-up Delegation v0"),
     "112P": ("CLOSED_COMMITTED", "Controlled Follow-up Execution Skeleton v0"),
+    "113P": ("CLOSED_COMMITTED", "Follow-up Completion Loop Integration v0"),
 }
 
 
@@ -163,7 +165,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_112P",
+        "local_evidence_scope": "stages_61P_through_113P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -175,7 +177,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 113)
+        f"{number}P" for number in range(67, 114)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -2189,6 +2191,32 @@ def test_112p_is_controlled_followup_execution_skeleton_closed_committed():
         assert (REPO_ROOT / path).is_file()
 
 
+def test_113p_is_followup_completion_loop_integration_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["113P"] == {
+        "stage_id": "113P",
+        "stage_name": "Follow-up Completion Loop Integration v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_113P_closeout",
+            "commit_message": "feat: add follow-up completion loop integration",
+            "paths": [
+                "app/followup_completion_loop.py",
+                "tests/test_followup_completion_loop_113p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic follow-up completion loop integration baseline. 113P is closed committed after implementation, validation, and closeout review. Do not infer new follow-up execution, live Telegram APIs, acknowledgement binding, memory proposal/writeback behavior, model/tool calls, worker dispatch, external effects, 114P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["113P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
 def test_100p_transition_records_later_101p_102p_103p_104p_105p_106p_107p_108p_authorization_and_keeps_109p_plus_blocked():
     transition = load_json_block("stage-100p-implementation-transition")
     stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
@@ -2709,6 +2737,49 @@ def test_112p_transition_keeps_113p_plus_blocked():
         "automatic_caregiver_alerts_authorized": False,
     }
     assert stages_by_id["112P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_113p_transition_keeps_114p_plus_blocked():
+    transition = load_json_block("stage-113p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "113P",
+        "stage_name": "Follow-up Completion Loop Integration v0",
+        "implementation_commit": "same_commit_as_113P_closeout",
+        "stage_114p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "followup_execution_authorized": False,
+        "local_event_candidate_routing_authorized": True,
+        "inbox_insertion_authorized": True,
+        "user_surface_authorized": True,
+        "telegram_delivery_authorized": True,
+        "acknowledgement_binding_authorized": False,
+        "memory_proposal_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "worker_dispatch_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "live_telegram_api_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "new_approvals_authorized": False,
+        "new_action_packets_authorized": False,
+        "new_delegations_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["113P"]["status"] == "CLOSED_COMMITTED"
     assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
 
 
