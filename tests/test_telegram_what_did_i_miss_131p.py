@@ -45,16 +45,16 @@ def test_131p_help_lists_miss_and_keeps_brief_disabled():
     assert "/help" in reply
     assert "/status" in reply
     assert "/miss" in reply
-    assert "/brief is not enabled yet." in reply
-    assert "/miss and /brief are not enabled yet." not in reply
+    assert "/brief" in reply
+    assert "/brief is not enabled yet." not in reply
 
 
 def test_131p_status_marks_miss_enabled_brief_disabled_and_runtime_active():
     reply = render_status_command_reply(build_valid_config())
 
     assert "/miss command: enabled" in reply
-    assert "/brief command: disabled" in reply
-    assert "roadmap state: 95P-130P closed, 131P runtime active" in reply
+    assert "/brief command: enabled" in reply
+    assert "roadmap state: 95P-131P closed, 132P runtime active" in reply
 
 
 def test_131p_authorized_miss_produces_deterministic_local_read_only_reply():
@@ -119,10 +119,10 @@ def test_131p_unauthorized_miss_returns_private_bot_response_without_brief_conte
     assert "local read-only brief" not in receipt.reply_text
 
 
-def test_131p_brief_remains_disabled_and_unknown_fallback_lists_miss():
+def test_131p_unknown_fallback_lists_brief_after_132p():
     config = build_valid_config()
     client = FakeTelegramClient()
-    incoming = parse_telegram_incoming_command(build_command_update(text="/brief"))
+    incoming = parse_telegram_incoming_command(build_command_update(text="/unknown"))
 
     receipt = handle_incoming_command(
         incoming_command=incoming,
@@ -131,7 +131,7 @@ def test_131p_brief_remains_disabled_and_unknown_fallback_lists_miss():
     )
 
     assert receipt.reply_text == render_unknown_command_reply()
-    assert "Available commands: /start, /help, /status, /miss." in receipt.reply_text
+    assert "Available commands: /start, /help, /status, /miss, /brief." in receipt.reply_text
     assert "No action was taken." in receipt.reply_text
 
 
