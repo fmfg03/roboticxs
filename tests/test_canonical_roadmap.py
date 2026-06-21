@@ -106,7 +106,8 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_128P_is_closed_committed_after_document_review_demo_flow_closeout",
     "stage_129P_is_closed_committed_after_hermes_runtime_bootstrap_closeout",
     "stage_130P_is_closed_committed_after_runnable_telegram_robot_mvp_closeout",
-    "do_not_invent_131P_without_explicit_maintainer_direction_in_repo_evidence",
+    "stage_131P_is_closed_committed_after_telegram_what_did_i_miss_command_closeout",
+    "do_not_invent_132P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -177,6 +178,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "128P": ("CLOSED_COMMITTED", "Document Review Demo Flow v0"),
     "129P": ("CLOSED_COMMITTED", "Hermes Runtime Bootstrap v0"),
     "130P": ("CLOSED_COMMITTED", "Runnable Telegram Robot MVP v0"),
+    "131P": ("CLOSED_COMMITTED", "Telegram What Did I Miss Command v0"),
 }
 
 
@@ -199,7 +201,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_130P",
+        "local_evidence_scope": "stages_61P_through_131P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -211,7 +213,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 131)
+        f"{number}P" for number in range(67, 132)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -2687,9 +2689,36 @@ def test_130p_is_runnable_telegram_robot_mvp_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the runnable owner-gated Telegram robot baseline. 130P is closed committed after implementation, validation, and closeout review. It runs a live/dev Telegram bot with deterministic /start, /help, and /status replies, owner gating by Telegram user id, bounded polling helpers, and Telegram sendMessage replies only. Do not infer /miss, /brief, connectors, model/tool calls, workers, Memory Center mutation, async delegation, billing, entitlement enforcement, external writes beyond Telegram replies, 131P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the runnable owner-gated Telegram robot baseline. 130P is closed committed after implementation, validation, and closeout review. It runs a live/dev Telegram bot with deterministic /start, /help, and /status replies, owner gating by Telegram user id, bounded polling helpers, and Telegram sendMessage replies only. Do not infer /miss, /brief, connectors, model/tool calls, workers, Memory Center mutation, async delegation, billing, entitlement enforcement, external writes beyond Telegram replies, 132P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["130P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_131p_is_telegram_what_did_i_miss_command_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["131P"] == {
+        "stage_id": "131P",
+        "stage_name": "Telegram What Did I Miss Command v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_131P_closeout",
+            "commit_message": "feat: add telegram what did i miss command",
+            "paths": [
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_telegram_what_did_i_miss_131p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the runnable owner-gated Telegram what did i miss baseline. 131P is closed committed after implementation, validation, and closeout review. It adds deterministic owner-gated /miss replies backed by the existing 124P local daily brief path, keeps /brief disabled, and preserves Telegram sendMessage replies as the only external write. Do not infer 132P+, NEXT_ELIGIBLE, live connectors, model/tool calls, worker dispatch, Memory Center mutation, async delegation, billing, entitlement enforcement, or external writes beyond Telegram replies from this status.",
+    }
+    for path in stages_by_id["131P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 

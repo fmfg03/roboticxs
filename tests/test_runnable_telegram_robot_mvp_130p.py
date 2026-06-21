@@ -15,6 +15,7 @@ from app.runnable_telegram_robot_mvp import (
     main,
     parse_telegram_incoming_command,
     render_help_command_reply,
+    render_miss_command_reply,
     render_start_command_reply,
     render_status_command_reply,
     render_unauthorized_reply,
@@ -187,7 +188,7 @@ def test_130p_start_from_authorized_owner_produces_deterministic_online_response
     assert receipt.reply_text == render_start_command_reply(config)
     assert "Roboticxs is online." in receipt.reply_text
     assert "This dev bot is owner-gated." in receipt.reply_text
-    assert "Available commands: /help, /status." in receipt.reply_text
+    assert "Available commands: /help, /status, /miss." in receipt.reply_text
     assert "No external actions are enabled." in receipt.reply_text
 
 
@@ -206,7 +207,9 @@ def test_130p_help_from_authorized_owner_produces_deterministic_command_list():
     assert "/start" in receipt.reply_text
     assert "/help" in receipt.reply_text
     assert "/status" in receipt.reply_text
-    assert "/miss and /brief are not enabled yet." in receipt.reply_text
+    assert "/miss" in receipt.reply_text
+    assert "/brief is not enabled yet." in receipt.reply_text
+    assert "/miss and /brief are not enabled yet." not in receipt.reply_text
 
 
 def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status():
@@ -231,7 +234,9 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "tools: disabled" in receipt.reply_text
     assert "Memory Center mutation: disabled" in receipt.reply_text
     assert "proactive outbound: disabled" in receipt.reply_text
-    assert "roadmap state: 95P-129P closed, 130P runtime active" in receipt.reply_text
+    assert "/miss command: enabled" in receipt.reply_text
+    assert "/brief command: disabled" in receipt.reply_text
+    assert "roadmap state: 95P-130P closed, 131P runtime active" in receipt.reply_text
 
 
 def test_130p_unknown_command_from_authorized_owner_produces_safe_fallback():
@@ -247,6 +252,7 @@ def test_130p_unknown_command_from_authorized_owner_produces_safe_fallback():
 
     assert receipt.reply_text == render_unknown_command_reply()
     assert "Command not enabled." in receipt.reply_text
+    assert "Available commands: /start, /help, /status, /miss." in receipt.reply_text
     assert "No action was taken." in receipt.reply_text
 
 
@@ -421,14 +427,16 @@ def test_130p_main_uses_injected_client_for_bounded_run(
     assert exit_code == 0
     assert "Roboticxs Telegram Robot: online" in captured.out
     assert "Available commands: /start, /help, /status" in captured.out
+    assert "/miss" in captured.out
     assert fake_client.sent_messages[0]["text"] == render_status_command_reply(build_valid_config())
 
 
 def test_130p_startup_report_is_deterministic():
     report = build_telegram_robot_startup_report(build_valid_config())
 
-    assert "Stage: 130P" in report
+    assert "Stage: 131P" in report
     assert "Owner gate: enabled" in report
+    assert "Available commands: /start, /help, /status, /miss" in report
     assert "External connectors: disabled" in report
     assert "LLM/model calls: disabled" in report
     assert "Tools: disabled" in report
@@ -436,8 +444,24 @@ def test_130p_startup_report_is_deterministic():
     assert "Proactive outbound: disabled" in report
 
 
-def test_130p_roadmap_registers_stage_and_131p_plus_block():
+def test_130p_miss_command_is_routed_through_existing_runtime():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/miss"))
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+    )
+
+    assert receipt.reply_text == render_miss_command_reply(config)
+    assert "What Did I Miss?" in receipt.reply_text
+
+
+def test_130p_roadmap_registers_stage_and_132p_plus_block():
     roadmap = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"130P","stage_name":"Runnable Telegram Robot MVP v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "131P and later remain unauthorized" in roadmap
+    assert '"stage_id":"131P","stage_name":"Telegram What Did I Miss Command v0","status":"CLOSED_COMMITTED"' in roadmap
+    assert "132P and later remain unauthorized" in roadmap
