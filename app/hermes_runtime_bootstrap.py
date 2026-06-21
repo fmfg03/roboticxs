@@ -9,9 +9,9 @@ import sys
 
 
 HERMES_RUNTIME_BOOTSTRAP_STAGE = "129P"
-ROADMAP_CLOSED_THROUGH = "132P"
-NEXT_STAGE = "133P"
-NEXT_STAGE_LABEL = "133P+ remains unauthorized."
+ROADMAP_CLOSED_THROUGH = "133P"
+NEXT_STAGE = "134P"
+NEXT_STAGE_LABEL = "134P+ remains unauthorized."
 DEFAULT_RUNTIME_MODE = "local-dev"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
@@ -23,6 +23,7 @@ FEATURE_MODULES = (
     ("daily_brief_what_did_i_miss", "app.daily_brief_what_did_i_miss", False),
     ("meeting_brief_demo_flow", "app.meeting_brief_demo_flow", False),
     ("document_review_demo_flow", "app.document_review_demo_flow", False),
+    ("google_calendar_readonly_connector", "app.google_calendar_readonly_connector", False),
     ("demo_result_delivery_surface", "app.demo_result_delivery_surface", False),
     ("skill_pack_activation_surface", "app.skill_pack_activation_surface", False),
     ("memory_center_writeback", "app.memory_center_writeback", False),
@@ -230,7 +231,7 @@ def render_hermes_runtime_bootstrap_report(
             f"Owner: {status.owner_id}",
             f"Owner Display Name: {status.owner_display_name}",
             f"Mode: {status.runtime_mode}",
-            f"Roadmap: 95P-132P CLOSED_COMMITTED",
+            f"Roadmap: 95P-133P CLOSED_COMMITTED",
             f"Roadmap Closed Through: {status.roadmap_closed_through}",
             f"Telegram: {'enabled' if status.telegram_enabled else 'disabled'}",
             f"Connectors: {'enabled' if status.connectors_enabled else 'disabled'}",
@@ -259,6 +260,7 @@ def render_hermes_runtime_bootstrap_report(
                 "Telegram Robot MVP: available if env is configured",
                 "Meeting Brief Demo: available if local records exist",
                 "Document Review Demo: available if local records exist",
+                "Google Calendar Read-Only Connector: available for local manual smoke runs",
                 f"Next authorized stage: {NEXT_STAGE_LABEL}",
                 f"Generated At: {status.generated_at}",
             ]
