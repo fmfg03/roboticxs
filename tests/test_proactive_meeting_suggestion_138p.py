@@ -170,5 +170,5 @@ def test_138p_roadmap_records_proactive_meeting_suggestion_and_blocks_139p_plus(
     roadmap = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "140P later added a DeerFlow docs/test-only pattern review only. 141P and later remain unauthorized" in roadmap
+    assert "140P later added a DeerFlow docs/test-only pattern review only. 141P later added an owner-requested read-only Today command only. 142P and later remain unauthorized" in roadmap
     assert "It suggests an action only and does not execute a meeting brief automatically." in roadmap

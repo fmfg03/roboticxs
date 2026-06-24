@@ -285,5 +285,5 @@ def test_136p_roadmap_records_memory_center_telegram_commands_and_blocks_137p_pl
     roadmap = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"136P","stage_name":"Memory Center Telegram Commands v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "140P later added a DeerFlow docs/test-only pattern review only. 141P and later remain unauthorized" in roadmap
+    assert "140P later added a DeerFlow docs/test-only pattern review only. 141P later added an owner-requested read-only Today command only. 142P and later remain unauthorized" in roadmap
     assert "No Telegram memory command writes, approves, rejects, edits, deletes, or mutates Memory Center state." in roadmap

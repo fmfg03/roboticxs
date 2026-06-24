@@ -193,4 +193,4 @@ def test_139p_roadmap_records_requested_suggested_brief_and_blocks_140p_plus():
     roadmap = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "140P later added a DeerFlow docs/test-only pattern review only. 141P and later remain unauthorized" in roadmap
+    assert "140P later added a DeerFlow docs/test-only pattern review only. 141P later added an owner-requested read-only Today command only. 142P and later remain unauthorized" in roadmap

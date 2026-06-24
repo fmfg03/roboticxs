@@ -118,5 +118,5 @@ def test_140p_roadmap_records_deerflow_pattern_review_and_blocks_141p_plus():
     roadmap = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"140P","stage_name":"DeerFlow Pattern Review / Sandbox Boundary Spike v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "141P and later remain unauthorized" in roadmap
+    assert "142P and later remain unauthorized" in roadmap
     assert re.search(r"140P.+docs/test-only", roadmap, re.DOTALL)

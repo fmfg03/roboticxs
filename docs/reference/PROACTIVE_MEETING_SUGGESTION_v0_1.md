@@ -41,4 +41,4 @@ As Francisco, I want Roboticxs to notice when an upcoming Calendar meeting likel
 
 ## Closeout
 
-138P is closed committed when the module, Telegram reply path, roadmap registry, and tests all assert the action-only boundary. 139P later added owner-requested suggested meeting brief rendering only, and 140P later added a DeerFlow docs/test-only pattern review only. 141P and later remain unauthorized.
+138P is closed committed when the module, Telegram reply path, roadmap registry, and tests all assert the action-only boundary. 139P later added owner-requested suggested meeting brief rendering only, and 140P later added a DeerFlow docs/test-only pattern review only. 141P later added an owner-requested read-only Today command only. 142P and later remain unauthorized.

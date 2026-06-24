@@ -114,4 +114,4 @@ A future DeerFlow-related stage requires:
 
 ## Closeout
 
-140P is closed committed when this docs/test-only review, canonical roadmap registry, and tests assert that DeerFlow is a reference only, Hermes remains runtime, no DeerFlow dependency or runtime capability is added, and 141P and later remain unauthorized.
+140P is closed committed when this docs/test-only review, canonical roadmap registry, and tests assert that DeerFlow is a reference only, Hermes remains runtime, no DeerFlow dependency or runtime capability is added, and 142P and later remain unauthorized.
