@@ -1,0 +1,75 @@
+{
+  "schema_version": "session_summary_v0",
+  "session_id": "019ec365-111f-7433-adbe-61240b3fc045",
+  "project": "roboticxs",
+  "repo": "/root/roboticxs",
+  "branch": "dirty/reference-before-runtime-promotion-20260601",
+  "latest_commit": "e4c7c68f5f6fa10f1531891a18472d63c3047e4e",
+  "budget_band": "HARD_LIMIT",
+  "estimated_tokens_at_gate": 373930,
+  "handoff_path": "/root/roboticxs/artifacts/context_budget/HANDOFF_019ec365-111f-7433-adbe-61240b3fc045.md",
+  "context_gate_receipt_path": "/root/roboticxs/artifacts/context_budget/context_gate_receipt_019ec365-111f-7433-adbe-61240b3fc045.json",
+  "handoff_sha256": "9a574b43f968b28f5aab6a378c26332cfc2f9892fb186b7024dc21f132ab3c53",
+  "current_canonical_status": {
+    "84P": "CLOSED_COMMITTED",
+    "85P": "CLOSED_COMMITTED",
+    "86P": "CLOSED_COMMITTED",
+    "87P": "CLOSED_COMMITTED",
+    "88P": "NEXT_ELIGIBLE_STORY_SPEC_ONLY_NOT_IMPLEMENTED",
+    "89P_plus": "NOT_AUTHORIZED"
+  },
+  "recent_commits": [
+    {
+      "commit": "e4c7c68f5f6fa10f1531891a18472d63c3047e4e",
+      "message": "docs: close hermes agent skills cron baseline status",
+      "scope": "87P closeout metadata reconciliation"
+    },
+    {
+      "commit": "213a7772aef3a55e03f2284044aba458c752c54e",
+      "message": "docs: add hermes agent skills cron baseline",
+      "scope": "87P implementation"
+    },
+    {
+      "commit": "255fa9f",
+      "message": "docs: close hermes real settings baseline status",
+      "scope": "86P closeout metadata reconciliation"
+    },
+    {
+      "commit": "efb4f5f",
+      "message": "docs: add hermes real settings baseline",
+      "scope": "86P implementation"
+    }
+  ],
+  "final_git_status_short": "?? artifacts/",
+  "tests_passed": [
+    "python3 -m pytest -q tests/test_canonical_roadmap.py",
+    "python3 -m pytest -q tests/test_roadmap_continuation_authorization_gate.py",
+    "python3 -m pytest -q touched roadmap/status tests",
+    "python3 -m compileall app tests",
+    "python3 -m pytest -q",
+    "git diff --check"
+  ],
+  "files_changed_in_latest_commit": [
+    "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+    "tests/test_canonical_roadmap.py",
+    "tests/test_hermes_runtime_foundation.py",
+    "tests/test_roadmap_continuation_authorization_gate.py",
+    "tests/test_telegram_conversation_loop.py",
+    "tests/test_telegram_memory_proposal_loop.py",
+    "tests/test_telegram_runtime_bootstrap.py",
+    "tests/test_telegram_runtime_smoke.py",
+    "tests/test_voxcpm_research_parking_lot.py"
+  ],
+  "next_action": "Start a fresh Codex session from the handoff, summary, receipt, AGENTS.md, and current git status. Do not implement 88P unless explicitly authorized by the maintainer.",
+  "stop_conditions": [
+    "Tracked files are dirty at the start of the next task.",
+    "Residual status is not limited to expected artifacts.",
+    "The next request attempts to implement 89P+.",
+    "The next request ambiguously asks for 88P without clear scope.",
+    "Required validation fails."
+  ],
+  "redaction": {
+    "secrets_included": false,
+    "raw_transcript_included": false
+  }
+}

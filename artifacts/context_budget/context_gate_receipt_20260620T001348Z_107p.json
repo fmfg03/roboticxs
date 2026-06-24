@@ -1,0 +1,25 @@
+{
+  "schema_version": "context_gate_receipt_v0",
+  "created_at": "2026-06-20T00:13:48Z",
+  "session_id": "20260620T001348Z_107p",
+  "project": "roboticxs",
+  "policy_profile": "factory_default",
+  "estimated_tokens": null,
+  "budget_band": "RED",
+  "decision": "HANDOFF_REQUIRED",
+  "reason_codes": [
+    "RED_BAND_REQUIRES_HANDOFF",
+    "MULTI_PHASE_BUILD_AND_VALIDATION_COMPLETED",
+    "TOOL_CALL_VOLUME_HIGH",
+    "FILE_REFERENCE_VOLUME_HIGH"
+  ],
+  "handoff_required": true,
+  "handoff_path": "artifacts/context_budget/HANDOFF_20260620T001348Z_107p.md",
+  "session_summary_path": "artifacts/context_budget/session_20260620T001348Z_107p.summary.json",
+  "operator_override": false,
+  "notes": [
+    "This governed handoff package is repo-local continuity metadata, not authority-bearing runtime state.",
+    "107P is closed committed at 94fe3b31a5e458ab9c7dce2c885dd2b0f1fa11e5.",
+    "108P and later remain unauthorized."
+  ]
+}

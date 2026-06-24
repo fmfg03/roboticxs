@@ -1,0 +1,233 @@
+{
+  "schema_version": "session_summary_v0",
+  "session_id": "019ec38a-aa20-76e0-8a03-96b6b88ea81e",
+  "project": "roboticxs",
+  "repo": "/root/roboticxs",
+  "branch": "dirty/reference-before-runtime-promotion-20260601",
+  "latest_commit": "e8a365e7bc7a5a6df0158a44bd1e38c02a419fcf",
+  "budget_band": "HARD_LIMIT",
+  "estimated_tokens": 308978,
+  "handoff_path": "/root/roboticxs/artifacts/context_budget/HANDOFF_019ec38a-aa20-76e0-8a03-96b6b88ea81e.md",
+  "next_action": "Start a fresh Codex session from this handoff, verify git status is only artifacts, and wait for explicit maintainer authorization before implementing 90P.",
+  "files_touched": [
+    ".../ROBOTICXS_AUTOMATION_BLUEPRINTS_v0_1.md",
+    ".../ROBOTICXS_ROUTINE_COST_POLICY_v0_1.md",
+    ".../ROBOTICXS_SCRIPT_ONLY_ROUTINES_v0_1.md",
+    ".../hermes/scripts/examples/external_flag_gate.py",
+    ".../hermes/scripts/examples/file_change_gate.py",
+    ".../hermes/skills/roboticxs-daily-brief/SKILL.md",
+    ".../skills/roboticxs-caregiver-routine/SKILL.md",
+    ".../skills/roboticxs-research-radar/SKILL.md",
+    ".../test_roboticxs_blueprint_no_silent_schedule.py",
+    "./deploy-production.sh",
+    "./scripts/ci/pcs-container-smoke-gate.sh",
+    "./scripts/ci/pcs-ephemeral-gate.sh",
+    "./scripts/ci/pcs-sbom-vuln-gate.sh",
+    "./scripts/ci/sal3-loop-gate.sh",
+    ".codex-plugin/plugin.json",
+    "/INSTRUCTIONS",
+    "/abs/path/My",
+    "/abs/path/app.py",
+    "/apps_instructions",
+    "/assert",
+    "/autoreview",
+    "/bin/bash",
+    "/collaboration_mode",
+    "/context-budget",
+    "/current_date"
+  ],
+  "commands_run": [
+    {
+      "command": "sed -n '1,240p' /root/.codex/skills/codex-factory-context-budget/SKILL.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "python /root/tools/context-budget/context_budget.py status --session-id current --project roboticxs",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "find artifacts/context_budget -maxdepth 1 -type f -printf '%T@ %p\\n' | sort -n",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "python3 /root/tools/context-budget/context_budget.py status --session-id current --project roboticxs",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' artifacts/context_budget/HANDOFF_019ec365-111f-7433-adbe-61240b3fc045.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' artifacts/context_budget/session_019ec365-111f-7433-adbe-61240b3fc045.summary.json",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' artifacts/context_budget/context_gate_receipt_019ec365-111f-7433-adbe-61240b3fc045.json",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' AGENTS.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git status --short",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' /root/.agents/skills/feature-factory/SKILL.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' /root/.agents/skills/build-with-tests/SKILL.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "rg --files docs tests runtime app | sort",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' tests/test_canonical_roadmap.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' tests/test_roadmap_continuation_authorization_gate.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '260,620p' docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '620,980p' docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' docs/reference/ROBOTICXS_HERMES_CRON_ROUTINE_MAPPING_v0_1.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,280p' tests/test_hermes_cron_routine_mapping.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '260,620p' tests/test_canonical_roadmap.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '620,980p' tests/test_canonical_roadmap.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "rg -n \"87P|88P|89P|CLOSED_COMMITTED|IMPLEMENTED_PENDING_REVIEW|after_commit_next_eligible\" tests docs/roadmap docs/ROBOTICXS_IMPLEMENTATION_STATUS.md docs/ROBOTICXS_RUNTIME_STATUS.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "find runtime/hermes -maxdepth 4 -type f -print | sort",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1080,1165p' tests/test_canonical_roadmap.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,220p' docs/ROBOTICXS_IMPLEMENTATION_STATUS.md && sed -n '1,220p' docs/ROBOTICXS_RUNTIME_STATUS.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "You are Codex, a coding agent based on GPT-5. You and the user share one workspace, and your job is to collaborate with them until their goal is genuinely handled.\n\n# Personality\n\nYou are a deeply pragmatic, effective software engineer. You",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "<skills_instructions>\n## Skills\nA skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the s",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "# AGENTS.md instructions for /root/roboticxs\n\n<INSTRUCTIONS>\n# Global Codex Operating Standard\n\nThis file defines how Codex should work across repos.\nRepo-specific truth belongs in repo-level `AGENTS.md` overlays, not here.\n\n## Operating Pr",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "Use `codex-factory-context-budget`.\n\nStart from the latest handoff in `artifacts/context_budget/` if present.\n\nCurrent canonical status:\n\n* 84P \u2014 Active Memory Forget over Telegram v0 is CLOSED_COMMITTED.\n* 85P \u2014 Hermes Profile / Roboticxs ",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "Use `codex-factory-context-budget`.\n\nStart from the latest handoff in `artifacts/context_budget/` if present.\n\nCurrent canonical status:\n\n* 84P \u2014 Active Memory Forget over Telegram v0 is CLOSED_COMMITTED.\n* 85P \u2014 Hermes Profile / Roboticxs ",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    }
+  ],
+  "blockers": [
+    {
+      "blocker": "You are Codex, a coding agent based on GPT-5. You and the user share one workspace, and your job is to collaborate with them until their goal is genuinely handled.\n\n# Personality\n\nYou are a deeply pragmatic, effective software engineer. You",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "<skills_instructions>\n## Skills\nA skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the s",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "<plugins_instructions>\n## Plugins\nA plugin is a local bundle of skills, MCP servers, and apps. Below is the list of plugins that are enabled and available in this session.\n### Available plugins\n- `Canva`: Search, create, edit designs\n- `Git",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "Chunk ID: 162f30\nWall time: 0.0784 seconds\nProcess exited with code 0\nOriginal token count: 2792\nOutput:\n# Governed Session Handoff\n\n## 1. Session Identity\n\n- Project: roboticxs\n- Repo: `/root/roboticxs`\n- Branch: `dirty/reference-before-ru",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "Chunk ID: ddbd5e\nWall time: 0.0466 seconds\nProcess exited with code 0\nOriginal token count: 2719\nOutput:\nfrom __future__ import annotations\n\nimport json\nfrom pathlib import Path\nimport re\nimport subprocess\n[REDACTED:ENV_VALUE]\n[REDACTED:ENV",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    }
+  ],
+  "redaction": {
+    "secrets_detected": false,
+    "pii_detected": false,
+    "redaction_patterns_applied": [
+      "ENV_VALUE"
+    ]
+  },
+  "handoff_sha256": "2b9aca82eeb1d8ee9ea3a5f9f5576cf4c791000ad265905fe17b5aeda545bb85"
+}

@@ -1,0 +1,233 @@
+{
+  "schema_version": "session_summary_v0",
+  "session_id": "019ec1bc-5909-7162-8b12-70e1f241bbac",
+  "project": "roboticxs",
+  "repo": "/root/roboticxs",
+  "branch": "dirty/reference-before-runtime-promotion-20260601",
+  "latest_commit": "ef9faeb5ed427e2fe4cc04720a50a0a5eadf4d22",
+  "budget_band": "RED",
+  "estimated_tokens": 179467,
+  "handoff_path": "artifacts/context_budget/HANDOFF_019ec1bc-5909-7162-8b12-70e1f241bbac.md",
+  "next_action": "Read this handoff, verify repo state, and continue from the latest approved scope.",
+  "files_touched": [
+    ".../HERMES_RUNTIME_FOUNDATION_BOOTSTRAP_v0_1.md",
+    ".../TELEGRAM_BOT_RUNTIME_BOOTSTRAP_v0_1.md",
+    ".../TELEGRAM_RUNTIME_SMOKE_MANUAL_WIRING_v0_1.md",
+    "./app/__pycache__/budget_authority.cpython-312.pyc",
+    "./app/__pycache__/budget_policy.cpython-312.pyc",
+    "./app/budget_authority.py",
+    "./app/budget_policy.py",
+    "./app/flows/__pycache__/budget_flow.cpython-312.pyc",
+    "./app/flows/budget_flow.py",
+    "./artifacts/context_budget/HANDOFF_019eb3ec-88e4-7250-a953-c26e873c8d85.md",
+    "./artifacts/context_budget/HANDOFF_019ebf6f-0a94-7690-95b5-bd7327e726d9.md",
+    "./artifacts/context_budget/HANDOFF_019ebf86-c891-7182-884f-541ad8330847.md",
+    "./artifacts/context_budget/HANDOFF_019ec145-[REDACTED:PHONE]-b870-28bb4b9047e6.md",
+    "./artifacts/context_budget/HANDOFF_019ec16a-ea8e-76f1-a60f-7a56d9691288.md",
+    "./artifacts/context_budget/context_gate_receipt_019eb3ec-88e4-7250-a953-c26e873c8d85.json",
+    "./artifacts/context_budget/context_gate_receipt_019ebf6f-0a94-7690-95b5-bd7327e726d9.json",
+    "./artifacts/context_budget/context_gate_receipt_019ebf86-c891-7182-884f-541ad8330847.json",
+    "./artifacts/context_budget/session_019eb3ec-88e4-7250-a953-c26e873c8d85.summary.json",
+    "./artifacts/context_budget/session_019ebf6f-0a94-7690-95b5-bd7327e726d9.summary.json",
+    "./artifacts/context_budget/session_019ebf86-c891-7182-884f-541ad8330847.summary.json",
+    "./deploy-production.sh",
+    "./scripts/ci/pcs-container-smoke-gate.sh",
+    "./scripts/ci/pcs-ephemeral-gate.sh",
+    "./scripts/ci/pcs-sbom-vuln-gate.sh",
+    "./scripts/ci/sal3-loop-gate.sh"
+  ],
+  "commands_run": [
+    {
+      "command": "find . -type f -iname '*handoff*.md' -printf '%T@ %p\\n' | sort -n | tail -5",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "pwd && rg --files -g 'AGENTS.md' -g '*.md' | sed -n '1,120p'",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' artifacts/context_budget/HANDOFF_019ec16a-ea8e-76f1-a60f-7a56d9691288.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '261,620p' artifacts/context_budget/HANDOFF_019ec16a-ea8e-76f1-a60f-7a56d9691288.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' /root/.agents/skills/feature-factory/SKILL.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git status --short",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "python3 /root/tools/context-budget/context_budget.py status --session-id current --project roboticxs --artifact-root artifacts/context_budget",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "rg -n \"ProposedMemory|memory|memoria|telegram|APROBAR|RECHAZAR|remember|recuerda\" app tests docs/reference docs/roadmap -S",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "rg --files app tests docs | sed -n '1,220p'",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,280p' app/telegram_runtime.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,280p' app/memory_service.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' app/memory_extraction.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,280p' app/memory_control.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '280,620p' app/telegram_runtime.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,320p' tests/test_telegram_memory_proposal_loop.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,360p' tests/test_memory_control.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' tests/test_telegram_webhook.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,360p' app/main.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,320p' app/orchestrator.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,220p' app/models.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,220p' tests/conftest.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' app/flows/memory_flow.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' app/command_registry.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,220p' docs/reference/TELEGRAM_MEMORY_PROPOSAL_LOOP_v0_1.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '840,900p' tests/test_canonical_roadmap.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "You are Codex, a coding agent based on GPT-5. You and the user share one workspace, and your job is to collaborate with them until their goal is genuinely handled.\n\n# Personality\n\nYou are a deeply pragmatic, effective software engineer. You",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "<skills_instructions>\n## Skills\nA skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the s",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "# AGENTS.md instructions for /root/roboticxs\n\n<INSTRUCTIONS>\n# Global Codex Operating Standard\n\nThis file defines how Codex should work across repos.\nRepo-specific truth belongs in repo-level `AGENTS.md` overlays, not here.\n\n## Operating Pr",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "read the last available handoff .md file. # 83P \u2014 Active Memory Recall over Telegram v0\n\n## Status\n\nCANDIDATE_STORY_SPEC_ONLY\n\nThis document defines the proposed 83P stage. It does not authorize implementation, staging, or commit.\n\n## Canon",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "read the last available handoff .md file. # 83P \u2014 Active Memory Recall over Telegram v0\n\n## Status\n\nCANDIDATE_STORY_SPEC_ONLY\n\nThis document defines the proposed 83P stage. It does not authorize implementation, staging, or commit.\n\n## Canon",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    }
+  ],
+  "blockers": [
+    {
+      "blocker": "You are Codex, a coding agent based on GPT-5. You and the user share one workspace, and your job is to collaborate with them until their goal is genuinely handled.\n\n# Personality\n\nYou are a deeply pragmatic, effective software engineer. You",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "<skills_instructions>\n## Skills\nA skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the s",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "<plugins_instructions>\n## Plugins\nA plugin is a local bundle of skills, MCP servers, and apps. Below is the list of plugins that are enabled and available in this session.\n### Available plugins\n- `Canva`: Search, create, edit designs\n- `Gma",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "Chunk ID: 900fc8\nWall time: 0.0000 seconds\nProcess exited with code 0\nOriginal token count: 5992\nOutput:\n# Governed Session Handoff\n\n## 1. Session Identity\n- Project: roboticxs\n- Repo: /root/roboticxs\n- Branch: dirty/reference-before-runtim",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "Chunk ID: ca8446\nWall time: 0.0055 seconds\nProcess exited with code 0\nOriginal token count: 1155\nOutput:\n| `sed -n '1,220p' artifacts/context_budget/context_gate_receipt_019ec145-[REDACTED:PHONE]-b870-28bb4b9047e6.json` | observed | Transcr",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    }
+  ],
+  "redaction": {
+    "secrets_detected": false,
+    "pii_detected": false,
+    "redaction_patterns_applied": [
+      "PHONE"
+    ]
+  },
+  "handoff_sha256": "c5b53075b73a9c2035da4cb7b42050eca9b39689acd4fac255ef1ec03595f926"
+}

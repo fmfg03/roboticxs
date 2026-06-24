@@ -1,0 +1,231 @@
+{
+  "schema_version": "session_summary_v0",
+  "session_id": "019ebf6f-0a94-7690-95b5-bd7327e726d9",
+  "project": "roboticxs",
+  "repo": "/root/roboticxs",
+  "branch": "dirty/reference-before-runtime-promotion-20260601",
+  "latest_commit": "213fb9c2d4ed765a55f8e4d651437448645c0d22",
+  "budget_band": "RED",
+  "estimated_tokens": 133727,
+  "handoff_path": "/root/roboticxs/artifacts/context_budget/HANDOFF_019ebf6f-0a94-7690-95b5-bd7327e726d9.md",
+  "next_action": "Read this handoff, verify repo state, and continue from the latest approved scope.",
+  "files_touched": [
+    "./deploy-production.sh",
+    "./scripts/ci/pcs-container-smoke-gate.sh",
+    "./scripts/ci/pcs-ephemeral-gate.sh",
+    "./scripts/ci/pcs-sbom-vuln-gate.sh",
+    "./scripts/ci/sal3-loop-gate.sh",
+    ".codex-plugin/plugin.json",
+    ".github/workflows/ci.yml",
+    "/INSTRUCTIONS",
+    "/abs/path/My",
+    "/abs/path/app.py",
+    "/apps_instructions",
+    "/autoreview",
+    "/bin/bash",
+    "/collaboration_mode",
+    "/context-budget",
+    "/current_date",
+    "/cwd",
+    "/entry",
+    "/environment_context",
+    "/file_system",
+    "/filesystem",
+    "/github.com/Lum1104/Understand-Anything",
+    "/github.com/colbymchenry/codegraph",
+    "/github.com/fmfg03/roboticxs.git",
+    "/github.com/mvanhorn/last30days-skill"
+  ],
+  "commands_run": [
+    {
+      "command": "pwd && rg --files",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git status --short",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "rg -n \"74P|Stage|stage|NEXT|Next|siguiente|pending|Pending|complete|Complete\" docs roboticxs_artifacts/docs README.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,240p' docs/ROBOTICXS_IMPLEMENTATION_STATUS.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,220p' README.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '240,360p' docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "rg -n \"ECC|74P|Knowledge Compiler|Compiler\" docs app tests",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '220,260p' docs/reference/REPO_UNDERSTANDING_FACTORY_SKILL_v0_1.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' /root/.codex/skills/codex-factory-context-budget/SKILL.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "python /root/tools/context-budget/context_budget.py status --session-id current --project roboticxs",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' app/repo_understanding.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,420p' tests/test_repo_understanding.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,620p' tests/test_canonical_roadmap.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "python3 /root/tools/context-budget/context_budget.py status --session-id current --project roboticxs",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '260,620p' app/repo_understanding.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' app/models.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' app/memory_service.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,220p' pyproject.toml",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,220p' app/db.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,180p' tests/conftest.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' docs/reference/RESEARCH_RADAR_LAST30DAYS_SKILL_v0_1.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "rg -n \"74P|75P|sole_next_eligible|stages_75P\" tests docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md docs/reference",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,120p' tests/test_canonical_roadmap.py && sed -n '200,280p' tests/test_canonical_roadmap.py && sed -n '440,570p' tests/test_canonical_roadmap.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "rg -n \"next_eligible|74P|75P|future_sequence\" tests/test_canonical_roadmap.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "You are Codex, a coding agent based on GPT-5. You and the user share one workspace, and your job is to collaborate with them until their goal is genuinely handled.\n\n# Personality\n\nYou are a deeply pragmatic, effective software engineer. You",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "<skills_instructions>\n## Skills\nA skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the s",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "# AGENTS.md instructions for /root/roboticxs\n\n<INSTRUCTIONS>\n# Global Codex Operating Standard\n\nThis file defines how Codex should work across repos.\nRepo-specific truth belongs in repo-level `AGENTS.md` overlays, not here.\n\n## Operating Pr",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "Chunk ID: 4e31b2\nWall time: 0.3070 seconds\nProcess exited with code 0\nOriginal token count: 31191\nOutput:\nTotal output lines: 818\n\nREADME.md:91:- documents and pending actions\nREADME.md:103:It is frozen unless a future approved stage explic",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "Chunk ID: 2ea1ec\nWall time: 0.2907 seconds\nProcess exited with code 0\nOriginal token count: 1756\nOutput:\n# ROBOTICXS Implementation Status\n\n## 1. Implemented stages\n\n### Core runtime\n- Stage 1: text-only Telegram control loop over FastAPI +",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    }
+  ],
+  "blockers": [
+    {
+      "blocker": "You are Codex, a coding agent based on GPT-5. You and the user share one workspace, and your job is to collaborate with them until their goal is genuinely handled.\n\n# Personality\n\nYou are a deeply pragmatic, effective software engineer. You",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "<skills_instructions>\n## Skills\nA skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the s",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "<plugins_instructions>\n## Plugins\nA plugin is a local bundle of skills, MCP servers, and apps. Below is the list of plugins that are enabled and available in this session.\n### Available plugins\n- `Canva`: Search, create, edit designs\n- `Git",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "Chunk ID: 4e31b2\nWall time: 0.3070 seconds\nProcess exited with code 0\nOriginal token count: 31191\nOutput:\nTotal output lines: 818\n\nREADME.md:91:- documents and pending actions\nREADME.md:103:It is frozen unless a future approved stage explic",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "Chunk ID: 38cda1\nWall time: 0.0121 seconds\nProcess exited with code 0\nOriginal token count: 2396\nOutput:\n{\n  \"closeout_status\":\"COMPLETED_FIXED_BASELINE\",\n  \"after_commit_status\":\"COMPLETED_FIXED_BASELINE\",\n  \"after_commit_next_eligible\":\"7",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    }
+  ],
+  "redaction": {
+    "secrets_detected": false,
+    "pii_detected": false,
+    "redaction_patterns_applied": []
+  },
+  "handoff_sha256": "018519cf1ffd000041dfc11cab29f9baeee1967c2d905bbb6c32ef7cec4581a2"
+}

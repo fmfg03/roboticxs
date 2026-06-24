@@ -1,0 +1,233 @@
+{
+  "schema_version": "session_summary_v0",
+  "session_id": "019ec16a-ea8e-76f1-a60f-7a56d9691288",
+  "project": "roboticxs",
+  "repo": "/root/roboticxs",
+  "branch": "dirty/reference-before-runtime-promotion-20260601",
+  "latest_commit": "14261bc5b5d7f2afe7cc0a1d893d028e7640d881",
+  "budget_band": "RED",
+  "estimated_tokens": 158068,
+  "handoff_path": "artifacts/context_budget/HANDOFF_019ec16a-ea8e-76f1-a60f-7a56d9691288.md",
+  "next_action": "Continue 82P Memory Proposal Loop over Telegram v0 from current repo state without staging or committing.",
+  "files_touched": [
+    ".../HERMES_RUNTIME_FOUNDATION_BOOTSTRAP_v0_1.md",
+    ".../TELEGRAM_BOT_RUNTIME_BOOTSTRAP_v0_1.md",
+    ".../TELEGRAM_RUNTIME_SMOKE_MANUAL_WIRING_v0_1.md",
+    "./app/__pycache__/budget_authority.cpython-312.pyc",
+    "./app/__pycache__/budget_policy.cpython-312.pyc",
+    "./app/budget_authority.py",
+    "./app/budget_policy.py",
+    "./app/flows/__pycache__/budget_flow.cpython-312.pyc",
+    "./app/flows/budget_flow.py",
+    "./artifacts/context_budget/HANDOFF_019eb3ec-88e4-7250-a953-c26e873c8d85.md",
+    "./artifacts/context_budget/HANDOFF_019ebf6f-0a94-7690-95b5-bd7327e726d9.md",
+    "./artifacts/context_budget/HANDOFF_019ebf86-c891-7182-884f-541ad8330847.md",
+    "./artifacts/context_budget/HANDOFF_019ec145-[REDACTED:PHONE]-b870-28bb4b9047e6.md",
+    "./artifacts/context_budget/context_gate_receipt_019eb3ec-88e4-7250-a953-c26e873c8d85.json",
+    "./artifacts/context_budget/context_gate_receipt_019ebf6f-0a94-7690-95b5-bd7327e726d9.json",
+    "./artifacts/context_budget/context_gate_receipt_019ebf86-c891-7182-884f-541ad8330847.json",
+    "./artifacts/context_budget/context_gate_receipt_019ec145-[REDACTED:PHONE]-b870-28bb4b9047e6.json",
+    "./artifacts/context_budget/session_019eb3ec-88e4-7250-a953-c26e873c8d85.summary.json",
+    "./artifacts/context_budget/session_019ebf6f-0a94-7690-95b5-bd7327e726d9.summary.json",
+    "./artifacts/context_budget/session_019ebf86-c891-7182-884f-541ad8330847.summary.json",
+    "./artifacts/context_budget/session_019ec145-[REDACTED:PHONE]-b870-28bb4b9047e6.summary.json",
+    "./deploy-production.sh",
+    "./scripts/ci/pcs-container-smoke-gate.sh",
+    "./scripts/ci/pcs-ephemeral-gate.sh",
+    "./scripts/ci/pcs-sbom-vuln-gate.sh"
+  ],
+  "commands_run": [
+    {
+      "command": "sed -n '1,240p' /root/.agents/skills/implementation-validation/SKILL.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' artifacts/context_budget/HANDOFF_019ec145-[REDACTED:PHONE]-b870-28bb4b9047e6.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git status --short",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git diff --stat",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git diff --check",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "rg -n \"80P|Stage 80|TELEGRAM_CONVERSATION|Conversation Loop|context gate|Context\" docs tests artifacts -S",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git --no-pager diff --name-only",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "find artifacts -maxdepth 3 -type f",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "python3 -m pytest -q tests/test_telegram_conversation_loop.py tests/test_telegram_runtime_bootstrap.py tests/test_hermes_runtime_foundation.py tests/test_canonical_roadmap.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,220p' artifacts/context_budget/context_gate_receipt_019ec145-[REDACTED:PHONE]-b870-28bb4b9047e6.json",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,240p' docs/reference/TELEGRAM_CONVERSATION_LOOP_v0_1.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' tests/test_telegram_conversation_loop.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' /root/.codex/skills/codex-factory-context-budget/SKILL.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "find . -path '*context*' -o -path '*budget*'",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git --no-pager diff -- app/telegram_runtime.py app/main.py tests/test_telegram_runtime_bootstrap.py tests/test_hermes_runtime_foundation.py tests/test_canonical_roadmap.py docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git --no-pager diff -- tests/test_roadmap_continuation_authorization_gate.py tests/test_voxcpm_research_parking_lot.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,220p' artifacts/context_budget/session_019ec145-[REDACTED:PHONE]-b870-28bb4b9047e6.summary.json",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "python /root/tools/context-budget/context_budget.py status --session-id current --project roboticxs",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "python /root/tools/context-budget/context_budget.py gate --session-id current --project roboticxs",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "python3 /root/tools/context-budget/context_budget.py status --session-id current --project roboticxs",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "python3 /root/tools/context-budget/context_budget.py gate --session-id current --project roboticxs",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,240p' /root/tools/context-budget/context_budget.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,240p' /root/tools/context-budget/context_gate.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git status --short",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "python3 /root/tools/context-budget/context_budget.py gate --session-id current --project roboticxs --artifact-root artifacts/context_budget",
+      "result": "observed",
+      "notes": "Transcript command"
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "You are Codex, a coding agent based on GPT-5. You and the user share one workspace, and your job is to collaborate with them until their goal is genuinely handled.\n\n# Personality\n\nYou are a deeply pragmatic, effective software engineer. You",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "<skills_instructions>\n## Skills\nA skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the s",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "# AGENTS.md instructions for /root/roboticxs\n\n<INSTRUCTIONS>\n# Global Codex Operating Standard\n\nThis file defines how Codex should work across repos.\nRepo-specific truth belongs in repo-level `AGENTS.md` overlays, not here.\n\n## Operating Pr",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "Chunk ID: 91d710\nWall time: 0.0179 seconds\nProcess exited with code 0\nOriginal token count: 5771\nOutput:\n# Governed Session Handoff\n\n## 1. Session Identity\n- Project: roboticxs\n- Repo: /root/roboticxs\n- Branch: dirty/reference-before-runtim",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "Chunk ID: 32fb41\nWall time: 0.1142 seconds\nProcess exited with code 0\nOriginal token count: 160\nOutput:\n{\n  \"schema_version\": \"context_gate_receipt_v0\",\n  \"created_at\": \"2026-06-13T14:36:21+00:00\",\n  \"session_id\": \"019ec145-[REDACTED:PHONE]",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    }
+  ],
+  "blockers": [
+    {
+      "blocker": "You are Codex, a coding agent based on GPT-5. You and the user share one workspace, and your job is to collaborate with them until their goal is genuinely handled.\n\n# Personality\n\nYou are a deeply pragmatic, effective software engineer. You",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "<skills_instructions>\n## Skills\nA skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the s",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "<plugins_instructions>\n## Plugins\nA plugin is a local bundle of skills, MCP servers, and apps. Below is the list of plugins that are enabled and available in this session.\n### Available plugins\n- `Canva`: Search, create, edit designs\n- `Git",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "Chunk ID: 91d710\nWall time: 0.0179 seconds\nProcess exited with code 0\nOriginal token count: 5771\nOutput:\n# Governed Session Handoff\n\n## 1. Session Identity\n- Project: roboticxs\n- Repo: /root/roboticxs\n- Branch: dirty/reference-before-runtim",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "Chunk ID: 09e1d2\nWall time: 0.0589 seconds\nProcess exited with code 0\nOriginal token count: 2879\nOutput:\ndocs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md:7:It is the controlling roadmap for future stage sequencing after Stage 80P. It does n",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    }
+  ],
+  "redaction": {
+    "secrets_detected": false,
+    "pii_detected": false,
+    "redaction_patterns_applied": [
+      "PHONE"
+    ]
+  },
+  "handoff_sha256": "76f467a449cc408350d6eb4ca1515d374b50d10a72d55be75c324343677dbb8b"
+}

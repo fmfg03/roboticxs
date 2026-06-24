@@ -283,7 +283,11 @@ def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
         '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"'
         in roadmap_text
     )
-    assert "140P and later remain unauthorized" in roadmap_text
+    assert (
+        '"stage_id":"140P","stage_name":"DeerFlow Pattern Review / Sandbox Boundary Spike v0","status":"CLOSED_COMMITTED"'
+        in roadmap_text
+    )
+    assert "141P and later remain unauthorized" in roadmap_text
     assert '"status":"NEXT_ELIGIBLE"' not in roadmap_text
 
 
