@@ -494,4 +494,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"132P","stage_name":"Telegram Meeting Brief Command v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"134P","stage_name":"Calendar-backed Telegram Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"135P","stage_name":"Real Calendar Meeting Brief Composer v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "137P and later remain unauthorized" in roadmap
+    assert "138P and later remain unauthorized" in roadmap

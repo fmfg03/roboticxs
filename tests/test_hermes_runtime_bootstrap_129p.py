@@ -84,7 +84,7 @@ def test_129p_builds_runtime_online_status_for_valid_local_config():
     assert status.runtime_mode == "local-dev"
     assert status.robot_id == DEFAULT_ROBOT_ID
     assert status.owner_id == DEFAULT_OWNER_ID
-    assert status.roadmap_closed_through == "136P"
+    assert status.roadmap_closed_through == "137P"
     assert status.next_stage_authorized is False
     assert status.next_stage == NEXT_STAGE
     assert status.telegram_enabled is False
@@ -97,6 +97,7 @@ def test_129p_builds_runtime_online_status_for_valid_local_config():
     assert "meeting_brief_demo_flow" in status.available_local_features
     assert "document_review_demo_flow" in status.available_local_features
     assert "google_calendar_readonly_connector" in status.available_local_features
+    assert "calendar_context_scan" in status.available_local_features
     assert "demo_result_delivery_surface" in status.available_local_features
     assert "runnable_telegram_robot_mvp" in status.available_local_features
     assert "telegram_memory_center_commands" in status.available_local_features
@@ -122,7 +123,7 @@ def test_129p_text_report_contains_required_runtime_lines():
     assert f"Robot: {DEFAULT_ROBOT_ID}" in report.rendered_text
     assert f"Owner: {DEFAULT_OWNER_ID}" in report.rendered_text
     assert "Mode: local-dev" in report.rendered_text
-    assert "Roadmap: 95P-136P CLOSED_COMMITTED" in report.rendered_text
+    assert "Roadmap: 95P-137P CLOSED_COMMITTED" in report.rendered_text
     assert "Telegram: disabled" in report.rendered_text
     assert "Connectors: disabled" in report.rendered_text
     assert "LLM/model calls: disabled" in report.rendered_text
@@ -135,14 +136,15 @@ def test_129p_text_report_contains_required_runtime_lines():
     assert "Meeting Brief Demo: available if local records exist" in report.rendered_text
     assert "Document Review Demo: available if local records exist" in report.rendered_text
     assert "Google Calendar Read-Only Connector: available for local manual smoke runs" in report.rendered_text
-    assert "Next authorized stage: 137P+ remains unauthorized." in report.rendered_text
+    assert "Calendar Context Scan: available for local manual smoke runs" in report.rendered_text
+    assert "Next authorized stage: 138P+ remains unauthorized." in report.rendered_text
 
 
 def test_129p_json_report_is_renderable():
     report = run_hermes_runtime_bootstrap(output_format="json")
 
     assert '"runtime_online": true' in report.rendered_text
-    assert '"roadmap_closed_through": "136P"' in report.rendered_text
+    assert '"roadmap_closed_through": "137P"' in report.rendered_text
 
 
 def test_129p_main_prints_report_and_returns_zero(capsys: pytest.CaptureFixture[str]):
@@ -195,4 +197,5 @@ def test_129p_roadmap_registers_runtime_bootstrap_stage_and_135p_closed_with_136
     assert '"stage_id":"134P","stage_name":"Calendar-backed Telegram Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"135P","stage_name":"Real Calendar Meeting Brief Composer v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"136P","stage_name":"Memory Center Telegram Commands v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "137P and later remain unauthorized" in roadmap
+    assert '"stage_id":"137P","stage_name":"Context Scan from Calendar v0","status":"CLOSED_COMMITTED"' in roadmap
+    assert "138P and later remain unauthorized" in roadmap
