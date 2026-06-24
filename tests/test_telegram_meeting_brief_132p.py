@@ -50,7 +50,7 @@ def test_132p_help_start_and_status_expose_brief_command():
     assert "/brief is not enabled yet." not in help_reply
     assert "Available commands: /help, /status, /miss, /brief." in start_reply
     assert "/brief command: enabled" in status_reply
-    assert "roadmap state: 95P-131P closed, 132P runtime active" in status_reply
+    assert "roadmap state: 95P-133P closed, 134P runtime active" in status_reply
 
 
 def test_132p_authorized_brief_reply_is_deterministic_and_local_only():
@@ -62,11 +62,12 @@ def test_132p_authorized_brief_reply_is_deterministic_and_local_only():
     assert first_reply == second_reply
     assert "Meeting Brief" in first_reply
     assert "Status: local read-only meeting brief" in first_reply
-    assert "Source: Hermes local context demo flow" in first_reply
-    assert "External connectors: disabled" in first_reply
-    assert "Calendar connector: disabled" in first_reply
+    assert "Source: Hermes local context demo flow + optional Google Calendar read-only snapshot" in first_reply
+    assert "External connectors: Google Calendar read-only optional" in first_reply
+    assert "Calendar writes: disabled" in first_reply
     assert "LLM/model calls: disabled" in first_reply
     assert "Memory mutation: disabled" in first_reply
+    assert "Google Calendar read-only connector was not configured for this reply." in first_reply
     assert "Meeting:" in first_reply
     assert "- Victor / ASISINT follow-up" in first_reply
     assert "Context:" in first_reply
@@ -88,11 +89,14 @@ def test_132p_authorized_brief_uses_injected_fake_telegram_client():
     )
 
     assert receipt.authorized is True
-    assert receipt.reply_text == render_brief_command_reply(config)
+    assert "Meeting Brief" in receipt.reply_text
+    assert "Read-only Calendar connector unavailable: missing_access_token." in receipt.reply_text
+    assert "Falling back to local deterministic meeting context." in receipt.reply_text
+    assert "No external action was taken." in receipt.reply_text
     assert client.sent_messages == [
         {
             "chat_id": 4004,
-            "text": render_brief_command_reply(config),
+            "text": receipt.reply_text,
             "reply_to_message_id": 123,
         }
     ]
@@ -108,8 +112,7 @@ def test_132p_empty_meeting_context_reply_is_deterministic():
             "Meeting Brief",
             "",
             "No local meeting context is available in the deterministic snapshot.",
-            "External connectors are disabled.",
-            "Calendar connector is disabled.",
+            "Google Calendar read-only connector was not used.",
             "No external action was taken.",
         ]
     )

@@ -230,14 +230,15 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "Hermes runtime bootstrap: available" in receipt.reply_text
     assert "Telegram dev/sandbox mode: enabled" in receipt.reply_text
     assert "live Telegram: enabled" in receipt.reply_text
-    assert "external connectors: disabled" in receipt.reply_text
+    assert "external connectors: Google Calendar read-only optional" in receipt.reply_text
+    assert "Calendar writes: disabled" in receipt.reply_text
     assert "LLM/model calls: disabled" in receipt.reply_text
     assert "tools: disabled" in receipt.reply_text
     assert "Memory Center mutation: disabled" in receipt.reply_text
     assert "proactive outbound: disabled" in receipt.reply_text
     assert "/miss command: enabled" in receipt.reply_text
     assert "/brief command: enabled" in receipt.reply_text
-    assert "roadmap state: 95P-131P closed, 132P runtime active" in receipt.reply_text
+    assert "roadmap state: 95P-133P closed, 134P runtime active" in receipt.reply_text
 
 
 def test_130p_unknown_command_from_authorized_owner_produces_safe_fallback():
@@ -387,7 +388,6 @@ def test_130p_module_has_no_models_tools_workers_or_nontelegram_external_paths()
         "anthropic",
         "ollama",
         "gmail",
-        "calendar",
         "drive",
         "slack",
         "worker",
@@ -436,10 +436,11 @@ def test_130p_main_uses_injected_client_for_bounded_run(
 def test_130p_startup_report_is_deterministic():
     report = build_telegram_robot_startup_report(build_valid_config())
 
-    assert "Stage: 132P" in report
+    assert "Stage: 134P" in report
     assert "Owner gate: enabled" in report
     assert "Available commands: /start, /help, /status, /miss, /brief" in report
-    assert "External connectors: disabled" in report
+    assert "External connectors: Google Calendar read-only optional" in report
+    assert "Calendar writes: disabled" in report
     assert "LLM/model calls: disabled" in report
     assert "Tools: disabled" in report
     assert "Memory Center mutation: disabled" in report
@@ -472,8 +473,10 @@ def test_130p_brief_command_is_routed_through_existing_runtime():
         config=config,
     )
 
-    assert receipt.reply_text == render_brief_command_reply(config)
     assert "Meeting Brief" in receipt.reply_text
+    assert "Read-only Calendar connector unavailable: missing_access_token." in receipt.reply_text
+    assert "Falling back to local deterministic meeting context." in receipt.reply_text
+    assert "No external action was taken." in receipt.reply_text
 
 
 def test_130p_roadmap_registers_stage_and_133p_plus_block():
@@ -482,4 +485,6 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"130P","stage_name":"Runnable Telegram Robot MVP v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"131P","stage_name":"Telegram What Did I Miss Command v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"132P","stage_name":"Telegram Meeting Brief Command v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "133P and later remain unauthorized" in roadmap
+    assert '"stage_id":"134P","stage_name":"Calendar-backed Telegram Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
+    assert '"stage_id":"135P","stage_name":"Real Calendar Meeting Brief Composer v0","status":"CLOSED_COMMITTED"' in roadmap
+    assert "136P and later remain unauthorized" in roadmap

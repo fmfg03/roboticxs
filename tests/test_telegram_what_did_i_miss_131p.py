@@ -54,7 +54,7 @@ def test_131p_status_marks_miss_enabled_brief_disabled_and_runtime_active():
 
     assert "/miss command: enabled" in reply
     assert "/brief command: enabled" in reply
-    assert "roadmap state: 95P-131P closed, 132P runtime active" in reply
+    assert "roadmap state: 95P-133P closed, 134P runtime active" in reply
 
 
 def test_131p_authorized_miss_produces_deterministic_local_read_only_reply():
@@ -140,7 +140,6 @@ def test_131p_runtime_module_does_not_add_connectors_models_tools_workers_or_mem
 
     for forbidden in [
         "gmail",
-        "calendar",
         "drive",
         "slack",
         "crm",

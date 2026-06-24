@@ -15,6 +15,11 @@ from app.daily_brief_what_did_i_miss import (
     NO_UPDATES_SUMMARY,
     create_daily_brief_snapshot,
 )
+from app.google_calendar_readonly_connector import (
+    CalendarReadResult,
+    GoogleCalendarHttpClientProtocol,
+    run_google_calendar_readonly_connector,
+)
 from app.meeting_brief_demo_flow import (
     MeetingBriefDemoDependencyBundle,
     MeetingBriefDemoFixture,
@@ -23,7 +28,7 @@ from app.meeting_brief_demo_flow import (
     run_local_meeting_brief_demo_flow,
 )
 
-RUNNABLE_TELEGRAM_ROBOT_STAGE = "132P"
+RUNNABLE_TELEGRAM_ROBOT_STAGE = "134P"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
 DEFAULT_POLL_TIMEOUT_SECONDS = 30
@@ -37,6 +42,7 @@ DAILY_BRIEF_WINDOW_START = "2026-06-20T00:00:00+00:00"
 DAILY_BRIEF_WINDOW_END = "2026-06-20T23:59:59+00:00"
 MEETING_BRIEF_CHAT_ID = "telegram-brief-command"
 MEETING_BRIEF_CREATED_AT = "2026-06-21T08:00:00Z"
+CALENDAR_BRIEF_MAX_EVENTS = 3
 
 
 class TelegramRobotConfigError(ValueError):
@@ -294,14 +300,15 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "Hermes runtime bootstrap: available",
             f"Telegram dev/sandbox mode: {dev_mode_state}",
             f"live Telegram: {live_telegram_state}",
-            "external connectors: disabled",
+            "external connectors: Google Calendar read-only optional",
+            "Calendar writes: disabled",
             "LLM/model calls: disabled",
             "tools: disabled",
             "Memory Center mutation: disabled",
             "proactive outbound: disabled",
             "/miss command: enabled",
             "/brief command: enabled",
-            "roadmap state: 95P-131P closed, 132P runtime active",
+            "roadmap state: 95P-133P closed, 134P runtime active",
         ]
     )
 
@@ -358,12 +365,38 @@ def render_miss_command_reply(config: TelegramRobotConfig) -> str:
     )
 
 
+def render_calendar_events_for_brief(result: CalendarReadResult) -> list[str]:
+    if not result.ok:
+        return [
+            "Calendar:",
+            f"- Read-only Calendar connector unavailable: {result.error_code or 'unknown_error'}.",
+            "- Falling back to local deterministic meeting context.",
+        ]
+    if not result.events:
+        return [
+            "Calendar:",
+            "- No upcoming Calendar events found in the configured read-only window.",
+        ]
+
+    lines = ["Calendar:"]
+    for event in result.events[:CALENDAR_BRIEF_MAX_EVENTS]:
+        label = event.start
+        if event.all_day:
+            label = f"{event.start} (all day)"
+        lines.append(f"- {label} - {event.summary}")
+    if len(result.events) > CALENDAR_BRIEF_MAX_EVENTS:
+        remaining = len(result.events) - CALENDAR_BRIEF_MAX_EVENTS
+        lines.append(f"- Plus {remaining} more event(s) in the read-only window.")
+    return lines
+
+
 def render_brief_command_reply(
     config: TelegramRobotConfig,
     *,
     meeting_context_available: bool = True,
     fixture: MeetingBriefDemoFixture | None = None,
     created_at: str = MEETING_BRIEF_CREATED_AT,
+    calendar_result: CalendarReadResult | None = None,
 ) -> str:
     if not meeting_context_available:
         return "\n".join(
@@ -371,8 +404,7 @@ def render_brief_command_reply(
                 "Meeting Brief",
                 "",
                 "No local meeting context is available in the deterministic snapshot.",
-                "External connectors are disabled.",
-                "Calendar connector is disabled.",
+                "Google Calendar read-only connector was not used.",
                 "No external action was taken.",
             ]
         )
@@ -405,16 +437,27 @@ def render_brief_command_reply(
         if artifact.suggested_materials
         else "Review the deterministic local context before the meeting."
     )
+    calendar_lines = (
+        render_calendar_events_for_brief(calendar_result)
+        if calendar_result is not None
+        else [
+            "Calendar:",
+            "- Google Calendar read-only connector was not configured for this reply.",
+        ]
+    )
+
     return "\n".join(
         [
             "Meeting Brief",
             "",
             "Status: local read-only meeting brief",
-            "Source: Hermes local context demo flow",
-            "External connectors: disabled",
-            "Calendar connector: disabled",
+            "Source: Hermes local context demo flow + optional Google Calendar read-only snapshot",
+            "External connectors: Google Calendar read-only optional",
+            "Calendar writes: disabled",
             "LLM/model calls: disabled",
             "Memory mutation: disabled",
+            "",
+            *calendar_lines,
             "",
             "Meeting:",
             f"- {meeting_title}",
@@ -436,7 +479,12 @@ def render_brief_command_reply(
     )
 
 
-def render_command_reply(command: str, config: TelegramRobotConfig) -> str:
+def render_command_reply(
+    command: str,
+    config: TelegramRobotConfig,
+    *,
+    calendar_result: CalendarReadResult | None = None,
+) -> str:
     if command == "/start":
         return render_start_command_reply(config)
     if command == "/help":
@@ -446,7 +494,7 @@ def render_command_reply(command: str, config: TelegramRobotConfig) -> str:
     if command == "/miss":
         return render_miss_command_reply(config)
     if command == "/brief":
-        return render_brief_command_reply(config)
+        return render_brief_command_reply(config, calendar_result=calendar_result)
     return render_unknown_command_reply()
 
 
@@ -455,13 +503,23 @@ def handle_incoming_command(
     incoming_command: TelegramIncomingCommand,
     client: TelegramClientProtocol,
     config: TelegramRobotConfig,
+    calendar_http_client: GoogleCalendarHttpClientProtocol | None = None,
 ) -> TelegramSendReceipt:
     authorized = is_owner_authorized(
         telegram_user_id=incoming_command.telegram_user_id,
         config=config,
     )
+    calendar_result = None
+    if authorized and incoming_command.command == "/brief":
+        calendar_result = run_google_calendar_readonly_connector(
+            http_client=calendar_http_client,
+        )
     if authorized:
-        reply_text = render_command_reply(incoming_command.command, config)
+        reply_text = render_command_reply(
+            incoming_command.command,
+            config,
+            calendar_result=calendar_result,
+        )
     else:
         reply_text = render_unauthorized_reply()
     receipt = client.send_message(
@@ -568,7 +626,8 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             f"Dev mode: {'enabled' if validated.dev_mode else 'disabled'}",
             f"Dry run: {'enabled' if validated.dry_run else 'disabled'}",
             "Available commands: /start, /help, /status, /miss, /brief",
-            "External connectors: disabled",
+            "External connectors: Google Calendar read-only optional",
+            "Calendar writes: disabled",
             "LLM/model calls: disabled",
             "Tools: disabled",
             "Memory Center mutation: disabled",

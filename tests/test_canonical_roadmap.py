@@ -108,7 +108,12 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_130P_is_closed_committed_after_runnable_telegram_robot_mvp_closeout",
     "stage_131P_is_closed_committed_after_telegram_what_did_i_miss_command_closeout",
     "stage_132P_is_closed_committed_after_telegram_meeting_brief_command_closeout",
+    "stage_133P_is_closed_committed_after_read_only_google_calendar_connector_closeout",
+    "stage_134P_is_closed_committed_after_calendar_backed_telegram_meeting_brief_closeout",
+    "stage_135P_is_closed_committed_after_real_calendar_meeting_brief_composer_closeout",
     "do_not_invent_133P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_134P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_135P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -182,6 +187,8 @@ EXPECTED_FINAL_SEQUENCE = {
     "131P": ("CLOSED_COMMITTED", "Telegram What Did I Miss Command v0"),
     "132P": ("CLOSED_COMMITTED", "Telegram Meeting Brief Command v0"),
     "133P": ("CLOSED_COMMITTED", "Read-Only Google Calendar Connector v0"),
+    "134P": ("CLOSED_COMMITTED", "Calendar-backed Telegram Meeting Brief v0"),
+    "135P": ("CLOSED_COMMITTED", "Real Calendar Meeting Brief Composer v0"),
 }
 
 
@@ -204,7 +211,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_133P",
+        "local_evidence_scope": "stages_61P_through_135P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -216,7 +223,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 134)
+        f"{number}P" for number in range(67, 136)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -2692,7 +2699,7 @@ def test_130p_is_runnable_telegram_robot_mvp_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the runnable owner-gated Telegram robot baseline. 130P is closed committed after implementation, validation, and closeout review. It runs a live/dev Telegram bot with deterministic /start, /help, and /status replies, owner gating by Telegram user id, bounded polling helpers, and Telegram sendMessage replies only. 131P later added deterministic owner-gated /miss replies backed by the existing 124P local daily brief path only. 132P later added deterministic owner-gated /brief replies backed by the existing 126P local meeting brief path only. 133P later added a local manual Google Calendar read-only connector only. Do not infer live connector-backed Telegram behavior, model/tool calls, workers, Memory Center mutation, async delegation, billing, entitlement enforcement, external writes beyond Telegram replies, 134P+, or NEXT_ELIGIBLE from this status.",
+        "next_action": "Use as the runnable owner-gated Telegram robot baseline. 130P is closed committed after implementation, validation, and closeout review. It runs a live/dev Telegram bot with deterministic /start, /help, and /status replies, owner gating by Telegram user id, bounded polling helpers, and Telegram sendMessage replies only. 131P later added deterministic owner-gated /miss replies backed by the existing 124P local daily brief path only. 132P later added deterministic owner-gated /brief replies backed by the existing 126P local meeting brief path only. 133P later added a local manual Google Calendar read-only connector only. Do not infer live connector-backed Telegram behavior, model/tool calls, workers, Memory Center mutation, async delegation, billing, entitlement enforcement, external writes beyond Telegram replies, 136P+, or NEXT_ELIGIBLE from this status.",
     }
     for path in stages_by_id["130P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2719,7 +2726,7 @@ def test_131p_is_telegram_what_did_i_miss_command_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the runnable owner-gated Telegram what did i miss baseline. 131P is closed committed after implementation, validation, and closeout review. It adds deterministic owner-gated /miss replies backed by the existing 124P local daily brief path and preserves Telegram sendMessage replies as the only external write. 132P later added deterministic owner-gated /brief replies backed by the existing 126P local meeting brief path only. 133P later added a local manual Google Calendar read-only connector only. Do not infer 134P+, NEXT_ELIGIBLE, live connector-backed Telegram behavior, model/tool calls, worker dispatch, Memory Center mutation, async delegation, billing, entitlement enforcement, or external writes beyond Telegram replies from this status.",
+        "next_action": "Use as the runnable owner-gated Telegram what did i miss baseline. 131P is closed committed after implementation, validation, and closeout review. It adds deterministic owner-gated /miss replies backed by the existing 124P local daily brief path and preserves Telegram sendMessage replies as the only external write. 132P later added deterministic owner-gated /brief replies backed by the existing 126P local meeting brief path only. 133P later added a local manual Google Calendar read-only connector only. Do not infer 136P+, NEXT_ELIGIBLE, live connector-backed Telegram behavior, model/tool calls, worker dispatch, Memory Center mutation, async delegation, billing, entitlement enforcement, or external writes beyond Telegram replies from this status.",
     }
     for path in stages_by_id["131P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2747,7 +2754,7 @@ def test_132p_is_telegram_meeting_brief_command_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the runnable owner-gated Telegram meeting brief baseline. 132P is closed committed after implementation, validation, and closeout review. It adds deterministic owner-gated /brief replies backed by the existing 126P local meeting brief path, keeps /miss enabled, and preserves Telegram sendMessage replies as the only external write. 133P later added a local manual Google Calendar read-only connector only and did not change Telegram /brief behavior. Do not infer 134P+, NEXT_ELIGIBLE, live connector-backed Telegram behavior, model/tool calls, worker dispatch, Memory Center mutation, async delegation, billing, entitlement enforcement, or external writes beyond Telegram replies from this status.",
+        "next_action": "Use as the runnable owner-gated Telegram meeting brief baseline. 132P is closed committed after implementation, validation, and closeout review. It adds deterministic owner-gated /brief replies backed by the existing 126P local meeting brief path, keeps /miss enabled, and preserves Telegram sendMessage replies as the only external write. 133P later added a local manual Google Calendar read-only connector only and did not change Telegram /brief behavior. Do not infer 136P+, NEXT_ELIGIBLE, live connector-backed Telegram behavior, model/tool calls, worker dispatch, Memory Center mutation, async delegation, billing, entitlement enforcement, or external writes beyond Telegram replies from this status.",
     }
     for path in stages_by_id["132P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2775,9 +2782,68 @@ def test_133p_is_read_only_google_calendar_connector_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local manual Google Calendar read-only connector baseline. 133P is closed committed after implementation, validation, and closeout review. It reads upcoming events from Google Calendar through a read-only bearer token, normalizes them into a deterministic local snapshot, renders a local CLI smoke output, and keeps read_only=true, external_writes=false, and memory_mutation=false. It does not authorize Telegram command changes, Calendar writes, Memory Center mutation, model/tool calls, worker dispatch, billing, entitlement enforcement, or 134P+ behavior.",
+        "next_action": "Use as the local manual Google Calendar read-only connector baseline. 133P is closed committed after implementation, validation, and closeout review. It reads upcoming events from Google Calendar through a read-only bearer token, normalizes them into a deterministic local snapshot, renders a local CLI smoke output, and keeps read_only=true, external_writes=false, and memory_mutation=false. 134P later added bounded owner-gated Telegram /brief read-only Calendar backing only. It does not authorize Calendar writes, Memory Center mutation, model/tool calls, worker dispatch, billing, entitlement enforcement, or 136P+ behavior.",
     }
     for path in stages_by_id["133P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_134p_is_calendar_backed_telegram_meeting_brief_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["134P"] == {
+        "stage_id": "134P",
+        "stage_name": "Calendar-backed Telegram Meeting Brief v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_134P_closeout",
+            "commit_message": "feat: add calendar-backed telegram meeting brief",
+            "paths": [
+                "app/runnable_telegram_robot_mvp.py",
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_telegram_calendar_brief_134p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_telegram_what_did_i_miss_131p.py",
+                "tests/test_telegram_meeting_brief_132p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the bounded owner-gated Telegram /brief Calendar backing baseline. 134P is closed committed after implementation, validation, and closeout review. It lets authorized /brief replies include a read-only Google Calendar snapshot through the existing 133P connector, fails closed to deterministic local meeting context when Calendar config or upstream access is unavailable, keeps Telegram sendMessage replies as the only external write, and preserves Calendar writes=false, Memory Center mutation=false, LLM/model calls=false, tools=false, workers=false, billing=false, and entitlement enforcement=false. 135P later added a reusable local real Calendar meeting brief composer/CLI only. It does not authorize Calendar create/update/delete, Memory Center mutation, model/tool calls, worker dispatch, async delegation, billing, entitlement enforcement, or 136P+ behavior.",
+    }
+    for path in stages_by_id["134P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_135p_is_real_calendar_meeting_brief_composer_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["135P"] == {
+        "stage_id": "135P",
+        "stage_name": "Real Calendar Meeting Brief Composer v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_135P_closeout",
+            "commit_message": "feat: add real calendar meeting brief composer",
+            "paths": [
+                "app/real_calendar_meeting_brief.py",
+                "tests/test_real_calendar_meeting_brief_135p.py",
+                "app/hermes_runtime_bootstrap.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the reusable local real Calendar meeting brief composer baseline. 135P is closed committed after implementation, validation, and closeout review. It composes deterministic local meeting brief records and CLI output from the existing 133P Google Calendar read-only snapshot, fails closed when Calendar is unavailable, and preserves read_only=true, Calendar writes=false, external_writes=false, Memory Center mutation=false, LLM/model calls=false, tools=false, workers=false, billing=false, and entitlement enforcement=false. It does not change Telegram behavior beyond the existing 134P surface, and it does not authorize Calendar create/update/delete, Memory Center mutation, model/tool calls, worker dispatch, async delegation, billing, entitlement enforcement, or 136P+ behavior.",
+    }
+    for path in stages_by_id["135P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 
