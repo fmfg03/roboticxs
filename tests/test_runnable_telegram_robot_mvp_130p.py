@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 
 import pytest
 
@@ -59,6 +60,44 @@ class FakeTelegramClient:
         }
         self.sent_messages.append(payload)
         return {"ok": True, "result": payload}
+
+
+class FakeCalendarHttpClient:
+    def __init__(self, payload: dict | None = None) -> None:
+        self.payload = payload or {
+            "items": [
+                {
+                    "id": "evt-client-demo",
+                    "summary": "Client demo prep meeting",
+                    "start": {"dateTime": "2026-06-25T10:00:00-06:00"},
+                    "end": {"dateTime": "2026-06-25T10:30:00-06:00"},
+                    "location": "Google Meet",
+                    "description": "Review proposal context and prepare open questions.",
+                    "organizer": {"email": "owner@example.com"},
+                    "attendees": [{"email": "client@example.com"}],
+                    "htmlLink": "https://calendar.google.com/event?eid=1",
+                }
+            ]
+        }
+        self.calls: list[dict[str, object]] = []
+
+    def get_json(
+        self,
+        url: str,
+        *,
+        headers: dict[str, str],
+        params: dict[str, str],
+        timeout_seconds: int,
+    ) -> dict:
+        self.calls.append(
+            {
+                "url": url,
+                "headers": headers,
+                "params": params,
+                "timeout_seconds": timeout_seconds,
+            }
+        )
+        return self.payload
 
 
 def build_command_update(
@@ -189,7 +228,7 @@ def test_130p_start_from_authorized_owner_produces_deterministic_online_response
     assert receipt.reply_text == render_start_command_reply(config)
     assert "Roboticxs is online." in receipt.reply_text
     assert "This dev bot is owner-gated." in receipt.reply_text
-    assert "Available commands: /help, /status, /miss, /brief, /memory, /memory_limits, /memory_pending." in receipt.reply_text
+    assert "Available commands: /help, /status, /miss, /brief, /suggest_brief, /memory, /memory_limits, /memory_pending." in receipt.reply_text
     assert "No external actions are enabled." in receipt.reply_text
 
 
@@ -210,6 +249,7 @@ def test_130p_help_from_authorized_owner_produces_deterministic_command_list():
     assert "/status" in receipt.reply_text
     assert "/miss" in receipt.reply_text
     assert "/brief" in receipt.reply_text
+    assert "/suggest_brief" in receipt.reply_text
     assert "/memory" in receipt.reply_text
     assert "/memory_limits" in receipt.reply_text
     assert "/memory_pending" in receipt.reply_text
@@ -241,10 +281,11 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "proactive outbound: disabled" in receipt.reply_text
     assert "/miss command: enabled" in receipt.reply_text
     assert "/brief command: enabled" in receipt.reply_text
+    assert "/suggest_brief command: enabled" in receipt.reply_text
     assert "/memory command: enabled" in receipt.reply_text
     assert "/memory_limits command: enabled" in receipt.reply_text
     assert "/memory_pending command: enabled" in receipt.reply_text
-    assert "roadmap state: 95P-136P closed, 136P runtime active" in receipt.reply_text
+    assert "roadmap state: 95P-139P closed, 139P runtime active" in receipt.reply_text
 
 
 def test_130p_unknown_command_from_authorized_owner_produces_safe_fallback():
@@ -260,7 +301,7 @@ def test_130p_unknown_command_from_authorized_owner_produces_safe_fallback():
 
     assert receipt.reply_text == render_unknown_command_reply()
     assert "Command not enabled." in receipt.reply_text
-    assert "Available commands: /start, /help, /status, /miss, /brief, /memory, /memory_limits, /memory_pending." in receipt.reply_text
+    assert "Available commands: /start, /help, /status, /miss, /brief, /suggest_brief, /memory, /memory_limits, /memory_pending." in receipt.reply_text
     assert "No action was taken." in receipt.reply_text
 
 
@@ -436,21 +477,24 @@ def test_130p_main_uses_injected_client_for_bounded_run(
     assert "Available commands: /start, /help, /status" in captured.out
     assert "/miss" in captured.out
     assert "/brief" in captured.out
+    assert "/suggest_brief" in captured.out
     assert fake_client.sent_messages[0]["text"] == render_status_command_reply(build_valid_config())
 
 
 def test_130p_startup_report_is_deterministic():
     report = build_telegram_robot_startup_report(build_valid_config())
 
-    assert "Stage: 136P" in report
+    assert "Stage: 139P" in report
     assert "Owner gate: enabled" in report
-    assert "Available commands: /start, /help, /status, /miss, /brief, /memory, /memory_limits, /memory_pending" in report
+    assert "Available commands: /start, /help, /status, /miss, /brief, /suggest_brief, /memory, /memory_limits, /memory_pending" in report
     assert "External connectors: Google Calendar read-only optional" in report
     assert "Calendar writes: disabled" in report
     assert "LLM/model calls: disabled" in report
     assert "Tools: disabled" in report
     assert "Memory Center commands: /memory, /memory_limits, /memory_pending" in report
     assert "Memory Center mutation: disabled" in report
+    assert "Proactive meeting suggestions: /suggest_brief owner-requested replies only" in report
+    assert "Suggested meeting brief requests: /brief <suggestion_id> owner-requested replies only" in report
     assert "Proactive outbound: disabled" in report
 
 
@@ -486,6 +530,132 @@ def test_130p_brief_command_is_routed_through_existing_runtime():
     assert "No external action was taken." in receipt.reply_text
 
 
+def test_138p_suggest_brief_command_returns_action_only_calendar_suggestions(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("ROBOTICXS_GOOGLE_CALENDAR_ACCESS_TOKEN", "token-123")
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    calendar_client = FakeCalendarHttpClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/suggest_brief"))
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+        calendar_http_client=calendar_client,
+    )
+
+    assert receipt.command == "/suggest_brief"
+    assert receipt.authorized is True
+    assert len(calendar_client.calls) == 1
+    assert "Proactive Meeting Suggestions" in receipt.reply_text
+    assert "Stage: 138P" in receipt.reply_text
+    assert "Action-only: true" in receipt.reply_text
+    assert "Briefs executed: 0" in receipt.reply_text
+    assert "Suggested action:" in receipt.reply_text
+    assert re.search(r"/brief [0-9a-f-]{36}", receipt.reply_text)
+    assert "Telegram delivery: owner-requested reply only." in receipt.reply_text
+    assert "Automatic proactive send: disabled." in receipt.reply_text
+    assert "Memory Center mutation: disabled" in receipt.reply_text
+    assert "Calendar writes: disabled" in receipt.reply_text
+    assert "LLM/model calls: disabled" in receipt.reply_text
+    assert "No external action was taken." in receipt.reply_text
+
+
+def test_139p_owner_can_request_suggested_meeting_brief_by_suggestion_id(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("ROBOTICXS_GOOGLE_CALENDAR_ACCESS_TOKEN", "token-139p")
+    config = build_valid_config()
+    suggest_client = FakeTelegramClient()
+    suggest_calendar_client = FakeCalendarHttpClient()
+    suggest_incoming = parse_telegram_incoming_command(build_command_update(text="/suggest_brief"))
+
+    suggest_receipt = handle_incoming_command(
+        incoming_command=suggest_incoming,
+        client=suggest_client,
+        config=config,
+        calendar_http_client=suggest_calendar_client,
+    )
+    suggestion_match = re.search(r"/brief ([0-9a-f-]{36})", suggest_receipt.reply_text)
+    assert suggestion_match is not None
+
+    client = FakeTelegramClient()
+    calendar_client = FakeCalendarHttpClient()
+    incoming = parse_telegram_incoming_command(
+        build_command_update(text=f"/brief {suggestion_match.group(1)}")
+    )
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+        calendar_http_client=calendar_client,
+    )
+
+    assert receipt.command == "/brief"
+    assert receipt.authorized is True
+    assert len(calendar_client.calls) == 1
+    assert "Suggested Meeting Brief" in receipt.reply_text
+    assert "Stage: 139P" in receipt.reply_text
+    assert "Source stage: 138P" in receipt.reply_text
+    assert "Owner requested: true" in receipt.reply_text
+    assert "Suggestion validated: true" in receipt.reply_text
+    assert "Client demo prep meeting" in receipt.reply_text
+    assert "Automatic execution: disabled" in receipt.reply_text
+    assert "Callback binding: disabled" in receipt.reply_text
+    assert "Follow-up intent: disabled" in receipt.reply_text
+    assert "Memory Center mutation: disabled" in receipt.reply_text
+    assert "Calendar writes: disabled" in receipt.reply_text
+    assert "LLM/model calls: disabled" in receipt.reply_text
+    assert "No external action was taken." in receipt.reply_text
+
+
+def test_139p_unknown_suggestion_id_fails_closed(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("ROBOTICXS_GOOGLE_CALENDAR_ACCESS_TOKEN", "token-139p")
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    calendar_client = FakeCalendarHttpClient()
+    incoming = parse_telegram_incoming_command(
+        build_command_update(text="/brief 00000000-0000-0000-0000-000000000000")
+    )
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+        calendar_http_client=calendar_client,
+    )
+
+    assert receipt.authorized is True
+    assert "Suggested Meeting Brief" in receipt.reply_text
+    assert "Status: blocked_suggestion_not_found" in receipt.reply_text
+    assert "Suggestion validated: false" in receipt.reply_text
+    assert "No suggested meeting brief was rendered." in receipt.reply_text
+    assert "No external action was taken." in receipt.reply_text
+
+
+def test_139p_unauthorized_suggested_brief_request_does_not_read_calendar(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("ROBOTICXS_GOOGLE_CALENDAR_ACCESS_TOKEN", "token-139p")
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    calendar_client = FakeCalendarHttpClient()
+    incoming = parse_telegram_incoming_command(
+        build_command_update(
+            telegram_user_id=999999999,
+            text="/brief 00000000-0000-0000-0000-000000000000",
+        )
+    )
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+        calendar_http_client=calendar_client,
+    )
+
+    assert receipt.authorized is False
+    assert receipt.reply_text == render_unauthorized_reply()
+    assert calendar_client.calls == []
+
+
 def test_130p_roadmap_registers_stage_and_133p_plus_block():
     roadmap = ROADMAP_PATH.read_text()
 
@@ -494,4 +664,6 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"132P","stage_name":"Telegram Meeting Brief Command v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"134P","stage_name":"Calendar-backed Telegram Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"135P","stage_name":"Real Calendar Meeting Brief Composer v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "138P and later remain unauthorized" in roadmap
+    assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
+    assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
+    assert "140P and later remain unauthorized" in roadmap

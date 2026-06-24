@@ -9,9 +9,9 @@ import sys
 
 
 HERMES_RUNTIME_BOOTSTRAP_STAGE = "129P"
-ROADMAP_CLOSED_THROUGH = "137P"
-NEXT_STAGE = "138P"
-NEXT_STAGE_LABEL = "138P+ remains unauthorized."
+ROADMAP_CLOSED_THROUGH = "139P"
+NEXT_STAGE = "140P"
+NEXT_STAGE_LABEL = "140P+ remains unauthorized."
 DEFAULT_RUNTIME_MODE = "local-dev"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
@@ -25,6 +25,8 @@ FEATURE_MODULES = (
     ("document_review_demo_flow", "app.document_review_demo_flow", False),
     ("google_calendar_readonly_connector", "app.google_calendar_readonly_connector", False),
     ("calendar_context_scan", "app.calendar_context_scan", False),
+    ("proactive_meeting_suggestion", "app.proactive_meeting_suggestion", False),
+    ("suggested_meeting_brief_request", "app.suggested_meeting_brief_request", False),
     ("demo_result_delivery_surface", "app.demo_result_delivery_surface", False),
     ("skill_pack_activation_surface", "app.skill_pack_activation_surface", False),
     ("memory_center_writeback", "app.memory_center_writeback", False),
@@ -233,7 +235,7 @@ def render_hermes_runtime_bootstrap_report(
             f"Owner: {status.owner_id}",
             f"Owner Display Name: {status.owner_display_name}",
             f"Mode: {status.runtime_mode}",
-            f"Roadmap: 95P-137P CLOSED_COMMITTED",
+            f"Roadmap: 95P-139P CLOSED_COMMITTED",
             f"Roadmap Closed Through: {status.roadmap_closed_through}",
             f"Telegram: {'enabled' if status.telegram_enabled else 'disabled'}",
             f"Connectors: {'enabled' if status.connectors_enabled else 'disabled'}",
@@ -263,8 +265,10 @@ def render_hermes_runtime_bootstrap_report(
                 "Telegram Robot MVP: available if env is configured",
                 "Meeting Brief Demo: available if local records exist",
                 "Document Review Demo: available if local records exist",
-            "Google Calendar Read-Only Connector: available for local manual smoke runs",
-            "Calendar Context Scan: available for local manual smoke runs",
+                "Google Calendar Read-Only Connector: available for local manual smoke runs",
+                "Calendar Context Scan: available for local manual smoke runs",
+                "Proactive Meeting Suggestion: available for owner-requested Telegram replies only",
+                "Suggested Meeting Brief Request: available for owner-requested Telegram replies only",
                 f"Next authorized stage: {NEXT_STAGE_LABEL}",
                 f"Generated At: {status.generated_at}",
             ]

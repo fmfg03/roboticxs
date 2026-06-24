@@ -155,9 +155,9 @@ def test_137p_module_declares_no_write_or_model_authority():
     assert "run_google_calendar_readonly_connector" in text
 
 
-def test_137p_roadmap_records_calendar_context_scan_and_blocks_138p_plus():
+def test_137p_roadmap_records_calendar_context_scan_and_later_139p_plus_block():
     roadmap = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"137P","stage_name":"Context Scan from Calendar v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "138P and later remain unauthorized" in roadmap
+    assert "140P and later remain unauthorized" in roadmap
     assert "It does not write ProposedMemory or Memory Center records automatically." in roadmap
