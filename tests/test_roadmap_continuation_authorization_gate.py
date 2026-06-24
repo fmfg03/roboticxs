@@ -276,7 +276,8 @@ def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
     assert '"stage_id":"133P","stage_name":"Read-Only Google Calendar Connector v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"stage_id":"134P","stage_name":"Calendar-backed Telegram Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"stage_id":"135P","stage_name":"Real Calendar Meeting Brief Composer v0","status":"CLOSED_COMMITTED"' in roadmap_text
-    assert "136P and later remain unauthorized" in roadmap_text
+    assert '"stage_id":"136P","stage_name":"Memory Center Telegram Commands v0","status":"CLOSED_COMMITTED"' in roadmap_text
+    assert "137P and later remain unauthorized" in roadmap_text
     assert '"status":"NEXT_ELIGIBLE"' not in roadmap_text
 
 

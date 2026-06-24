@@ -9,9 +9,9 @@ import sys
 
 
 HERMES_RUNTIME_BOOTSTRAP_STAGE = "129P"
-ROADMAP_CLOSED_THROUGH = "135P"
-NEXT_STAGE = "136P"
-NEXT_STAGE_LABEL = "136P+ remains unauthorized."
+ROADMAP_CLOSED_THROUGH = "136P"
+NEXT_STAGE = "137P"
+NEXT_STAGE_LABEL = "137P+ remains unauthorized."
 DEFAULT_RUNTIME_MODE = "local-dev"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
@@ -27,6 +27,7 @@ FEATURE_MODULES = (
     ("demo_result_delivery_surface", "app.demo_result_delivery_surface", False),
     ("skill_pack_activation_surface", "app.skill_pack_activation_surface", False),
     ("memory_center_writeback", "app.memory_center_writeback", False),
+    ("telegram_memory_center_commands", "app.telegram_memory_center_commands", False),
     ("proactive_opportunity_detection", "app.proactive_opportunity_detection", False),
     ("proactive_telegram_suggestion", "app.proactive_telegram_suggestion", False),
     ("proactive_suggestion_adapter", "app.proactive_suggestion_adapter", False),
@@ -231,7 +232,7 @@ def render_hermes_runtime_bootstrap_report(
             f"Owner: {status.owner_id}",
             f"Owner Display Name: {status.owner_display_name}",
             f"Mode: {status.runtime_mode}",
-            f"Roadmap: 95P-135P CLOSED_COMMITTED",
+            f"Roadmap: 95P-136P CLOSED_COMMITTED",
             f"Roadmap Closed Through: {status.roadmap_closed_through}",
             f"Telegram: {'enabled' if status.telegram_enabled else 'disabled'}",
             f"Connectors: {'enabled' if status.connectors_enabled else 'disabled'}",
@@ -240,6 +241,7 @@ def render_hermes_runtime_bootstrap_report(
             f"Workers: {'enabled' if status.workers_enabled else 'disabled'}",
             f"External writes: {'enabled' if status.external_writes_enabled else 'disabled'}",
             f"Memory Center: {'mutation enabled' if status.memory_mutation_enabled else 'local/read-only bootstrap check'}",
+            "Telegram Memory Center Commands: available if Telegram env is configured",
             f"Local state dir: {status.local_state_dir}",
             "Available local features:",
         ]

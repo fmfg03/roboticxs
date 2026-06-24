@@ -27,15 +27,31 @@ from app.meeting_brief_demo_flow import (
     get_meeting_brief_demo_artifact,
     run_local_meeting_brief_demo_flow,
 )
+from app.telegram_memory_center_commands import (
+    TelegramMemoryCenterSourceBundle,
+    build_memory_center_telegram_snapshot,
+    render_memory_center_command_reply,
+    render_memory_limits_command_reply,
+    render_memory_pending_command_reply,
+)
 
-RUNNABLE_TELEGRAM_ROBOT_STAGE = "134P"
+RUNNABLE_TELEGRAM_ROBOT_STAGE = "136P"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
 DEFAULT_POLL_TIMEOUT_SECONDS = 30
 DEFAULT_POLL_LIMIT = 10
 DEFAULT_DEV_MODE = True
 DEFAULT_DRY_RUN = False
-SUPPORTED_COMMANDS = ("/start", "/help", "/status", "/miss", "/brief")
+SUPPORTED_COMMANDS = (
+    "/start",
+    "/help",
+    "/status",
+    "/miss",
+    "/brief",
+    "/memory",
+    "/memory_limits",
+    "/memory_pending",
+)
 DAILY_BRIEF_DATE = "2026-06-20"
 DAILY_BRIEF_TIMEZONE = "UTC"
 DAILY_BRIEF_WINDOW_START = "2026-06-20T00:00:00+00:00"
@@ -270,7 +286,7 @@ def render_start_command_reply(config: TelegramRobotConfig) -> str:
             f"Roboticxs is online.",
             f"Robot: {config.robot_id}",
             "This dev bot is owner-gated.",
-            "Available commands: /help, /status, /miss, /brief.",
+            "Available commands: /help, /status, /miss, /brief, /memory, /memory_limits, /memory_pending.",
             "No external actions are enabled.",
             "No action was taken.",
         ]
@@ -286,6 +302,9 @@ def render_help_command_reply() -> str:
             "/status",
             "/miss",
             "/brief",
+            "/memory",
+            "/memory_limits",
+            "/memory_pending",
         ]
     )
 
@@ -308,7 +327,10 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "proactive outbound: disabled",
             "/miss command: enabled",
             "/brief command: enabled",
-            "roadmap state: 95P-133P closed, 134P runtime active",
+            "/memory command: enabled",
+            "/memory_limits command: enabled",
+            "/memory_pending command: enabled",
+            "roadmap state: 95P-136P closed, 136P runtime active",
         ]
     )
 
@@ -317,7 +339,7 @@ def render_unknown_command_reply() -> str:
     return "\n".join(
         [
             "Command not enabled.",
-            "Available commands: /start, /help, /status, /miss, /brief.",
+            "Available commands: /start, /help, /status, /miss, /brief, /memory, /memory_limits, /memory_pending.",
             "No action was taken.",
         ]
     )
@@ -484,6 +506,7 @@ def render_command_reply(
     config: TelegramRobotConfig,
     *,
     calendar_result: CalendarReadResult | None = None,
+    memory_source_bundle: TelegramMemoryCenterSourceBundle | None = None,
 ) -> str:
     if command == "/start":
         return render_start_command_reply(config)
@@ -495,7 +518,52 @@ def render_command_reply(
         return render_miss_command_reply(config)
     if command == "/brief":
         return render_brief_command_reply(config, calendar_result=calendar_result)
+    if command == "/memory":
+        return render_memory_command_reply(config, source_bundle=memory_source_bundle)
+    if command == "/memory_limits":
+        return render_memory_limits_reply(config, source_bundle=memory_source_bundle)
+    if command == "/memory_pending":
+        return render_memory_pending_reply(config, source_bundle=memory_source_bundle)
     return render_unknown_command_reply()
+
+
+def render_memory_command_reply(
+    config: TelegramRobotConfig,
+    *,
+    source_bundle: TelegramMemoryCenterSourceBundle | None = None,
+) -> str:
+    snapshot = build_memory_center_telegram_snapshot(
+        owner_id=config.owner_id,
+        robot_id=config.robot_id,
+        source_bundle=source_bundle,
+    )
+    return render_memory_center_command_reply(snapshot)
+
+
+def render_memory_limits_reply(
+    config: TelegramRobotConfig,
+    *,
+    source_bundle: TelegramMemoryCenterSourceBundle | None = None,
+) -> str:
+    snapshot = build_memory_center_telegram_snapshot(
+        owner_id=config.owner_id,
+        robot_id=config.robot_id,
+        source_bundle=source_bundle,
+    )
+    return render_memory_limits_command_reply(snapshot)
+
+
+def render_memory_pending_reply(
+    config: TelegramRobotConfig,
+    *,
+    source_bundle: TelegramMemoryCenterSourceBundle | None = None,
+) -> str:
+    snapshot = build_memory_center_telegram_snapshot(
+        owner_id=config.owner_id,
+        robot_id=config.robot_id,
+        source_bundle=source_bundle,
+    )
+    return render_memory_pending_command_reply(snapshot)
 
 
 def handle_incoming_command(
@@ -504,6 +572,7 @@ def handle_incoming_command(
     client: TelegramClientProtocol,
     config: TelegramRobotConfig,
     calendar_http_client: GoogleCalendarHttpClientProtocol | None = None,
+    memory_source_bundle: TelegramMemoryCenterSourceBundle | None = None,
 ) -> TelegramSendReceipt:
     authorized = is_owner_authorized(
         telegram_user_id=incoming_command.telegram_user_id,
@@ -519,6 +588,7 @@ def handle_incoming_command(
             incoming_command.command,
             config,
             calendar_result=calendar_result,
+            memory_source_bundle=memory_source_bundle,
         )
     else:
         reply_text = render_unauthorized_reply()
@@ -625,11 +695,12 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             f"Owner gate: enabled ({len(validated.owner_ids)} allowed Telegram user id(s))",
             f"Dev mode: {'enabled' if validated.dev_mode else 'disabled'}",
             f"Dry run: {'enabled' if validated.dry_run else 'disabled'}",
-            "Available commands: /start, /help, /status, /miss, /brief",
+            "Available commands: /start, /help, /status, /miss, /brief, /memory, /memory_limits, /memory_pending",
             "External connectors: Google Calendar read-only optional",
             "Calendar writes: disabled",
             "LLM/model calls: disabled",
             "Tools: disabled",
+            "Memory Center commands: /memory, /memory_limits, /memory_pending",
             "Memory Center mutation: disabled",
             "Proactive outbound: disabled",
         ]
