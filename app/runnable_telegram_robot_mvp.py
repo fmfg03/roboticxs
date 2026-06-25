@@ -468,7 +468,7 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "",
             *render_setup_capability_status_sections(),
             "",
-            "Roadmap: 95P-162P closed, Calendar-Backed Today / Prep active",
+            "Roadmap: 95P-163P closed, Gmail Read-Only Context Scan active",
         ]
     )
 
