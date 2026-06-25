@@ -13,6 +13,8 @@ from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+from app.google_oauth_workspace import resolve_google_workspace_access_token
+
 
 GOOGLE_CALENDAR_READONLY_CONNECTOR_STAGE = "133P"
 GOOGLE_CALENDAR_READONLY_SCOPE = "https://www.googleapis.com/auth/calendar.readonly"
@@ -112,7 +114,7 @@ def load_google_calendar_readonly_config_from_env(
 ) -> GoogleCalendarReadOnlyConfig:
     source = os.environ if env is None else env
     return GoogleCalendarReadOnlyConfig(
-        access_token=source.get("ROBOTICXS_GOOGLE_CALENDAR_ACCESS_TOKEN", "").strip(),
+        access_token=resolve_google_workspace_access_token(env=source),
         calendar_id=source.get("ROBOTICXS_GOOGLE_CALENDAR_ID", DEFAULT_CALENDAR_ID).strip()
         or DEFAULT_CALENDAR_ID,
         days_ahead=int(source.get("ROBOTICXS_GOOGLE_CALENDAR_DAYS_AHEAD", str(DEFAULT_DAYS_AHEAD))),
@@ -254,7 +256,10 @@ def read_google_calendar_upcoming_events(
             external_writes=False,
             memory_mutation=False,
             error_code="missing_access_token",
-            error_message="missing ROBOTICXS_GOOGLE_CALENDAR_ACCESS_TOKEN",
+            error_message=(
+                "missing ROBOTICXS_GOOGLE_CALENDAR_ACCESS_TOKEN or "
+                "ROBOTICXS_GOOGLE_OAUTH_TOKEN_FILE"
+            ),
         )
 
     try:
