@@ -144,7 +144,7 @@ def test_132p_unknown_fallback_lists_brief_command():
 
     assert "Available areas:" in reply
     assert "Brief: /brief, /suggest_brief" in reply
-    assert "No action was taken." in reply
+    assert "No external action was taken." in reply
 
 
 def test_132p_runtime_module_keeps_non_telegram_surfaces_disabled():

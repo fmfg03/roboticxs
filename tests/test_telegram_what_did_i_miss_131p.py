@@ -53,7 +53,7 @@ def test_131p_status_marks_miss_enabled_brief_disabled_and_runtime_active():
 
     assert "Today and missed-item summaries" in reply
     assert "Meeting briefs and prep packs" in reply
-    assert "Roadmap: 95P-158P closed, Document Intake Stub active" in reply
+    assert "Roadmap: 95P-159P closed, Product Copy Consolidation active" in reply
 
 
 def test_131p_authorized_miss_produces_deterministic_local_read_only_reply():
@@ -133,7 +133,7 @@ def test_131p_unknown_fallback_lists_brief_after_132p():
     assert "Available areas:" in receipt.reply_text
     assert "Today: /today, /miss" in receipt.reply_text
     assert "Brief: /brief, /suggest_brief" in receipt.reply_text
-    assert "No action was taken." in receipt.reply_text
+    assert "No external action was taken." in receipt.reply_text
 
 
 def test_131p_runtime_module_does_not_add_connectors_models_tools_workers_or_memory_writes():

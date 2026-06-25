@@ -316,7 +316,7 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "Automatic Memory Center mutation: disabled" in receipt.reply_text
     assert "Scheduler/proactive outbound: disabled" in receipt.reply_text
     assert "Task Inbox is your robot task inbox, not your Gmail inbox yet." in receipt.reply_text
-    assert "Roadmap: 95P-158P closed, Document Intake Stub active" in receipt.reply_text
+    assert "Roadmap: 95P-159P closed, Product Copy Consolidation active" in receipt.reply_text
 
 
 def test_130p_unknown_command_from_authorized_owner_produces_safe_fallback():
@@ -334,7 +334,7 @@ def test_130p_unknown_command_from_authorized_owner_produces_safe_fallback():
     assert "I do not know that command yet." in receipt.reply_text
     assert "Use /help to see the Roboticxs menu." in receipt.reply_text
     assert "Setup Check: /status" in receipt.reply_text
-    assert "No action was taken." in receipt.reply_text
+    assert "No external action was taken." in receipt.reply_text
 
 
 def test_130p_unauthorized_user_receives_safe_private_bot_response():
@@ -973,4 +973,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "159P and later remain unauthorized" in roadmap
+    assert "160P and later remain unauthorized" in roadmap

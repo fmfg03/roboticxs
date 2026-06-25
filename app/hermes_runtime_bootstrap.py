@@ -9,9 +9,9 @@ import sys
 
 
 HERMES_RUNTIME_BOOTSTRAP_STAGE = "129P"
-ROADMAP_CLOSED_THROUGH = "158P"
-NEXT_STAGE = "159P"
-NEXT_STAGE_LABEL = "159P+ remains unauthorized."
+ROADMAP_CLOSED_THROUGH = "159P"
+NEXT_STAGE = "160P"
+NEXT_STAGE_LABEL = "160P+ remains unauthorized."
 DEFAULT_RUNTIME_MODE = "local-dev"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
@@ -247,7 +247,7 @@ def render_hermes_runtime_bootstrap_report(
             f"Owner: {status.owner_id}",
             f"Owner Display Name: {status.owner_display_name}",
             f"Mode: {status.runtime_mode}",
-            f"Roadmap: 95P-158P CLOSED_COMMITTED",
+            f"Roadmap: 95P-159P CLOSED_COMMITTED",
             f"Roadmap Closed Through: {status.roadmap_closed_through}",
             f"Telegram: {'enabled' if status.telegram_enabled else 'disabled'}",
             f"Connectors: {'enabled' if status.connectors_enabled else 'disabled'}",
@@ -293,6 +293,7 @@ def render_hermes_runtime_bootstrap_report(
                 "First-Run Onboarding: available for customer-facing /start orientation only",
                 "Telegram Demo Loop: available for local deterministic product demos only",
                 "Telegram Document Intake Stub: available for draft-only document metadata replies only",
+                "Telegram Product Copy Consolidation: available for shared customer-facing copy only",
                 "Personal Admin Inbox: available for owner-requested read-only inbox visibility only",
                 "Inbox Item Decisions: available as local owner decision receipts only",
                 "Task Inbox Flow: available for customer-facing task inbox visibility and local receipts only",

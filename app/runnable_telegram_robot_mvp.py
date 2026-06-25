@@ -122,6 +122,13 @@ PRODUCT_MENU_LINES = (
     "Documents: send a file for draft-only intake",
     "Setup Check: /status",
 )
+PRODUCT_APPROVAL_BOUNDARY_LINES = (
+    "- I do not write Calendar or Gmail.",
+    "- I do not remember new facts without approval.",
+    "- I do not take external actions without approval.",
+    "- Documents are metadata-only and draft-only right now.",
+)
+NO_ACTION_TAKEN_LINE = "No external action was taken."
 DAILY_BRIEF_DATE = "2026-06-20"
 DAILY_BRIEF_TIMEZONE = "UTC"
 DAILY_BRIEF_WINDOW_START = "2026-06-20T00:00:00+00:00"
@@ -413,16 +420,14 @@ def render_start_command_reply(config: TelegramRobotConfig) -> str:
             "- Documents are draft-only until document intake is approved.",
             "",
             "Approval boundaries:",
-            "- I do not write Calendar or Gmail.",
-            "- I do not remember new facts without approval.",
-            "- I do not take external actions without approval.",
+            *PRODUCT_APPROVAL_BOUNDARY_LINES,
             "",
             "Choose first useful action:",
             "- /today for your daily view",
             "- /prep <suggestion_id> for meeting prep",
             "- /status for setup and capability status",
             "",
-            "No action was taken.",
+            NO_ACTION_TAKEN_LINE,
         ]
     )
 
@@ -438,8 +443,12 @@ def render_help_command_reply() -> str:
             "- Tasks is your robot task inbox, not your Gmail inbox yet.",
             "- Setup Check shows what is active, unavailable, blocked, or intentionally disabled.",
             "- Memory changes require approval.",
+            "- Documents are metadata-only and draft-only right now.",
             "",
-            "No action was taken.",
+            "Approval boundaries:",
+            *PRODUCT_APPROVAL_BOUNDARY_LINES,
+            "",
+            NO_ACTION_TAKEN_LINE,
         ]
     )
 
@@ -483,14 +492,13 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "- Automatic Memory Center mutation: disabled",
             "",
             "Approval boundaries:",
-            "- I do not remember new facts without approval.",
-            "- I do not take external actions without approval.",
+            *PRODUCT_APPROVAL_BOUNDARY_LINES,
             "- Task Inbox is your robot task inbox, not your Gmail inbox yet.",
             "",
             "Suggested next action:",
             "- Use /today for the daily view, /brief for a meeting brief, or /prep <suggestion_id> for prep.",
             "",
-            "Roadmap: 95P-158P closed, Document Intake Stub active",
+            "Roadmap: 95P-159P closed, Product Copy Consolidation active",
         ]
     )
 
@@ -505,7 +513,7 @@ def render_unknown_command_reply() -> str:
             "Available areas:",
             *PRODUCT_MENU_LINES,
             "",
-            "No action was taken.",
+            NO_ACTION_TAKEN_LINE,
         ]
     )
 
@@ -547,7 +555,7 @@ def render_miss_command_reply(config: TelegramRobotConfig) -> str:
             "Suggested next step:",
             f"- {suggested_next_step}",
             "",
-            "No external action was taken.",
+            NO_ACTION_TAKEN_LINE,
         ]
     )
 
