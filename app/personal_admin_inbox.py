@@ -104,30 +104,71 @@ def run_personal_admin_inbox(
 
 
 def render_personal_admin_inbox(record: PersonalAdminInboxRecord) -> str:
+    has_items = record.status != "empty"
     return "\n".join(
         [
-            "Personal Admin Inbox",
+            "Task Inbox",
             "",
-            f"Stage: {record.stage}",
             f"Status: {record.status}",
-            f"Source stages: {', '.join(record.source_stages)}",
             "Read-only: true",
-            "Item resolution: disabled",
+            "",
+            "Inbox type:",
+            "- Robot task inbox, not Gmail.",
+            "",
+            "States:",
+            "- pending: waiting in the local task inbox",
+            "- needs approval: owner approval is required before memory or external action",
+            "- blocked: source or setup is unavailable",
+            "- done: local receipt only after /inbox_done <item_id>",
+            "- dismissed: local receipt only after /inbox_dismiss <item_id>",
+            "",
+            "Items:",
+            *(_render_inbox_item_lines(record.inbox_items) if has_items else ("- Empty: no robot task inbox items are visible right now.",)),
+            "",
+            "Suggested next action:",
+            *(f"- {step}" for step in _product_next_steps(record)),
+            "",
+            "Boundaries:",
             "Memory writes: disabled",
             "Memory Center mutation: disabled",
             "Calendar writes: disabled",
-            "LLM/model calls: disabled",
-            "Tools/workers: disabled",
+            "Gmail inbox: unavailable",
+            "Gmail writes: disabled",
+            "Model calls: disabled",
+            "Tools: disabled",
+            "Worker dispatch: disabled",
             "External writes: disabled",
             "",
-            "Inbox items:",
-            *(f"- {item}" for item in record.inbox_items),
+            "Underlying sources:",
+            f"- {', '.join(record.source_stages)}",
             "",
-            "Next steps:",
+            "Legacy next steps:",
             *(f"- {step}" for step in record.next_steps),
             "",
             "No inbox item was resolved or dismissed.",
         ]
+    )
+
+
+def _render_inbox_item_lines(items: tuple[str, ...]) -> tuple[str, ...]:
+    rendered: list[str] = []
+    for item in items:
+        if item.startswith("pending-memory:"):
+            rendered.append(f"- needs approval | {item}")
+        elif item.startswith("meeting-suggestion:"):
+            rendered.append(f"- pending | {item}")
+        else:
+            rendered.append(f"- blocked | {item}")
+    return tuple(rendered)
+
+
+def _product_next_steps(record: PersonalAdminInboxRecord) -> tuple[str, ...]:
+    if record.status == "empty":
+        return ("Use /today to see the current daily view.",)
+    return (
+        "Use /inbox_done <item_id> for a local done receipt.",
+        "Use /inbox_dismiss <item_id> for a local dismissed receipt.",
+        "Use /memory_approve or /memory_reject for memory proposals.",
     )
 
 

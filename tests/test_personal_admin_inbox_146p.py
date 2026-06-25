@@ -65,9 +65,11 @@ def test_146p_render_names_disabled_resolution_and_writes():
         )
     )
 
-    assert "Personal Admin Inbox" in rendered
-    assert "Stage: 146P" in rendered
-    assert "Item resolution: disabled" in rendered
+    assert "Task Inbox" in rendered
+    assert "Stage: 146P" not in rendered
+    assert "States:" in rendered
+    assert "needs approval | pending-memory:" in rendered
+    assert "Robot task inbox, not Gmail." in rendered
     assert "Memory Center mutation: disabled" in rendered
     assert "No inbox item was resolved or dismissed." in rendered
 
@@ -87,4 +89,4 @@ def test_146p_roadmap_records_inbox_and_blocks_147p_plus():
     roadmap = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"146P","stage_name":"Personal Admin Inbox v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "147P and later remain unauthorized" in roadmap
+    assert "155P and later remain unauthorized" in roadmap

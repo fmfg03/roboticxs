@@ -9,9 +9,9 @@ import sys
 
 
 HERMES_RUNTIME_BOOTSTRAP_STAGE = "129P"
-ROADMAP_CLOSED_THROUGH = "153P"
-NEXT_STAGE = "154P"
-NEXT_STAGE_LABEL = "154P+ remains unauthorized."
+ROADMAP_CLOSED_THROUGH = "154P"
+NEXT_STAGE = "155P"
+NEXT_STAGE_LABEL = "155P+ remains unauthorized."
 DEFAULT_RUNTIME_MODE = "local-dev"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
@@ -245,7 +245,7 @@ def render_hermes_runtime_bootstrap_report(
             f"Owner: {status.owner_id}",
             f"Owner Display Name: {status.owner_display_name}",
             f"Mode: {status.runtime_mode}",
-            f"Roadmap: 95P-153P CLOSED_COMMITTED",
+            f"Roadmap: 95P-154P CLOSED_COMMITTED",
             f"Roadmap Closed Through: {status.roadmap_closed_through}",
             f"Telegram: {'enabled' if status.telegram_enabled else 'disabled'}",
             f"Connectors: {'enabled' if status.connectors_enabled else 'disabled'}",
@@ -289,6 +289,7 @@ def render_hermes_runtime_bootstrap_report(
                 "Brief Memory Approval: available as local owner decision receipts only",
                 "Personal Admin Inbox: available for owner-requested read-only inbox visibility only",
                 "Inbox Item Decisions: available as local owner decision receipts only",
+                "Task Inbox Flow: available for customer-facing task inbox visibility and local receipts only",
                 "Factory Loop Handoff Harness: available for local non-authority loop evidence only",
                 "Runtime Doctor: available for local read-only readiness diagnostics only",
                 "Telegram Product Shell: available for customer-facing menu and setup status only",

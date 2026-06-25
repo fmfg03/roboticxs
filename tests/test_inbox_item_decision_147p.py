@@ -57,8 +57,10 @@ def test_147p_render_names_disabled_effects():
     )
     rendered = render_inbox_item_decision(record)
 
-    assert "Inbox Item Decision" in rendered
-    assert "Stage: 147P" in rendered
+    assert "Task Inbox Decision" in rendered
+    assert "Stage: 147P" not in rendered
+    assert "Status: done" in rendered
+    assert "local receipt for the robot task inbox" in rendered
     assert "Evidence deleted: false" in rendered
     assert "Persisted state written: false" in rendered
     assert "Memory Center mutation: disabled" in rendered
@@ -85,4 +87,4 @@ def test_147p_roadmap_records_inbox_decision_and_later_closed_stages():
     assert "149P later added local read-only runtime doctor diagnostics only" in roadmap
     assert "150P later added customer-facing Telegram product shell copy only" in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "154P and later remain unauthorized" in roadmap
+    assert "155P and later remain unauthorized" in roadmap

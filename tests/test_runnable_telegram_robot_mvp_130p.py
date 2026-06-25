@@ -316,7 +316,7 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "Automatic Memory Center mutation: disabled" in receipt.reply_text
     assert "Scheduler/proactive outbound: disabled" in receipt.reply_text
     assert "Task Inbox is your robot task inbox, not your Gmail inbox yet." in receipt.reply_text
-    assert "Roadmap: 95P-153P closed, Setup & Capability Status active" in receipt.reply_text
+    assert "Roadmap: 95P-154P closed, Task Inbox Flow active" in receipt.reply_text
 
 
 def test_130p_unknown_command_from_authorized_owner_produces_safe_fallback():
@@ -857,8 +857,9 @@ def test_147p_inbox_done_returns_local_decision_without_deleting_evidence():
 
     assert receipt.command == "/inbox_done"
     assert receipt.authorized is True
-    assert "Inbox Item Decision" in receipt.reply_text
-    assert "Stage: 147P" in receipt.reply_text
+    assert "Task Inbox Decision" in receipt.reply_text
+    assert "Stage: 147P" not in receipt.reply_text
+    assert "Status: done" in receipt.reply_text
     assert "Choice: done" in receipt.reply_text
     assert "Evidence deleted: false" in receipt.reply_text
     assert "Persisted state written: false" in receipt.reply_text
@@ -971,4 +972,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "154P and later remain unauthorized" in roadmap
+    assert "155P and later remain unauthorized" in roadmap

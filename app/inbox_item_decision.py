@@ -98,25 +98,37 @@ def build_inbox_item_decision(
 
 
 def render_inbox_item_decision(record: InboxItemDecisionRecord) -> str:
+    product_status = "done" if record.choice == "done" else "dismissed"
     return "\n".join(
         [
-            "Inbox Item Decision",
+            "Task Inbox Decision",
             "",
-            f"Stage: {record.stage}",
             f"Decision id: {record.decision_id}",
             f"Item id: {record.item_id}",
             f"Choice: {record.choice}",
-            f"Decision status: {record.decision_status}",
-            f"Source stage: {record.source_stage}",
+            f"Status: {product_status}",
+            f"Receipt status: {record.decision_status}",
             "Owner requested: true",
             "Local audit created: true",
+            "",
+            "Meaning:",
+            "- This is a local receipt for the robot task inbox.",
+            "- It does not delete source evidence or write persisted state.",
+            "",
+            "Boundaries:",
             "Evidence deleted: false",
             "Persisted state written: false",
             "Memory Center mutation: disabled",
             "Calendar writes: disabled",
-            "LLM/model calls: disabled",
-            "Tools/workers: disabled",
+            "Gmail inbox: unavailable",
+            "Gmail writes: disabled",
+            "Model calls: disabled",
+            "Tools: disabled",
+            "Worker dispatch: disabled",
             "External writes: disabled",
+            "",
+            "Underlying source:",
+            f"- {record.source_stage}",
             "",
             "No inbox evidence was deleted.",
         ]
