@@ -468,7 +468,7 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "",
             *render_setup_capability_status_sections(),
             "",
-            "Roadmap: 95P-168P closed, Usage Cost Meter active",
+            "Roadmap: 95P-169P closed, Model Router active",
         ]
     )
 
