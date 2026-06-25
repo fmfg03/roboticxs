@@ -263,7 +263,7 @@ def test_130p_start_from_authorized_owner_produces_deterministic_online_response
     assert receipt.reply_text == render_start_command_reply(config)
     assert "Roboticxs is online." in receipt.reply_text
     assert "This dev bot is owner-gated." in receipt.reply_text
-    assert "Available commands: /help, /status, /miss, /today, /loops, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending." in receipt.reply_text
+    assert "Available commands: /help, /status, /miss, /today, /loops, /inbox, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending." in receipt.reply_text
     assert "No external actions are enabled." in receipt.reply_text
 
 
@@ -324,7 +324,7 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "/memory command: enabled" in receipt.reply_text
     assert "/memory_limits command: enabled" in receipt.reply_text
     assert "/memory_pending command: enabled" in receipt.reply_text
-    assert "roadmap state: 95P-145P closed, 145P runtime active" in receipt.reply_text
+    assert "roadmap state: 95P-146P closed, 146P runtime active" in receipt.reply_text
 
 
 def test_130p_unknown_command_from_authorized_owner_produces_safe_fallback():
@@ -340,7 +340,7 @@ def test_130p_unknown_command_from_authorized_owner_produces_safe_fallback():
 
     assert receipt.reply_text == render_unknown_command_reply()
     assert "Command not enabled." in receipt.reply_text
-    assert "Available commands: /start, /help, /status, /miss, /today, /loops, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending." in receipt.reply_text
+    assert "Available commands: /start, /help, /status, /miss, /today, /loops, /inbox, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending." in receipt.reply_text
     assert "No action was taken." in receipt.reply_text
 
 
@@ -523,9 +523,9 @@ def test_130p_main_uses_injected_client_for_bounded_run(
 def test_130p_startup_report_is_deterministic():
     report = build_telegram_robot_startup_report(build_valid_config())
 
-    assert "Stage: 145P" in report
+    assert "Stage: 146P" in report
     assert "Owner gate: enabled" in report
-    assert "Available commands: /start, /help, /status, /miss, /today, /loops, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending" in report
+    assert "Available commands: /start, /help, /status, /miss, /today, /loops, /inbox, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending" in report
     assert "External connectors: Google Calendar read-only optional" in report
     assert "Calendar writes: disabled" in report
     assert "LLM/model calls: disabled" in report
