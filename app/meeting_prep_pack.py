@@ -14,6 +14,7 @@ from app.suggested_meeting_brief_request import (
     SuggestedMeetingBriefRequestRecord,
     build_suggested_meeting_brief_request,
 )
+from app.setup_capability_status_component import render_compact_setup_capability_block
 from app.telegram_memory_center_commands import (
     TelegramMemoryCenterSnapshot,
     TelegramMemoryCenterSourceBundle,
@@ -200,6 +201,8 @@ def render_meeting_prep_pack(record: MeetingPrepPackRecord) -> str:
             "",
             "Missing inputs:",
             *(f"- {line}" for line in record.missing_input_lines),
+            "",
+            *render_compact_setup_capability_block(),
             "",
             "Suggested actions:",
             *(f"- {line}" for line in record.suggested_action_lines),

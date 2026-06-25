@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 from app.google_calendar_readonly_connector import GoogleCalendarHttpClientProtocol
 from app.open_loops_command import OpenLoopsCommandRecord, run_open_loops_command
+from app.setup_capability_status_component import render_compact_setup_capability_block
 from app.telegram_memory_center_commands import TelegramMemoryCenterSourceBundle
 
 
@@ -124,6 +125,8 @@ def render_personal_admin_inbox(record: PersonalAdminInboxRecord) -> str:
             "",
             "Items:",
             *(_render_inbox_item_lines(record.inbox_items) if has_items else ("- Empty: no robot task inbox items are visible right now.",)),
+            "",
+            *render_compact_setup_capability_block(),
             "",
             "Suggested next action:",
             *(f"- {step}" for step in _product_next_steps(record)),

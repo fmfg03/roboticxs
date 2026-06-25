@@ -8,6 +8,7 @@ from app.proactive_meeting_suggestion import (
     ProactiveMeetingSuggestionScanRecord,
     run_proactive_meeting_suggestion_scan,
 )
+from app.setup_capability_status_component import render_compact_setup_capability_block
 from app.telegram_memory_center_commands import (
     TelegramMemoryCenterSnapshot,
     TelegramMemoryCenterSourceBundle,
@@ -173,6 +174,8 @@ def render_today_command(record: TodayCommandRecord) -> str:
             "",
             "Known memory:",
             *(f"- {line}" for line in record.memory_lines),
+            "",
+            *render_compact_setup_capability_block(),
             "",
             "Suggested next action:",
             f"- {record.suggested_next_action}",

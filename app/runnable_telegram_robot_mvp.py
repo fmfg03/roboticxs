@@ -67,6 +67,11 @@ from app.suggested_meeting_brief_request import (
     render_suggested_meeting_brief_request,
     run_suggested_meeting_brief_request,
 )
+from app.setup_capability_status_component import (
+    PRODUCT_APPROVAL_BOUNDARY_LINES,
+    render_compact_setup_capability_block,
+    render_setup_capability_status_sections,
+)
 from app.telegram_memory_center_commands import (
     TelegramMemoryCenterSourceBundle,
     build_memory_center_telegram_snapshot,
@@ -121,12 +126,6 @@ PRODUCT_MENU_LINES = (
     "Memory: /memory, /memory_pending, /memory_limits, /memory_approve <candidate_id>, /memory_reject <candidate_id>",
     "Documents: send a file for draft-only intake",
     "Setup Check: /status",
-)
-PRODUCT_APPROVAL_BOUNDARY_LINES = (
-    "- I do not write Calendar or Gmail.",
-    "- I do not remember new facts without approval.",
-    "- I do not take external actions without approval.",
-    "- Documents are metadata-only and draft-only right now.",
 )
 NO_ACTION_TAKEN_LINE = "No external action was taken."
 DAILY_BRIEF_DATE = "2026-06-20"
@@ -419,6 +418,8 @@ def render_start_command_reply(config: TelegramRobotConfig) -> str:
             "- Gmail is not connected to the task inbox yet.",
             "- Documents are draft-only until document intake is approved.",
             "",
+            *render_compact_setup_capability_block(),
+            "",
             "Approval boundaries:",
             *PRODUCT_APPROVAL_BOUNDARY_LINES,
             "",
@@ -465,40 +466,9 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             f"Telegram replies: {live_telegram_state}",
             f"Dev/sandbox mode: {dev_mode_state}",
             "",
-            "Active now:",
-            "- Today and missed-item summaries",
-            "- Meeting briefs and prep packs",
-            "- Robot task inbox",
-            "- Memory visibility and approval receipts",
-            "- Draft-only document intake metadata",
+            *render_setup_capability_status_sections(),
             "",
-            "Needs setup:",
-            "- Calendar reads require read-only Google setup.",
-            "- Calendar meeting suggestions need read-only Calendar setup.",
-            "- Memory review uses local pending proposals only until writeback is approved.",
-            "",
-            "Unavailable:",
-            "- Gmail is not an inbox yet.",
-            "- Document review remains draft-only; file contents are not downloaded or parsed.",
-            "- Calendar and Gmail writes are not product capabilities.",
-            "",
-            "Intentionally disabled:",
-            "- Calendar writes: disabled",
-            "- Gmail writes: disabled",
-            "- Model calls: disabled",
-            "- Tool execution: disabled",
-            "- Workers: disabled",
-            "- Scheduler/proactive outbound: disabled",
-            "- Automatic Memory Center mutation: disabled",
-            "",
-            "Approval boundaries:",
-            *PRODUCT_APPROVAL_BOUNDARY_LINES,
-            "- Task Inbox is your robot task inbox, not your Gmail inbox yet.",
-            "",
-            "Suggested next action:",
-            "- Use /today for the daily view, /brief for a meeting brief, or /prep <suggestion_id> for prep.",
-            "",
-            "Roadmap: 95P-160P closed, Customer MVP Baseline active",
+            "Roadmap: 95P-161P closed, Setup Capability Status Component active",
         ]
     )
 
