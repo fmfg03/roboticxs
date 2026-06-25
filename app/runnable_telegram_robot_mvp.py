@@ -446,7 +446,7 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "Suggested next action:",
             "- Use /today for the daily view, /brief for a meeting brief, or /prep <suggestion_id> for prep.",
             "",
-            "Roadmap: 95P-156P closed, First-Run Onboarding active",
+            "Roadmap: 95P-157P closed, Telegram Demo Loop active",
         ]
     )
 
