@@ -74,6 +74,12 @@ from app.telegram_memory_center_commands import (
     render_memory_limits_command_reply,
     render_memory_pending_command_reply,
 )
+from app.telegram_document_intake_stub import (
+    TelegramDocumentIntakeMetadata,
+    TelegramDocumentIntakeStubRecord,
+    build_telegram_document_intake_stub_record,
+    render_telegram_document_intake_stub,
+)
 from app.today_command import (
     TodayCommandRecord,
     render_today_command,
@@ -105,6 +111,7 @@ SUPPORTED_COMMANDS = (
     "/memory",
     "/memory_limits",
     "/memory_pending",
+    "/document",
 )
 PRODUCT_MENU_LINES = (
     "Today: /today, /miss",
@@ -112,6 +119,7 @@ PRODUCT_MENU_LINES = (
     "Prep: /prep <suggestion_id>",
     "Tasks: /inbox, /inbox_done <item_id>, /inbox_dismiss <item_id>",
     "Memory: /memory, /memory_pending, /memory_limits, /memory_approve <candidate_id>, /memory_reject <candidate_id>",
+    "Documents: send a file for draft-only intake",
     "Setup Check: /status",
 )
 DAILY_BRIEF_DATE = "2026-06-20"
@@ -147,6 +155,7 @@ class TelegramIncomingCommand:
     message_id: int | None
     command: str
     raw_text: str
+    document: TelegramDocumentIntakeMetadata | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -299,11 +308,27 @@ def parse_telegram_incoming_command(update: dict) -> TelegramIncomingCommand | N
     chat = message.get("chat")
     sender = message.get("from")
     raw_text = message.get("text")
-    if not isinstance(chat, dict) or not isinstance(sender, dict) or not isinstance(raw_text, str):
+    document = _normalize_telegram_document_metadata(message.get("document"))
+    if not isinstance(chat, dict) or not isinstance(sender, dict):
         return None
     chat_id = chat.get("id")
     telegram_user_id = sender.get("id")
     if not isinstance(chat_id, int) or not isinstance(telegram_user_id, int):
+        return None
+    update_id = update.get("update_id")
+    message_id = message.get("message_id")
+    if document is not None:
+        raw_document_text = "[telegram document metadata]"
+        return TelegramIncomingCommand(
+            update_id=update_id if isinstance(update_id, int) else None,
+            chat_id=chat_id,
+            telegram_user_id=telegram_user_id,
+            message_id=message_id if isinstance(message_id, int) else None,
+            command="/document",
+            raw_text=raw_document_text,
+            document=document,
+        )
+    if not isinstance(raw_text, str):
         return None
     stripped_text = raw_text.strip()
     if not stripped_text:
@@ -311,8 +336,6 @@ def parse_telegram_incoming_command(update: dict) -> TelegramIncomingCommand | N
     command = normalize_telegram_command(stripped_text)
     if command is None:
         return None
-    update_id = update.get("update_id")
-    message_id = message.get("message_id")
     return TelegramIncomingCommand(
         update_id=update_id if isinstance(update_id, int) else None,
         chat_id=chat_id,
@@ -320,6 +343,26 @@ def parse_telegram_incoming_command(update: dict) -> TelegramIncomingCommand | N
         message_id=message_id if isinstance(message_id, int) else None,
         command=command,
         raw_text=stripped_text,
+        document=None,
+    )
+
+
+def _normalize_telegram_document_metadata(payload: object) -> TelegramDocumentIntakeMetadata | None:
+    if not isinstance(payload, dict):
+        return None
+    file_id = payload.get("file_id")
+    if not isinstance(file_id, str) or not file_id.strip():
+        return None
+    file_unique_id = payload.get("file_unique_id")
+    file_name = payload.get("file_name")
+    mime_type = payload.get("mime_type")
+    file_size = payload.get("file_size")
+    return TelegramDocumentIntakeMetadata(
+        file_id=file_id.strip(),
+        file_unique_id=file_unique_id.strip() if isinstance(file_unique_id, str) and file_unique_id.strip() else None,
+        file_name=file_name.strip() if isinstance(file_name, str) and file_name.strip() else None,
+        mime_type=mime_type.strip() if isinstance(mime_type, str) and mime_type.strip() else None,
+        file_size=file_size if isinstance(file_size, int) else None,
     )
 
 
@@ -418,6 +461,7 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "- Meeting briefs and prep packs",
             "- Robot task inbox",
             "- Memory visibility and approval receipts",
+            "- Draft-only document intake metadata",
             "",
             "Needs setup:",
             "- Calendar reads require read-only Google setup.",
@@ -426,7 +470,7 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "",
             "Unavailable:",
             "- Gmail is not an inbox yet.",
-            "- Document review is draft-only until a document intake stage is approved.",
+            "- Document review remains draft-only; file contents are not downloaded or parsed.",
             "- Calendar and Gmail writes are not product capabilities.",
             "",
             "Intentionally disabled:",
@@ -446,7 +490,7 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "Suggested next action:",
             "- Use /today for the daily view, /brief for a meeting brief, or /prep <suggestion_id> for prep.",
             "",
-            "Roadmap: 95P-157P closed, Telegram Demo Loop active",
+            "Roadmap: 95P-158P closed, Document Intake Stub active",
         ]
     )
 
@@ -664,6 +708,7 @@ def render_command_reply(
     meeting_prep_pack: MeetingPrepPackRecord | None = None,
     brief_memory_proposal: BriefMemoryProposalRecord | None = None,
     brief_memory_decision: BriefMemoryApprovalDecisionRecord | None = None,
+    document_intake: TelegramDocumentIntakeStubRecord | None = None,
 ) -> str:
     if command == "/start":
         return render_start_command_reply(config)
@@ -720,6 +765,10 @@ def render_command_reply(
         return render_memory_limits_reply(config, source_bundle=memory_source_bundle)
     if command == "/memory_pending":
         return render_memory_pending_reply(config, source_bundle=memory_source_bundle)
+    if command == "/document":
+        if document_intake is None:
+            raise TelegramRobotConfigError("rejected_missing_document_intake")
+        return render_telegram_document_intake_stub(document_intake)
     return render_unknown_command_reply()
 
 
@@ -808,6 +857,7 @@ def handle_incoming_command(
     meeting_prep_pack = None
     brief_memory_proposal = None
     brief_memory_decision = None
+    document_intake = None
     if authorized and incoming_command.command == "/brief" and brief_suggestion_id:
         suggested_meeting_brief = run_suggested_meeting_brief_request(
             owner_id=config.owner_id,
@@ -883,6 +933,14 @@ def handle_incoming_command(
             candidate_id=memory_reject_candidate_id or "",
             choice="reject",
         )
+    if authorized and incoming_command.command == "/document":
+        if incoming_command.document is None:
+            raise TelegramRobotConfigError("rejected_missing_document_metadata")
+        document_intake = build_telegram_document_intake_stub_record(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            document=incoming_command.document,
+        )
     if authorized:
         reply_text = render_command_reply(
             incoming_command.command,
@@ -898,6 +956,7 @@ def handle_incoming_command(
             meeting_prep_pack=meeting_prep_pack,
             brief_memory_proposal=brief_memory_proposal,
             brief_memory_decision=brief_memory_decision,
+            document_intake=document_intake,
         )
     else:
         reply_text = render_unauthorized_reply()
@@ -1004,8 +1063,8 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             f"Owner gate: enabled ({len(validated.owner_ids)} allowed Telegram user id(s))",
             f"Dev mode: {'enabled' if validated.dev_mode else 'disabled'}",
             f"Dry run: {'enabled' if validated.dry_run else 'disabled'}",
-            "Product menu: Today, Brief, Prep, Tasks, Memory, Setup Check",
-            "Available commands: /start, /help, /status, /miss, /today, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending",
+            "Product menu: Today, Brief, Prep, Tasks, Memory, Documents, Setup Check",
+            "Available commands: /start, /help, /status, /miss, /today, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending, document upload",
             "External connectors: Google Calendar read-only optional",
             "Calendar writes: disabled",
             "LLM/model calls: disabled",
@@ -1019,6 +1078,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "Meeting Prep Pack: /prep <suggestion_id> owner-requested read-only prep only",
             "Brief Memory Proposals: shown in /prep as pending owner review only",
             "Memory Review Decisions: /memory_approve and /memory_reject create local decision receipts only",
+            "Document Intake: Telegram document metadata receives draft-only local replies only",
             "Proactive meeting suggestions: /suggest_brief owner-requested replies only",
             "Suggested meeting brief requests: /brief <suggestion_id> owner-requested replies only",
             "Proactive outbound: disabled",

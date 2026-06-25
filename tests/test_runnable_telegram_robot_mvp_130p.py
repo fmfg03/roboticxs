@@ -316,7 +316,7 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "Automatic Memory Center mutation: disabled" in receipt.reply_text
     assert "Scheduler/proactive outbound: disabled" in receipt.reply_text
     assert "Task Inbox is your robot task inbox, not your Gmail inbox yet." in receipt.reply_text
-    assert "Roadmap: 95P-157P closed, Telegram Demo Loop active" in receipt.reply_text
+    assert "Roadmap: 95P-158P closed, Document Intake Stub active" in receipt.reply_text
 
 
 def test_130p_unknown_command_from_authorized_owner_produces_safe_fallback():
@@ -518,8 +518,8 @@ def test_130p_startup_report_is_deterministic():
 
     assert "Stage: 150P" in report
     assert "Owner gate: enabled" in report
-    assert "Product menu: Today, Brief, Prep, Tasks, Memory, Setup Check" in report
-    assert "Available commands: /start, /help, /status, /miss, /today, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending" in report
+    assert "Product menu: Today, Brief, Prep, Tasks, Memory, Documents, Setup Check" in report
+    assert "Available commands: /start, /help, /status, /miss, /today, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending, document upload" in report
     assert "External connectors: Google Calendar read-only optional" in report
     assert "Calendar writes: disabled" in report
     assert "LLM/model calls: disabled" in report
@@ -528,6 +528,7 @@ def test_130p_startup_report_is_deterministic():
     assert "Memory Center mutation: disabled" in report
     assert "Today command: /today owner-requested read-only summary only" in report
     assert "Open Loops command: /loops owner-requested read-only unresolved loops only" in report
+    assert "Document Intake: Telegram document metadata receives draft-only local replies only" in report
     assert "Proactive meeting suggestions: /suggest_brief owner-requested replies only" in report
     assert "Suggested meeting brief requests: /brief <suggestion_id> owner-requested replies only" in report
     assert "Proactive outbound: disabled" in report
@@ -972,4 +973,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "158P and later remain unauthorized" in roadmap
+    assert "159P and later remain unauthorized" in roadmap

@@ -42,7 +42,7 @@ def test_153p_status_renders_setup_capability_surface_without_secret_leaks():
     assert "Calendar reads require read-only Google setup." in reply
     assert "Calendar meeting suggestions need read-only Calendar setup." in reply
     assert "Gmail is not an inbox yet." in reply
-    assert "Document review is draft-only until a document intake stage is approved." in reply
+    assert "Document review remains draft-only; file contents are not downloaded or parsed." in reply
     assert "Task Inbox is your robot task inbox, not your Gmail inbox yet." in reply
     assert "Calendar writes: disabled" in reply
     assert "Gmail writes: disabled" in reply
@@ -52,7 +52,7 @@ def test_153p_status_renders_setup_capability_surface_without_secret_leaks():
     assert "/today" in reply
     assert "/brief" in reply
     assert "/prep <suggestion_id>" in reply
-    assert "Roadmap: 95P-157P closed, Telegram Demo Loop active" in reply
+    assert "Roadmap: 95P-158P closed, Document Intake Stub active" in reply
     assert "Doctor" not in reply
     assert "secret-bot-token-153p" not in reply
 
@@ -87,4 +87,4 @@ def test_153p_reference_and_roadmap_close_status_without_authority_expansion():
     assert "activate connectors" in reference
     assert "Task Inbox must be described as the robot task inbox, not Gmail." in reference
     assert '"stage_id":"153P","stage_name":"Setup & Capability Status v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "158P and later remain unauthorized" in roadmap
+    assert "159P and later remain unauthorized" in roadmap
