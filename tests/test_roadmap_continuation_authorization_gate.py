@@ -289,7 +289,8 @@ def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
     )
     assert '"stage_id":"141P","stage_name":"Today Command v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"stage_id":"142P","stage_name":"Open Loops Command v0","status":"CLOSED_COMMITTED"' in roadmap_text
-    assert "143P and later remain unauthorized" in roadmap_text
+    assert '"stage_id":"143P","stage_name":"Meeting Prep Pack v0","status":"CLOSED_COMMITTED"' in roadmap_text
+    assert "144P and later remain unauthorized" in roadmap_text
     assert '"status":"NEXT_ELIGIBLE"' not in roadmap_text
 
 

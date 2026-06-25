@@ -48,9 +48,9 @@ def test_132p_help_start_and_status_expose_brief_command():
 
     assert "/brief" in help_reply
     assert "/brief is not enabled yet." not in help_reply
-    assert "Available commands: /help, /status, /miss, /today, /loops, /brief, /suggest_brief, /memory, /memory_limits, /memory_pending." in start_reply
+    assert "Available commands: /help, /status, /miss, /today, /loops, /prep, /brief, /suggest_brief, /memory, /memory_limits, /memory_pending." in start_reply
     assert "/brief command: enabled" in status_reply
-    assert "roadmap state: 95P-142P closed, 142P runtime active" in status_reply
+    assert "roadmap state: 95P-143P closed, 143P runtime active" in status_reply
 
 
 def test_132p_authorized_brief_reply_is_deterministic_and_local_only():
@@ -140,7 +140,7 @@ def test_132p_unauthorized_brief_returns_private_bot_response_without_brief_cont
 def test_132p_unknown_fallback_lists_brief_command():
     reply = render_unknown_command_reply()
 
-    assert "Available commands: /start, /help, /status, /miss, /today, /loops, /brief, /suggest_brief, /memory, /memory_limits, /memory_pending." in reply
+    assert "Available commands: /start, /help, /status, /miss, /today, /loops, /prep, /brief, /suggest_brief, /memory, /memory_limits, /memory_pending." in reply
     assert "No action was taken." in reply
 
 

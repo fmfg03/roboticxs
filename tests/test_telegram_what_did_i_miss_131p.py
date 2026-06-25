@@ -54,7 +54,7 @@ def test_131p_status_marks_miss_enabled_brief_disabled_and_runtime_active():
 
     assert "/miss command: enabled" in reply
     assert "/brief command: enabled" in reply
-    assert "roadmap state: 95P-142P closed, 142P runtime active" in reply
+    assert "roadmap state: 95P-143P closed, 143P runtime active" in reply
 
 
 def test_131p_authorized_miss_produces_deterministic_local_read_only_reply():
@@ -131,7 +131,7 @@ def test_131p_unknown_fallback_lists_brief_after_132p():
     )
 
     assert receipt.reply_text == render_unknown_command_reply()
-    assert "Available commands: /start, /help, /status, /miss, /today, /loops, /brief, /suggest_brief, /memory, /memory_limits, /memory_pending." in receipt.reply_text
+    assert "Available commands: /start, /help, /status, /miss, /today, /loops, /prep, /brief, /suggest_brief, /memory, /memory_limits, /memory_pending." in receipt.reply_text
     assert "No action was taken." in receipt.reply_text
 
 
