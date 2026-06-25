@@ -53,4 +53,4 @@ If Calendar is unavailable, `/today` fails closed for Calendar context and still
 
 ## Next Stage Boundary
 
-`142P+` remains unauthorized. `141P` only adds the owner-requested read-only Today command.
+`143P+` remains unauthorized. `141P` only adds the owner-requested read-only Today command.

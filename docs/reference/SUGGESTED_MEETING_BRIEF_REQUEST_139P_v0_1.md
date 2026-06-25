@@ -52,4 +52,4 @@ As Francisco, I want to turn a `/suggest_brief` meeting suggestion into an expli
 
 ## Closeout
 
-139P is closed committed when the module, Telegram reply path, roadmap registry, and tests all assert the owner-requested boundary, preserve 138P as action-only, and record the new terminal condition that 140P later added a DeerFlow docs/test-only pattern review only. 141P later added an owner-requested read-only Today command only. 142P and later remain unauthorized.
+139P is closed committed when the module, Telegram reply path, roadmap registry, and tests all assert the owner-requested boundary, preserve 138P as action-only, and record the new terminal condition that 140P later added a DeerFlow docs/test-only pattern review only. 141P later added an owner-requested read-only Today command only. 142P later added an owner-requested read-only Open Loops command only. 143P and later remain unauthorized.

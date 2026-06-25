@@ -27,6 +27,11 @@ from app.meeting_brief_demo_flow import (
     get_meeting_brief_demo_artifact,
     run_local_meeting_brief_demo_flow,
 )
+from app.open_loops_command import (
+    OpenLoopsCommandRecord,
+    render_open_loops_command,
+    run_open_loops_command,
+)
 from app.proactive_meeting_suggestion import (
     ProactiveMeetingSuggestionScanRecord,
     render_proactive_meeting_suggestion_scan,
@@ -50,7 +55,7 @@ from app.today_command import (
     run_today_command,
 )
 
-RUNNABLE_TELEGRAM_ROBOT_STAGE = "141P"
+RUNNABLE_TELEGRAM_ROBOT_STAGE = "142P"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
 DEFAULT_POLL_TIMEOUT_SECONDS = 30
@@ -63,6 +68,7 @@ SUPPORTED_COMMANDS = (
     "/status",
     "/miss",
     "/today",
+    "/loops",
     "/brief",
     "/suggest_brief",
     "/memory",
@@ -313,7 +319,7 @@ def render_start_command_reply(config: TelegramRobotConfig) -> str:
             f"Roboticxs is online.",
             f"Robot: {config.robot_id}",
             "This dev bot is owner-gated.",
-            "Available commands: /help, /status, /miss, /today, /brief, /suggest_brief, /memory, /memory_limits, /memory_pending.",
+            "Available commands: /help, /status, /miss, /today, /loops, /brief, /suggest_brief, /memory, /memory_limits, /memory_pending.",
             "No external actions are enabled.",
             "No action was taken.",
         ]
@@ -329,6 +335,7 @@ def render_help_command_reply() -> str:
             "/status",
             "/miss",
             "/today",
+            "/loops",
             "/brief",
             "/suggest_brief",
             "/memory",
@@ -356,12 +363,13 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "proactive outbound: disabled",
             "/miss command: enabled",
             "/today command: enabled",
+            "/loops command: enabled",
             "/brief command: enabled",
             "/suggest_brief command: enabled",
             "/memory command: enabled",
             "/memory_limits command: enabled",
             "/memory_pending command: enabled",
-            "roadmap state: 95P-141P closed, 141P runtime active",
+            "roadmap state: 95P-142P closed, 142P runtime active",
         ]
     )
 
@@ -370,7 +378,7 @@ def render_unknown_command_reply() -> str:
     return "\n".join(
         [
             "Command not enabled.",
-            "Available commands: /start, /help, /status, /miss, /today, /brief, /suggest_brief, /memory, /memory_limits, /memory_pending.",
+            "Available commands: /start, /help, /status, /miss, /today, /loops, /brief, /suggest_brief, /memory, /memory_limits, /memory_pending.",
             "No action was taken.",
         ]
     )
@@ -563,6 +571,7 @@ def render_command_reply(
     proactive_meeting_suggestion: ProactiveMeetingSuggestionScanRecord | None = None,
     memory_source_bundle: TelegramMemoryCenterSourceBundle | None = None,
     today_record: TodayCommandRecord | None = None,
+    open_loops_record: OpenLoopsCommandRecord | None = None,
 ) -> str:
     if command == "/start":
         return render_start_command_reply(config)
@@ -576,6 +585,10 @@ def render_command_reply(
         if today_record is None:
             raise TelegramRobotConfigError("rejected_missing_today_command_record")
         return render_today_command(today_record)
+    if command == "/loops":
+        if open_loops_record is None:
+            raise TelegramRobotConfigError("rejected_missing_open_loops_command_record")
+        return render_open_loops_command(open_loops_record)
     if command == "/brief":
         if suggested_meeting_brief is not None:
             return render_requested_suggested_brief_reply(suggested_meeting_brief)
@@ -652,6 +665,7 @@ def handle_incoming_command(
     calendar_result = None
     proactive_meeting_suggestion = None
     today_record = None
+    open_loops_record = None
     if authorized and incoming_command.command == "/brief" and brief_suggestion_id:
         suggested_meeting_brief = run_suggested_meeting_brief_request(
             owner_id=config.owner_id,
@@ -676,6 +690,13 @@ def handle_incoming_command(
             calendar_http_client=calendar_http_client,
             memory_source_bundle=memory_source_bundle,
         )
+    if authorized and incoming_command.command == "/loops":
+        open_loops_record = run_open_loops_command(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            calendar_http_client=calendar_http_client,
+            memory_source_bundle=memory_source_bundle,
+        )
     if authorized:
         reply_text = render_command_reply(
             incoming_command.command,
@@ -685,6 +706,7 @@ def handle_incoming_command(
             proactive_meeting_suggestion=proactive_meeting_suggestion,
             memory_source_bundle=memory_source_bundle,
             today_record=today_record,
+            open_loops_record=open_loops_record,
         )
     else:
         reply_text = render_unauthorized_reply()
@@ -791,7 +813,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             f"Owner gate: enabled ({len(validated.owner_ids)} allowed Telegram user id(s))",
             f"Dev mode: {'enabled' if validated.dev_mode else 'disabled'}",
             f"Dry run: {'enabled' if validated.dry_run else 'disabled'}",
-            "Available commands: /start, /help, /status, /miss, /today, /brief, /suggest_brief, /memory, /memory_limits, /memory_pending",
+            "Available commands: /start, /help, /status, /miss, /today, /loops, /brief, /suggest_brief, /memory, /memory_limits, /memory_pending",
             "External connectors: Google Calendar read-only optional",
             "Calendar writes: disabled",
             "LLM/model calls: disabled",
@@ -799,6 +821,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "Memory Center commands: /memory, /memory_limits, /memory_pending",
             "Memory Center mutation: disabled",
             "Today command: /today owner-requested read-only summary only",
+            "Open Loops command: /loops owner-requested read-only unresolved loops only",
             "Proactive meeting suggestions: /suggest_brief owner-requested replies only",
             "Suggested meeting brief requests: /brief <suggestion_id> owner-requested replies only",
             "Proactive outbound: disabled",

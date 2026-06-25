@@ -84,7 +84,7 @@ def test_129p_builds_runtime_online_status_for_valid_local_config():
     assert status.runtime_mode == "local-dev"
     assert status.robot_id == DEFAULT_ROBOT_ID
     assert status.owner_id == DEFAULT_OWNER_ID
-    assert status.roadmap_closed_through == "141P"
+    assert status.roadmap_closed_through == "142P"
     assert status.next_stage_authorized is False
     assert status.next_stage == NEXT_STAGE
     assert status.telegram_enabled is False
@@ -100,6 +100,7 @@ def test_129p_builds_runtime_online_status_for_valid_local_config():
     assert "calendar_context_scan" in status.available_local_features
     assert "proactive_meeting_suggestion" in status.available_local_features
     assert "today_command" in status.available_local_features
+    assert "open_loops_command" in status.available_local_features
     assert "demo_result_delivery_surface" in status.available_local_features
     assert "runnable_telegram_robot_mvp" in status.available_local_features
     assert "telegram_memory_center_commands" in status.available_local_features
@@ -125,7 +126,7 @@ def test_129p_text_report_contains_required_runtime_lines():
     assert f"Robot: {DEFAULT_ROBOT_ID}" in report.rendered_text
     assert f"Owner: {DEFAULT_OWNER_ID}" in report.rendered_text
     assert "Mode: local-dev" in report.rendered_text
-    assert "Roadmap: 95P-141P CLOSED_COMMITTED" in report.rendered_text
+    assert "Roadmap: 95P-142P CLOSED_COMMITTED" in report.rendered_text
     assert "Telegram: disabled" in report.rendered_text
     assert "Connectors: disabled" in report.rendered_text
     assert "LLM/model calls: disabled" in report.rendered_text
@@ -141,14 +142,15 @@ def test_129p_text_report_contains_required_runtime_lines():
     assert "Calendar Context Scan: available for local manual smoke runs" in report.rendered_text
     assert "Proactive Meeting Suggestion: available for owner-requested Telegram replies only" in report.rendered_text
     assert "Today Command: available for owner-requested Telegram replies only" in report.rendered_text
-    assert "Next authorized stage: 142P+ remains unauthorized." in report.rendered_text
+    assert "Open Loops Command: available for owner-requested Telegram replies only" in report.rendered_text
+    assert "Next authorized stage: 143P+ remains unauthorized." in report.rendered_text
 
 
 def test_129p_json_report_is_renderable():
     report = run_hermes_runtime_bootstrap(output_format="json")
 
     assert '"runtime_online": true' in report.rendered_text
-    assert '"roadmap_closed_through": "141P"' in report.rendered_text
+    assert '"roadmap_closed_through": "142P"' in report.rendered_text
 
 
 def test_129p_main_prints_report_and_returns_zero(capsys: pytest.CaptureFixture[str]):
@@ -205,4 +207,5 @@ def test_129p_roadmap_registers_runtime_bootstrap_stage_and_135p_closed_with_136
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"140P","stage_name":"DeerFlow Pattern Review / Sandbox Boundary Spike v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"141P","stage_name":"Today Command v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "142P and later remain unauthorized" in roadmap
+    assert '"stage_id":"142P","stage_name":"Open Loops Command v0","status":"CLOSED_COMMITTED"' in roadmap
+    assert "143P and later remain unauthorized" in roadmap

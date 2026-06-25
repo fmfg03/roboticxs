@@ -159,5 +159,5 @@ def test_137p_roadmap_records_calendar_context_scan_and_later_139p_plus_block():
     roadmap = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"137P","stage_name":"Context Scan from Calendar v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "140P later added a DeerFlow docs/test-only pattern review only. 141P later added an owner-requested read-only Today command only. 142P and later remain unauthorized" in roadmap
+    assert "140P later added a DeerFlow docs/test-only pattern review only. 141P later added an owner-requested read-only Today command only. 142P later added an owner-requested read-only Open Loops command only. 143P and later remain unauthorized" in roadmap
     assert "It does not write ProposedMemory or Memory Center records automatically." in roadmap

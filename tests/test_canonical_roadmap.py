@@ -117,6 +117,7 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_139P_is_closed_committed_after_owner_requested_suggested_meeting_brief_closeout",
     "stage_140P_is_closed_committed_after_deerflow_pattern_review_closeout",
     "stage_141P_is_closed_committed_after_today_command_closeout",
+    "stage_142P_is_closed_committed_after_open_loops_command_closeout",
     "do_not_invent_133P_without_explicit_maintainer_direction_in_repo_evidence",
     "do_not_invent_134P_without_explicit_maintainer_direction_in_repo_evidence",
     "do_not_invent_135P_without_explicit_maintainer_direction_in_repo_evidence",
@@ -126,6 +127,7 @@ REQUIRED_SEQUENCE_RULES = {
     "do_not_invent_139P_without_explicit_maintainer_direction_in_repo_evidence",
     "do_not_invent_140P_without_explicit_maintainer_direction_in_repo_evidence",
     "do_not_invent_141P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_142P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -207,6 +209,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "139P": ("CLOSED_COMMITTED", "Owner-Requested Suggested Meeting Brief v0"),
     "140P": ("CLOSED_COMMITTED", "DeerFlow Pattern Review / Sandbox Boundary Spike v0"),
     "141P": ("CLOSED_COMMITTED", "Today Command v0"),
+    "142P": ("CLOSED_COMMITTED", "Open Loops Command v0"),
 }
 
 
@@ -229,7 +232,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_141P",
+        "local_evidence_scope": "stages_61P_through_142P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -241,7 +244,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 142)
+        f"{number}P" for number in range(67, 143)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -2800,7 +2803,7 @@ def test_133p_is_read_only_google_calendar_connector_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local manual Google Calendar read-only connector baseline. 133P is closed committed after implementation, validation, and closeout review. It reads upcoming events from Google Calendar through a read-only bearer token, normalizes them into a deterministic local snapshot, renders a local CLI smoke output, and keeps read_only=true, external_writes=false, and memory_mutation=false. 134P later added bounded owner-gated Telegram /brief read-only Calendar backing only. It does not authorize Calendar writes, Memory Center mutation, model/tool calls, worker dispatch, billing, entitlement enforcement, or 142P+ behavior.",
+        "next_action": "Use as the local manual Google Calendar read-only connector baseline. 133P is closed committed after implementation, validation, and closeout review. It reads upcoming events from Google Calendar through a read-only bearer token, normalizes them into a deterministic local snapshot, renders a local CLI smoke output, and keeps read_only=true, external_writes=false, and memory_mutation=false. 134P later added bounded owner-gated Telegram /brief read-only Calendar backing only. It does not authorize Calendar writes, Memory Center mutation, model/tool calls, worker dispatch, billing, entitlement enforcement, or 143P+ behavior.",
     }
     for path in stages_by_id["133P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2831,7 +2834,7 @@ def test_134p_is_calendar_backed_telegram_meeting_brief_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the bounded owner-gated Telegram /brief Calendar backing baseline. 134P is closed committed after implementation, validation, and closeout review. It lets authorized /brief replies include a read-only Google Calendar snapshot through the existing 133P connector, fails closed to deterministic local meeting context when Calendar config or upstream access is unavailable, keeps Telegram sendMessage replies as the only external write, and preserves Calendar writes=false, Memory Center mutation=false, LLM/model calls=false, tools=false, workers=false, billing=false, and entitlement enforcement=false. 135P later added a reusable local real Calendar meeting brief composer/CLI only. It does not authorize Calendar create/update/delete, Memory Center mutation, model/tool calls, worker dispatch, async delegation, billing, entitlement enforcement, or 142P+ behavior.",
+        "next_action": "Use as the bounded owner-gated Telegram /brief Calendar backing baseline. 134P is closed committed after implementation, validation, and closeout review. It lets authorized /brief replies include a read-only Google Calendar snapshot through the existing 133P connector, fails closed to deterministic local meeting context when Calendar config or upstream access is unavailable, keeps Telegram sendMessage replies as the only external write, and preserves Calendar writes=false, Memory Center mutation=false, LLM/model calls=false, tools=false, workers=false, billing=false, and entitlement enforcement=false. 135P later added a reusable local real Calendar meeting brief composer/CLI only. It does not authorize Calendar create/update/delete, Memory Center mutation, model/tool calls, worker dispatch, async delegation, billing, entitlement enforcement, or 143P+ behavior.",
     }
     for path in stages_by_id["134P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2859,7 +2862,7 @@ def test_135p_is_real_calendar_meeting_brief_composer_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the reusable local real Calendar meeting brief composer baseline. 135P is closed committed after implementation, validation, and closeout review. It composes deterministic local meeting brief records and CLI output from the existing 133P Google Calendar read-only snapshot, fails closed when Calendar is unavailable, and preserves read_only=true, Calendar writes=false, external_writes=false, Memory Center mutation=false, LLM/model calls=false, tools=false, workers=false, billing=false, and entitlement enforcement=false. It does not change Telegram behavior beyond the existing 134P surface, and it does not authorize Calendar create/update/delete, Memory Center mutation, model/tool calls, worker dispatch, async delegation, billing, entitlement enforcement, or 142P+ behavior.",
+        "next_action": "Use as the reusable local real Calendar meeting brief composer baseline. 135P is closed committed after implementation, validation, and closeout review. It composes deterministic local meeting brief records and CLI output from the existing 133P Google Calendar read-only snapshot, fails closed when Calendar is unavailable, and preserves read_only=true, Calendar writes=false, external_writes=false, Memory Center mutation=false, LLM/model calls=false, tools=false, workers=false, billing=false, and entitlement enforcement=false. It does not change Telegram behavior beyond the existing 134P surface, and it does not authorize Calendar create/update/delete, Memory Center mutation, model/tool calls, worker dispatch, async delegation, billing, entitlement enforcement, or 143P+ behavior.",
     }
     for path in stages_by_id["135P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2891,7 +2894,7 @@ def test_138p_is_proactive_meeting_suggestion_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the owner-gated proactive meeting suggestion baseline. 138P detects upcoming Calendar meetings that deserve a brief from the existing 137P read-only Calendar context scan and suggests an action only. It does not execute /brief automatically, does not bind callbacks, does not create follow-up intents, does not delegate or dispatch workers, does not mutate Memory Center or ProposedMemory, does not call models or tools, does not write Calendar, and does not write externally beyond approved Telegram replies. 139P later added owner-requested suggested meeting brief rendering only. It does not authorize automatic /brief execution, callbacks, follow-up intents, async delegation, worker dispatch, Memory Center mutation, ProposedMemory writes, Calendar writes, model/tool calls, billing, entitlement enforcement, or 142P+ behavior.",
+        "next_action": "Use as the owner-gated proactive meeting suggestion baseline. 138P detects upcoming Calendar meetings that deserve a brief from the existing 137P read-only Calendar context scan and suggests an action only. It does not execute /brief automatically, does not bind callbacks, does not create follow-up intents, does not delegate or dispatch workers, does not mutate Memory Center or ProposedMemory, does not call models or tools, does not write Calendar, and does not write externally beyond approved Telegram replies. 139P later added owner-requested suggested meeting brief rendering only. It does not authorize automatic /brief execution, callbacks, follow-up intents, async delegation, worker dispatch, Memory Center mutation, ProposedMemory writes, Calendar writes, model/tool calls, billing, entitlement enforcement, or 143P+ behavior.",
     }
     for path in stages_by_id["138P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2924,7 +2927,7 @@ def test_139p_is_owner_requested_suggested_meeting_brief_closed_committed():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the owner-requested suggested meeting brief baseline. 139P lets the owner request /brief <suggestion_id> from a current 138P proactive meeting suggestion, revalidates the suggestion against the current Calendar context scan, and renders a deterministic read-only selected meeting brief only. It preserves /suggest_brief as action-only, keeps bare /brief behavior unchanged, and does not authorize automatic /brief execution, callbacks, follow-up intents, async delegation, worker dispatch, Memory Center mutation, ProposedMemory writes, Calendar writes, model/tool calls, billing, entitlement enforcement, or external writes beyond approved Telegram replies. 140P later added a DeerFlow docs/test-only pattern review only. It does not authorize DeerFlow runtime integration, dependency installation, sandbox execution, Telegram replacement, memory mutation, model/tool calls, worker dispatch, or 142P+ behavior.",
+        "next_action": "Use as the owner-requested suggested meeting brief baseline. 139P lets the owner request /brief <suggestion_id> from a current 138P proactive meeting suggestion, revalidates the suggestion against the current Calendar context scan, and renders a deterministic read-only selected meeting brief only. It preserves /suggest_brief as action-only, keeps bare /brief behavior unchanged, and does not authorize automatic /brief execution, callbacks, follow-up intents, async delegation, worker dispatch, Memory Center mutation, ProposedMemory writes, Calendar writes, model/tool calls, billing, entitlement enforcement, or external writes beyond approved Telegram replies. 140P later added a DeerFlow docs/test-only pattern review only. It does not authorize DeerFlow runtime integration, dependency installation, sandbox execution, Telegram replacement, memory mutation, model/tool calls, worker dispatch, or 143P+ behavior.",
     }
     for path in stages_by_id["139P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2952,7 +2955,7 @@ def test_140p_is_deerflow_pattern_review_closed_committed_docs_only():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the docs/test-only DeerFlow pattern review baseline. 140P evaluates DeerFlow as a reference for skills, sub-agents, sandbox execution, IM channels, memory, embedded-client experiments, and model-provider ergonomics. Hermes remains the Roboticxs runtime. DeerFlow is not a production dependency, is not installed, is not cloned, and is not integrated into runtime. 140P does not authorize sandbox execution, filesystem write authority, Telegram or IM channel replacement, owner-gate relaxation, connector config, Memory Center mutation, ProposedMemory writes, model/tool calls, worker dispatch, async delegation, external network behavior, billing, entitlement enforcement, or 142P+ behavior. 141P later added an owner-requested read-only Today command only. 142P and later remain unauthorized.",
+        "next_action": "Use as the docs/test-only DeerFlow pattern review baseline. 140P evaluates DeerFlow as a reference for skills, sub-agents, sandbox execution, IM channels, memory, embedded-client experiments, and model-provider ergonomics. Hermes remains the Roboticxs runtime. DeerFlow is not a production dependency, is not installed, is not cloned, and is not integrated into runtime. 140P does not authorize sandbox execution, filesystem write authority, Telegram or IM channel replacement, owner-gate relaxation, connector config, Memory Center mutation, ProposedMemory writes, model/tool calls, worker dispatch, async delegation, external network behavior, billing, entitlement enforcement, or 143P+ behavior. 141P later added an owner-requested read-only Today command only. 142P later added an owner-requested read-only Open Loops command only. 143P and later remain unauthorized.",
     }
     for path in stages_by_id["140P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -2983,9 +2986,40 @@ def test_141p_is_today_command_closed_committed_owner_gated_read_only():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the owner-requested read-only Today command baseline. 141P adds /today to the owner-gated Telegram command surface and composes existing 138P proactive meeting suggestions with existing 136P Memory Center visibility only. It fails closed for unavailable Calendar context, keeps Memory Center read-only, and preserves Telegram sendMessage replies as the only external write. It does not authorize proactive outbound daily pushes, scheduler, reminders, callbacks, buttons, follow-up intents, Memory Center mutation, ProposedMemory writes, Calendar writes, model/tool calls, worker dispatch, DeerFlow runtime integration, dependencies, billing, entitlement enforcement, or external writes beyond approved Telegram replies. 142P and later remain unauthorized.",
+        "next_action": "Use as the owner-requested read-only Today command baseline. 141P adds /today to the owner-gated Telegram command surface and composes existing 138P proactive meeting suggestions with existing 136P Memory Center visibility only. It fails closed for unavailable Calendar context, keeps Memory Center read-only, and preserves Telegram sendMessage replies as the only external write. It does not authorize proactive outbound daily pushes, scheduler, reminders, callbacks, buttons, follow-up intents, Memory Center mutation, ProposedMemory writes, Calendar writes, model/tool calls, worker dispatch, DeerFlow runtime integration, dependencies, billing, entitlement enforcement, or external writes beyond approved Telegram replies. 142P later added an owner-requested read-only Open Loops command only. 143P and later remain unauthorized.",
     }
     for path in stages_by_id["141P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_142p_is_open_loops_command_closed_committed_owner_gated_read_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["142P"] == {
+        "stage_id": "142P",
+        "stage_name": "Open Loops Command v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_142P_closeout",
+            "commit_message": "feat: add open loops command",
+            "paths": [
+                "docs/reference/OPEN_LOOPS_COMMAND_142P_v0_1.md",
+                "app/open_loops_command.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_open_loops_command_142p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the owner-requested read-only Open Loops command baseline. 142P adds /loops to the owner-gated Telegram command surface and composes existing 136P pending Memory Center proposal visibility with existing 138P proactive meeting suggestions only. It fails closed for unavailable Calendar context, keeps pending memory proposals marked as not facts, and preserves Telegram sendMessage replies as the only external write. It does not authorize task persistence, follow-up intents, reminders, scheduler, callbacks, buttons, Memory Center mutation, ProposedMemory writes, Calendar writes, model/tool calls, worker dispatch, DeerFlow runtime integration, dependencies, billing, entitlement enforcement, or external writes beyond approved Telegram replies. 143P and later remain unauthorized.",
+    }
+    for path in stages_by_id["142P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 
