@@ -67,8 +67,11 @@ def incoming(command: str, *, user_id: int = 111111111) -> TelegramIncomingComma
 def test_150p_start_shell_explains_product_in_30_seconds_without_secret_leaks():
     reply = render_start_command_reply(valid_config())
 
-    assert "Your private robot is online." in reply
-    assert "What I can help with:" in reply
+    assert "Welcome. Your private robot is online." in reply
+    assert "What I can do now:" in reply
+    assert "What needs setup:" in reply
+    assert "Approval boundaries:" in reply
+    assert "Choose first useful action:" in reply
     assert "Today: /today, /miss" in reply
     assert "Brief: /brief, /suggest_brief" in reply
     assert "Prep: /prep <suggestion_id>" in reply
@@ -147,4 +150,4 @@ def test_150p_roadmap_records_product_shell_and_blocks_151p_plus():
 
     assert '"stage_id":"150P","stage_name":"Telegram Product Shell v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P behavior beyond customer-facing Meeting Prep Pack product flow" in roadmap
-    assert "156P and later remain unauthorized" in roadmap
+    assert "157P and later remain unauthorized" in roadmap

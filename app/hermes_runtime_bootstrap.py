@@ -9,9 +9,9 @@ import sys
 
 
 HERMES_RUNTIME_BOOTSTRAP_STAGE = "129P"
-ROADMAP_CLOSED_THROUGH = "155P"
-NEXT_STAGE = "156P"
-NEXT_STAGE_LABEL = "156P+ remains unauthorized."
+ROADMAP_CLOSED_THROUGH = "156P"
+NEXT_STAGE = "157P"
+NEXT_STAGE_LABEL = "157P+ remains unauthorized."
 DEFAULT_RUNTIME_MODE = "local-dev"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
@@ -245,7 +245,7 @@ def render_hermes_runtime_bootstrap_report(
             f"Owner: {status.owner_id}",
             f"Owner Display Name: {status.owner_display_name}",
             f"Mode: {status.runtime_mode}",
-            f"Roadmap: 95P-155P CLOSED_COMMITTED",
+            f"Roadmap: 95P-156P CLOSED_COMMITTED",
             f"Roadmap Closed Through: {status.roadmap_closed_through}",
             f"Telegram: {'enabled' if status.telegram_enabled else 'disabled'}",
             f"Connectors: {'enabled' if status.connectors_enabled else 'disabled'}",
@@ -288,6 +288,7 @@ def render_hermes_runtime_bootstrap_report(
                 "Brief Memory Proposals: available as owner-reviewed candidates only",
                 "Brief Memory Approval: available as local owner decision receipts only",
                 "Memory Review Flow: available for customer-facing pending memory review and local receipts only",
+                "First-Run Onboarding: available for customer-facing /start orientation only",
                 "Personal Admin Inbox: available for owner-requested read-only inbox visibility only",
                 "Inbox Item Decisions: available as local owner decision receipts only",
                 "Task Inbox Flow: available for customer-facing task inbox visibility and local receipts only",
