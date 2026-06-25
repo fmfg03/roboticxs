@@ -231,16 +231,21 @@ def test_141p_render_names_today_sections_and_disabled_authority():
     rendered = render_today_command(record)
 
     assert "Today" in rendered
-    assert "Stage: 141P" in rendered
-    assert "Calendar:" in rendered
-    assert "Meeting suggestions:" in rendered
-    assert "Memory:" in rendered
-    assert "Suggested next steps:" in rendered
+    assert "Stage: 141P" not in rendered
+    assert "Meetings:" in rendered
+    assert "Open loops:" in rendered
+    assert "Things waiting for you:" in rendered
+    assert "Brief options:" in rendered
+    assert "Known memory:" in rendered
+    assert "Suggested next action:" in rendered
+    assert "Blocked / unavailable sources:" in rendered
+    assert "Boundaries:" in rendered
     assert "Calendar writes: disabled" in rendered
     assert "Memory writes: disabled" in rendered
     assert "ProposedMemory writes: disabled" in rendered
-    assert "LLM/model calls: disabled" in rendered
-    assert "Tools/workers: disabled" in rendered
+    assert "Model calls: disabled" in rendered
+    assert "Tools: disabled" in rendered
+    assert "Worker dispatch: disabled" in rendered
     assert "External writes: disabled" in rendered
     assert "Proactive outbound: disabled" in rendered
     assert "No external action was taken." in rendered

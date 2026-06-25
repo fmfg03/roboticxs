@@ -48,9 +48,11 @@ def test_132p_help_start_and_status_expose_brief_command():
 
     assert "/brief" in help_reply
     assert "/brief is not enabled yet." not in help_reply
-    assert "Available commands: /help, /status, /miss, /today, /loops, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending." in start_reply
-    assert "/brief command: enabled" in status_reply
-    assert "roadmap state: 95P-145P closed, 145P runtime active" in status_reply
+    assert "What I can help with:" in start_reply
+    assert "Brief: /brief, /suggest_brief" in start_reply
+    assert "Brief: /brief, /suggest_brief" in help_reply
+    assert "Active now:" in status_reply
+    assert "- Meeting briefs and prep packs" in status_reply
 
 
 def test_132p_authorized_brief_reply_is_deterministic_and_local_only():
@@ -62,18 +64,18 @@ def test_132p_authorized_brief_reply_is_deterministic_and_local_only():
     assert first_reply == second_reply
     assert "Meeting Brief" in first_reply
     assert "Status: local read-only meeting brief" in first_reply
-    assert "Source: Hermes local context demo flow + optional Google Calendar read-only snapshot" in first_reply
-    assert "External connectors: Google Calendar read-only optional" in first_reply
+    assert "Source: local meeting context + optional read-only Calendar snapshot" in first_reply
     assert "Calendar writes: disabled" in first_reply
-    assert "LLM/model calls: disabled" in first_reply
+    assert "Model calls: disabled" in first_reply
     assert "Memory mutation: disabled" in first_reply
     assert "Google Calendar read-only connector was not configured for this reply." in first_reply
-    assert "Meeting:" in first_reply
+    assert "Meeting context:" in first_reply
     assert "- Victor / ASISINT follow-up" in first_reply
-    assert "Context:" in first_reply
     assert "Agenda:" in first_reply
-    assert "Risks / Watchpoints:" in first_reply
+    assert "Watchpoints:" in first_reply
     assert "Suggested prep:" in first_reply
+    assert "Safe next step:" in first_reply
+    assert "Boundaries:" in first_reply
     assert "No external action was taken." in first_reply
 
 
@@ -140,7 +142,8 @@ def test_132p_unauthorized_brief_returns_private_bot_response_without_brief_cont
 def test_132p_unknown_fallback_lists_brief_command():
     reply = render_unknown_command_reply()
 
-    assert "Available commands: /start, /help, /status, /miss, /today, /loops, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending." in reply
+    assert "Available areas:" in reply
+    assert "Brief: /brief, /suggest_brief" in reply
     assert "No action was taken." in reply
 
 

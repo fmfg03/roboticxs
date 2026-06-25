@@ -15,7 +15,7 @@ from app.telegram_memory_center_commands import (
 )
 
 
-TODAY_COMMAND_STAGE = "141P"
+TODAY_COMMAND_STAGE = "152P"
 MAX_TODAY_MEMORY_LINES = 3
 MAX_TODAY_SUGGESTION_LINES = 3
 
@@ -32,6 +32,10 @@ class TodayCommandRecord:
     calendar_lines: tuple[str, ...]
     memory_lines: tuple[str, ...]
     suggestion_lines: tuple[str, ...]
+    open_loop_lines: tuple[str, ...]
+    waiting_lines: tuple[str, ...]
+    blocked_source_lines: tuple[str, ...]
+    suggested_next_action: str
     next_steps: tuple[str, ...]
     read_only: bool
     calendar_write_allowed: bool
@@ -45,9 +49,9 @@ class TodayCommandRecord:
 
     def __post_init__(self) -> None:
         if self.stage != TODAY_COMMAND_STAGE:
-            raise ValueError("141P Today records must identify the 141P stage.")
+            raise ValueError("152P Today records must identify the 152P stage.")
         if not self.read_only:
-            raise ValueError("141P Today records must be read-only.")
+            raise ValueError("152P Today records must be read-only.")
         if any(
             (
                 self.calendar_write_allowed,
@@ -60,7 +64,7 @@ class TodayCommandRecord:
                 self.proactive_send_allowed,
             )
         ):
-            raise ValueError("141P Today records must not expand authority.")
+            raise ValueError("152P Today records must not expand authority.")
 
 
 def build_today_command_record(
@@ -82,6 +86,12 @@ def build_today_command_record(
         suggestion_scan=suggestion_scan,
         memory_snapshot=memory_snapshot,
     )
+    open_loop_lines = _open_loop_lines_from_sources(
+        suggestion_scan=suggestion_scan,
+        memory_snapshot=memory_snapshot,
+    )
+    waiting_lines = _waiting_lines_from_sources(memory_snapshot)
+    blocked_source_lines = _blocked_source_lines_from_sources(suggestion_scan)
     status = "partial_calendar_unavailable" if suggestion_scan.status == "blocked_calendar_unavailable" else "completed"
     memory_status = "visible" if memory_snapshot.approved_total_count or memory_snapshot.pending_total_count else "empty"
 
@@ -96,6 +106,10 @@ def build_today_command_record(
         calendar_lines=calendar_lines,
         memory_lines=memory_lines,
         suggestion_lines=suggestion_lines,
+        open_loop_lines=open_loop_lines,
+        waiting_lines=waiting_lines,
+        blocked_source_lines=blocked_source_lines,
+        suggested_next_action=next_steps[0],
         next_steps=next_steps,
         read_only=True,
         calendar_write_allowed=False,
@@ -139,31 +153,42 @@ def render_today_command(record: TodayCommandRecord) -> str:
         [
             "Today",
             "",
-            f"Stage: {record.stage}",
             f"Status: {record.status}",
             f"Calendar status: {record.calendar_status}",
             f"Memory status: {record.memory_status}",
             f"Suggestion status: {record.suggestion_status}",
             "Read-only: true",
+            "",
+            "Meetings:",
+            *(f"- {line}" for line in record.calendar_lines),
+            "",
+            "Open loops:",
+            *(f"- {line}" for line in record.open_loop_lines),
+            "",
+            "Things waiting for you:",
+            *(f"- {line}" for line in record.waiting_lines),
+            "",
+            "Brief options:",
+            *(f"- {line}" for line in record.suggestion_lines),
+            "",
+            "Known memory:",
+            *(f"- {line}" for line in record.memory_lines),
+            "",
+            "Suggested next action:",
+            f"- {record.suggested_next_action}",
+            "",
+            "Blocked / unavailable sources:",
+            *(f"- {line}" for line in record.blocked_source_lines),
+            "",
+            "Boundaries:",
             "Calendar writes: disabled",
             "Memory writes: disabled",
             "ProposedMemory writes: disabled",
-            "LLM/model calls: disabled",
-            "Tools/workers: disabled",
+            "Model calls: disabled",
+            "Tools: disabled",
+            "Worker dispatch: disabled",
             "External writes: disabled",
             "Proactive outbound: disabled",
-            "",
-            "Calendar:",
-            *(f"- {line}" for line in record.calendar_lines),
-            "",
-            "Meeting suggestions:",
-            *(f"- {line}" for line in record.suggestion_lines),
-            "",
-            "Memory:",
-            *(f"- {line}" for line in record.memory_lines),
-            "",
-            "Suggested next steps:",
-            *(f"- {step}" for step in record.next_steps),
             "",
             "No external action was taken.",
         ]
@@ -227,6 +252,34 @@ def _next_steps_from_sources(
         steps.append("No urgent local prep action was found.")
     steps.append("No action was taken automatically.")
     return tuple(steps)
+
+
+def _open_loop_lines_from_sources(
+    *,
+    suggestion_scan: ProactiveMeetingSuggestionScanRecord,
+    memory_snapshot: TelegramMemoryCenterSnapshot,
+) -> tuple[str, ...]:
+    loops: list[str] = []
+    if suggestion_scan.suggestions:
+        first = suggestion_scan.suggestions[0]
+        loops.append(f"Prepare for {first.event_summary} before {first.event_start}.")
+    if memory_snapshot.pending_total_count:
+        loops.append("Pending memory proposals need owner review before they become facts.")
+    if not loops:
+        loops.append("No open loops were found in the local Today context.")
+    return tuple(loops)
+
+
+def _waiting_lines_from_sources(snapshot: TelegramMemoryCenterSnapshot) -> tuple[str, ...]:
+    if snapshot.pending_total_count:
+        return (f"{snapshot.pending_total_count} pending memory proposal(s) need review.",)
+    return ("Nothing is waiting for owner approval in the local Memory Center snapshot.",)
+
+
+def _blocked_source_lines_from_sources(record: ProactiveMeetingSuggestionScanRecord) -> tuple[str, ...]:
+    if record.status == "blocked_calendar_unavailable":
+        return (f"Calendar read-only source unavailable: {record.error_code or 'unknown_error'}.",)
+    return ("No blocked sources detected in this local Today view.",)
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -9,9 +9,9 @@ import sys
 
 
 HERMES_RUNTIME_BOOTSTRAP_STAGE = "129P"
-ROADMAP_CLOSED_THROUGH = "151P"
-NEXT_STAGE = "152P"
-NEXT_STAGE_LABEL = "152P+ remains unauthorized."
+ROADMAP_CLOSED_THROUGH = "152P"
+NEXT_STAGE = "153P"
+NEXT_STAGE_LABEL = "153P+ remains unauthorized."
 DEFAULT_RUNTIME_MODE = "local-dev"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
@@ -245,7 +245,7 @@ def render_hermes_runtime_bootstrap_report(
             f"Owner: {status.owner_id}",
             f"Owner Display Name: {status.owner_display_name}",
             f"Mode: {status.runtime_mode}",
-            f"Roadmap: 95P-151P CLOSED_COMMITTED",
+            f"Roadmap: 95P-152P CLOSED_COMMITTED",
             f"Roadmap Closed Through: {status.roadmap_closed_through}",
             f"Telegram: {'enabled' if status.telegram_enabled else 'disabled'}",
             f"Connectors: {'enabled' if status.connectors_enabled else 'disabled'}",
@@ -280,6 +280,7 @@ def render_hermes_runtime_bootstrap_report(
                 "Proactive Meeting Suggestion: available for owner-requested Telegram replies only",
                 "Suggested Meeting Brief Request: available for owner-requested Telegram replies only",
                 "Today Command: available for owner-requested Telegram replies only",
+                "Today / Brief Product Flow: available for customer-facing daily and brief views only",
                 "Open Loops Command: available for owner-requested Telegram replies only",
                 "Meeting Prep Pack: available for owner-requested Telegram replies only",
                 "Meeting Prep Pack Product Flow: available for customer-facing /prep output only",

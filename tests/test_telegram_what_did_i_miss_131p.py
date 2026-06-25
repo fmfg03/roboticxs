@@ -41,9 +41,8 @@ def build_valid_config() -> TelegramRobotConfig:
 def test_131p_help_lists_miss_and_keeps_brief_disabled():
     reply = render_help_command_reply()
 
-    assert "/start" in reply
-    assert "/help" in reply
-    assert "/status" in reply
+    assert "Roboticxs Menu" in reply
+    assert "Setup Check: /status" in reply
     assert "/miss" in reply
     assert "/brief" in reply
     assert "/brief is not enabled yet." not in reply
@@ -52,9 +51,9 @@ def test_131p_help_lists_miss_and_keeps_brief_disabled():
 def test_131p_status_marks_miss_enabled_brief_disabled_and_runtime_active():
     reply = render_status_command_reply(build_valid_config())
 
-    assert "/miss command: enabled" in reply
-    assert "/brief command: enabled" in reply
-    assert "roadmap state: 95P-145P closed, 145P runtime active" in reply
+    assert "Today and missed-item summaries" in reply
+    assert "Meeting briefs and prep packs" in reply
+    assert "Roadmap: 95P-152P closed, Today / Brief product flow active" in reply
 
 
 def test_131p_authorized_miss_produces_deterministic_local_read_only_reply():
@@ -131,7 +130,9 @@ def test_131p_unknown_fallback_lists_brief_after_132p():
     )
 
     assert receipt.reply_text == render_unknown_command_reply()
-    assert "Available commands: /start, /help, /status, /miss, /today, /loops, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending." in receipt.reply_text
+    assert "Available areas:" in receipt.reply_text
+    assert "Today: /today, /miss" in receipt.reply_text
+    assert "Brief: /brief, /suggest_brief" in receipt.reply_text
     assert "No action was taken." in receipt.reply_text
 
 

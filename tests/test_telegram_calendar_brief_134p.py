@@ -43,11 +43,11 @@ def build_valid_config() -> TelegramRobotConfig:
 def test_134p_status_exposes_calendar_readonly_surface_without_write_authority():
     reply = render_status_command_reply(build_valid_config())
 
-    assert "external connectors: Google Calendar read-only optional" in reply
+    assert "Calendar reads require read-only Google setup." in reply
     assert "Calendar writes: disabled" in reply
-    assert "LLM/model calls: disabled" in reply
-    assert "Memory Center mutation: disabled" in reply
-    assert "roadmap state: 95P-145P closed, 145P runtime active" in reply
+    assert "Model calls: disabled" in reply
+    assert "Automatic Memory Center mutation: disabled" in reply
+    assert "Roadmap: 95P-152P closed, Today / Brief product flow active" in reply
 
 
 def test_134p_authorized_brief_uses_readonly_calendar_snapshot(monkeypatch):
@@ -82,7 +82,7 @@ def test_134p_authorized_brief_uses_readonly_calendar_snapshot(monkeypatch):
     assert "Calendar:" in receipt.reply_text
     assert "- 2026-06-24T09:00:00-06:00 - Victor / ASISINT follow-up" in receipt.reply_text
     assert "Calendar writes: disabled" in receipt.reply_text
-    assert "LLM/model calls: disabled" in receipt.reply_text
+    assert "Model calls: disabled" in receipt.reply_text
     assert "Memory mutation: disabled" in receipt.reply_text
     assert "No external action was taken." in receipt.reply_text
     assert len(calendar_client.calls) == 1

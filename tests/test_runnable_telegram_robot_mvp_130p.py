@@ -316,7 +316,7 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "Automatic Memory Center mutation: disabled" in receipt.reply_text
     assert "Scheduler/proactive outbound: disabled" in receipt.reply_text
     assert "Task Inbox is your robot task inbox, not your Gmail inbox yet." in receipt.reply_text
-    assert "Roadmap: 95P-151P closed, Meeting Prep Pack product flow active" in receipt.reply_text
+    assert "Roadmap: 95P-152P closed, Today / Brief product flow active" in receipt.reply_text
 
 
 def test_130p_unknown_command_from_authorized_owner_produces_safe_fallback():
@@ -617,15 +617,21 @@ def test_141p_today_command_returns_owner_requested_read_only_summary(monkeypatc
     assert receipt.authorized is True
     assert len(calendar_client.calls) == 1
     assert "Today" in receipt.reply_text
-    assert "Stage: 141P" in receipt.reply_text
+    assert "Stage: 141P" not in receipt.reply_text
+    assert "Meetings:" in receipt.reply_text
+    assert "Open loops:" in receipt.reply_text
+    assert "Things waiting for you:" in receipt.reply_text
+    assert "Suggested next action:" in receipt.reply_text
+    assert "Blocked / unavailable sources:" in receipt.reply_text
     assert "Client demo prep meeting" in receipt.reply_text
     assert "/brief" in receipt.reply_text
     assert "Approved visible memories: 1" in receipt.reply_text
     assert "Calendar writes: disabled" in receipt.reply_text
     assert "Memory writes: disabled" in receipt.reply_text
     assert "ProposedMemory writes: disabled" in receipt.reply_text
-    assert "LLM/model calls: disabled" in receipt.reply_text
-    assert "Tools/workers: disabled" in receipt.reply_text
+    assert "Model calls: disabled" in receipt.reply_text
+    assert "Tools: disabled" in receipt.reply_text
+    assert "Worker dispatch: disabled" in receipt.reply_text
     assert "External writes: disabled" in receipt.reply_text
     assert "Proactive outbound: disabled" in receipt.reply_text
     assert "No external action was taken." in receipt.reply_text
@@ -965,4 +971,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "152P and later remain unauthorized" in roadmap
+    assert "153P and later remain unauthorized" in roadmap
