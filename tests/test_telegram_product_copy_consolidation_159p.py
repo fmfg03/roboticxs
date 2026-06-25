@@ -73,4 +73,4 @@ def test_159p_reference_and_roadmap_close_copy_consolidation_without_authority_e
     assert "does not add commands" in reference
     assert "Memory Center mutation" in reference
     assert '"stage_id":"159P","stage_name":"Telegram Product Copy Consolidation v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "162P and later remain unauthorized" in roadmap
+    assert "163P and later remain unauthorized" in roadmap
