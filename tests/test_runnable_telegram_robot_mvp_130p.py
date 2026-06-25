@@ -261,10 +261,11 @@ def test_130p_start_from_authorized_owner_produces_deterministic_online_response
 
     assert receipt.authorized is True
     assert receipt.reply_text == render_start_command_reply(config)
-    assert "Roboticxs is online." in receipt.reply_text
-    assert "This dev bot is owner-gated." in receipt.reply_text
-    assert "Available commands: /help, /status, /miss, /today, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending." in receipt.reply_text
-    assert "No external actions are enabled." in receipt.reply_text
+    assert "Your private robot is online." in receipt.reply_text
+    assert "Access: owner-gated" in receipt.reply_text
+    assert "Today: /today, /miss" in receipt.reply_text
+    assert "Tasks: /inbox, /inbox_done <item_id>, /inbox_dismiss <item_id>" in receipt.reply_text
+    assert "I do not take external actions without approval." in receipt.reply_text
 
 
 def test_130p_help_from_authorized_owner_produces_deterministic_command_list():
@@ -279,12 +280,10 @@ def test_130p_help_from_authorized_owner_produces_deterministic_command_list():
     )
 
     assert receipt.reply_text == render_help_command_reply()
-    assert "/start" in receipt.reply_text
-    assert "/help" in receipt.reply_text
     assert "/status" in receipt.reply_text
     assert "/miss" in receipt.reply_text
     assert "/today" in receipt.reply_text
-    assert "/loops" in receipt.reply_text
+    assert "Roboticxs Menu" in receipt.reply_text
     assert "/brief" in receipt.reply_text
     assert "/suggest_brief" in receipt.reply_text
     assert "/memory" in receipt.reply_text
@@ -305,26 +304,19 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     )
 
     assert receipt.reply_text == render_status_command_reply(config)
-    assert f"robot_id: {DEFAULT_ROBOT_ID}" in receipt.reply_text
-    assert "owner_gated: enabled" in receipt.reply_text
-    assert "Hermes runtime bootstrap: available" in receipt.reply_text
-    assert "Telegram dev/sandbox mode: enabled" in receipt.reply_text
-    assert "live Telegram: enabled" in receipt.reply_text
-    assert "external connectors: Google Calendar read-only optional" in receipt.reply_text
+    assert f"Robot: {DEFAULT_ROBOT_ID}" in receipt.reply_text
+    assert "Access: owner-gated" in receipt.reply_text
+    assert "Dev/sandbox mode: enabled" in receipt.reply_text
+    assert "Telegram replies: enabled" in receipt.reply_text
+    assert "Calendar reads require read-only Google setup." in receipt.reply_text
     assert "Calendar writes: disabled" in receipt.reply_text
-    assert "LLM/model calls: disabled" in receipt.reply_text
-    assert "tools: disabled" in receipt.reply_text
-    assert "Memory Center mutation: disabled" in receipt.reply_text
-    assert "proactive outbound: disabled" in receipt.reply_text
-    assert "/miss command: enabled" in receipt.reply_text
-    assert "/today command: enabled" in receipt.reply_text
-    assert "/loops command: enabled" in receipt.reply_text
-    assert "/brief command: enabled" in receipt.reply_text
-    assert "/suggest_brief command: enabled" in receipt.reply_text
-    assert "/memory command: enabled" in receipt.reply_text
-    assert "/memory_limits command: enabled" in receipt.reply_text
-    assert "/memory_pending command: enabled" in receipt.reply_text
-    assert "roadmap state: 95P-147P closed, 147P runtime active" in receipt.reply_text
+    assert "Gmail writes: disabled" in receipt.reply_text
+    assert "Model calls: disabled" in receipt.reply_text
+    assert "Tool execution: disabled" in receipt.reply_text
+    assert "Automatic Memory Center mutation: disabled" in receipt.reply_text
+    assert "Scheduler/proactive outbound: disabled" in receipt.reply_text
+    assert "Task Inbox is your robot task inbox, not your Gmail inbox yet." in receipt.reply_text
+    assert "Roadmap: 95P-151P closed, Meeting Prep Pack product flow active" in receipt.reply_text
 
 
 def test_130p_unknown_command_from_authorized_owner_produces_safe_fallback():
@@ -339,8 +331,9 @@ def test_130p_unknown_command_from_authorized_owner_produces_safe_fallback():
     )
 
     assert receipt.reply_text == render_unknown_command_reply()
-    assert "Command not enabled." in receipt.reply_text
-    assert "Available commands: /start, /help, /status, /miss, /today, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending." in receipt.reply_text
+    assert "I do not know that command yet." in receipt.reply_text
+    assert "Use /help to see the Roboticxs menu." in receipt.reply_text
+    assert "Setup Check: /status" in receipt.reply_text
     assert "No action was taken." in receipt.reply_text
 
 
@@ -359,8 +352,8 @@ def test_130p_unauthorized_user_receives_safe_private_bot_response():
 
     assert receipt.authorized is False
     assert receipt.reply_text == render_unauthorized_reply()
-    assert "owner_gated: enabled" not in receipt.reply_text
-    assert "roadmap state" not in receipt.reply_text
+    assert "Access: owner-gated" not in receipt.reply_text
+    assert "Roadmap:" not in receipt.reply_text
 
 
 def test_130p_command_routing_is_owner_gated():
@@ -523,8 +516,9 @@ def test_130p_main_uses_injected_client_for_bounded_run(
 def test_130p_startup_report_is_deterministic():
     report = build_telegram_robot_startup_report(build_valid_config())
 
-    assert "Stage: 147P" in report
+    assert "Stage: 150P" in report
     assert "Owner gate: enabled" in report
+    assert "Product menu: Today, Brief, Prep, Tasks, Memory, Setup Check" in report
     assert "Available commands: /start, /help, /status, /miss, /today, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending" in report
     assert "External connectors: Google Calendar read-only optional" in report
     assert "Calendar writes: disabled" in report
@@ -760,7 +754,8 @@ def test_143p_prep_command_returns_owner_requested_read_only_meeting_prep_pack(m
     assert receipt.authorized is True
     assert len(calendar_client.calls) == 1
     assert "Meeting Prep Pack" in receipt.reply_text
-    assert "Stage: 143P" in receipt.reply_text
+    assert "Meeting context:" in receipt.reply_text
+    assert "Safe next step:" in receipt.reply_text
     assert "Client demo prep meeting" in receipt.reply_text
     assert "Francisco prefers compact daily briefings." in receipt.reply_text
     assert "Memory candidates:" in receipt.reply_text
@@ -773,7 +768,7 @@ def test_143p_prep_command_returns_owner_requested_read_only_meeting_prep_pack(m
     assert "Memory Center mutation: disabled" in receipt.reply_text
     assert "ProposedMemory writes: disabled" in receipt.reply_text
     assert "Scheduler/reminders: disabled" in receipt.reply_text
-    assert "LLM/model calls: disabled" in receipt.reply_text
+    assert "Model calls: disabled" in receipt.reply_text
     assert "Tools/workers: disabled" in receipt.reply_text
     assert "External writes: disabled" in receipt.reply_text
     assert "No external action was taken." in receipt.reply_text
@@ -969,4 +964,5 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"135P","stage_name":"Real Calendar Meeting Brief Composer v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "144P later added brief-derived pending memory candidates only. 145P and later remain unauthorized" in roadmap
+    assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
+    assert "152P and later remain unauthorized" in roadmap

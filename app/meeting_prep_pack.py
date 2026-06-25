@@ -21,7 +21,7 @@ from app.telegram_memory_center_commands import (
 )
 
 
-MEETING_PREP_PACK_STAGE = "143P"
+MEETING_PREP_PACK_STAGE = "151P"
 MAX_MEMORY_CONTEXT_LINES = 3
 
 
@@ -38,6 +38,10 @@ class MeetingPrepPackRecord:
     meeting_lines: tuple[str, ...]
     agenda_lines: tuple[str, ...]
     memory_context_lines: tuple[str, ...]
+    open_loop_lines: tuple[str, ...]
+    missing_input_lines: tuple[str, ...]
+    suggested_action_lines: tuple[str, ...]
+    safe_next_step: str
     watchpoints: tuple[str, ...]
     next_steps: tuple[str, ...]
     owner_requested: bool
@@ -58,13 +62,13 @@ class MeetingPrepPackRecord:
 
     def __post_init__(self) -> None:
         if self.stage != MEETING_PREP_PACK_STAGE:
-            raise ValueError("143P meeting prep packs must identify the 143P stage.")
+            raise ValueError("151P meeting prep packs must identify the 151P stage.")
         if SUGGESTED_MEETING_BRIEF_REQUEST_STAGE not in self.source_stages:
-            raise ValueError("143P meeting prep packs must include 139P suggested brief lineage.")
+            raise ValueError("151P meeting prep packs must include 139P suggested brief lineage.")
         if not self.owner_requested:
-            raise ValueError("143P meeting prep packs require explicit owner request.")
+            raise ValueError("151P meeting prep packs require explicit owner request.")
         if not self.read_only:
-            raise ValueError("143P meeting prep packs must be read-only.")
+            raise ValueError("151P meeting prep packs must be read-only.")
         if any(
             (
                 self.calendar_write_allowed,
@@ -80,7 +84,7 @@ class MeetingPrepPackRecord:
                 self.proactive_send_allowed,
             )
         ):
-            raise ValueError("143P meeting prep packs must not expand authority.")
+            raise ValueError("151P meeting prep packs must not expand authority.")
 
 
 def build_meeting_prep_pack(
@@ -120,6 +124,10 @@ def build_meeting_prep_pack(
         meeting_lines=_meeting_lines(suggested_brief),
         agenda_lines=_agenda_lines(suggested_brief),
         memory_context_lines=memory_context_lines or ("No approved Memory Center context is visible for this prep pack.",),
+        open_loop_lines=_open_loop_lines(suggested_brief),
+        missing_input_lines=_missing_input_lines(suggested_brief, memory_context_lines=memory_context_lines),
+        suggested_action_lines=_suggested_action_lines(suggested_brief),
+        safe_next_step=_safe_next_step(suggested_brief),
         watchpoints=_watchpoints(suggested_brief),
         next_steps=_next_steps(suggested_brief),
         owner_requested=True,
@@ -172,38 +180,47 @@ def render_meeting_prep_pack(record: MeetingPrepPackRecord) -> str:
         [
             "Meeting Prep Pack",
             "",
-            f"Stage: {record.stage}",
             f"Status: {record.status}",
             f"Suggestion id: {record.suggestion_id}",
-            f"Source stages: {', '.join(record.source_stages)}",
             "Owner requested: true",
             f"Suggestion validated: {'true' if record.suggestion_validated else 'false'}",
             "Read-only: true",
+            "",
+            "Meeting context:",
+            *(f"- {line}" for line in record.meeting_lines),
+            "",
+            "Agenda:",
+            *(f"- {line}" for line in record.agenda_lines),
+            "",
+            "Known memory:",
+            *(f"- {line}" for line in record.memory_context_lines),
+            "",
+            "Open loops:",
+            *(f"- {line}" for line in record.open_loop_lines),
+            "",
+            "Missing inputs:",
+            *(f"- {line}" for line in record.missing_input_lines),
+            "",
+            "Suggested actions:",
+            *(f"- {line}" for line in record.suggested_action_lines),
+            "",
+            "Safe next step:",
+            f"- {record.safe_next_step}",
+            "",
+            "Watchpoints:",
+            *(f"- {line}" for line in record.watchpoints),
+            "",
+            "Boundaries:",
             "Calendar writes: disabled",
             "Memory writes: disabled",
             "Memory Center mutation: disabled",
             "ProposedMemory writes: disabled",
             "Follow-up intents: disabled",
             "Scheduler/reminders: disabled",
-            "LLM/model calls: disabled",
+            "Model calls: disabled",
             "Tools/workers: disabled",
             "External writes: disabled",
             "Proactive outbound: disabled",
-            "",
-            "Meeting:",
-            *(f"- {line}" for line in record.meeting_lines),
-            "",
-            "Prep agenda:",
-            *(f"- {line}" for line in record.agenda_lines),
-            "",
-            "Memory context:",
-            *(f"- {line}" for line in record.memory_context_lines),
-            "",
-            "Watchpoints:",
-            *(f"- {line}" for line in record.watchpoints),
-            "",
-            "Suggested next steps:",
-            *(f"- {line}" for line in record.next_steps),
             "",
             "No external action was taken.",
         ]
@@ -244,7 +261,7 @@ def _watchpoints(record: SuggestedMeetingBriefRequestRecord) -> tuple[str, ...]:
         )
     return (
         "This prep pack is a local read-only composition of Calendar suggestion and Memory Center visibility.",
-        "Pending memory proposals are not treated as facts in 143P.",
+        "Pending memory proposals are not treated as facts.",
         "No follow-up, reminder, writeback, model call, tool call, or worker dispatch was attempted.",
     )
 
@@ -256,6 +273,48 @@ def _next_steps(record: SuggestedMeetingBriefRequestRecord) -> tuple[str, ...]:
         "Review agenda and memory context before the meeting.",
         "Use a separate approved command path for any follow-up or memory change.",
     )
+
+
+def _open_loop_lines(record: SuggestedMeetingBriefRequestRecord) -> tuple[str, ...]:
+    if record.status != "completed":
+        return ("No open loops were prepared because the meeting suggestion was unavailable.",)
+    open_loop_candidates = tuple(
+        item for item in record.preparation_checklist if "question" in item.lower() or "resolve" in item.lower()
+    )
+    if open_loop_candidates:
+        return open_loop_candidates[:4]
+    return ("No open loops were found in the local prep context.",)
+
+
+def _missing_input_lines(
+    record: SuggestedMeetingBriefRequestRecord,
+    *,
+    memory_context_lines: tuple[str, ...],
+) -> tuple[str, ...]:
+    missing: list[str] = []
+    if record.status != "completed":
+        missing.append("Current meeting suggestion id.")
+    if not memory_context_lines:
+        missing.append("Approved Memory Center context for this meeting.")
+    if not record.preparation_checklist:
+        missing.append("Agenda candidates from the selected suggestion.")
+    return tuple(missing) if missing else ("No missing inputs detected in the local prep context.",)
+
+
+def _suggested_action_lines(record: SuggestedMeetingBriefRequestRecord) -> tuple[str, ...]:
+    if record.status != "completed":
+        return ("Run /suggest_brief, then request /prep <suggestion_id> for one current suggestion.",)
+    return (
+        "Review the agenda before the meeting.",
+        "Check the open loops and decide what needs owner action.",
+        "Use a separate approved command for any memory approval or task decision.",
+    )
+
+
+def _safe_next_step(record: SuggestedMeetingBriefRequestRecord) -> str:
+    if record.status != "completed":
+        return "Run /suggest_brief to get current meeting suggestions."
+    return "Review this prep pack and take any external action yourself unless a later approved command explicitly supports it."
 
 
 def main(argv: list[str] | None = None) -> int:

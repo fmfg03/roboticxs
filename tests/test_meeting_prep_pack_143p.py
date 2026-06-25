@@ -157,14 +157,15 @@ def test_143p_render_names_disabled_boundaries():
     rendered = render_meeting_prep_pack(record)
 
     assert "Meeting Prep Pack" in rendered
-    assert "Stage: 143P" in rendered
-    assert "Source stages: 138P, 139P, 136P" in rendered
     assert "Owner requested: true" in rendered
+    assert "Meeting context:" in rendered
+    assert "Known memory:" in rendered
+    assert "Suggested actions:" in rendered
     assert "Calendar writes: disabled" in rendered
     assert "Memory Center mutation: disabled" in rendered
     assert "ProposedMemory writes: disabled" in rendered
     assert "Scheduler/reminders: disabled" in rendered
-    assert "LLM/model calls: disabled" in rendered
+    assert "Model calls: disabled" in rendered
     assert "Tools/workers: disabled" in rendered
     assert "External writes: disabled" in rendered
     assert "No external action was taken." in rendered
@@ -201,4 +202,4 @@ def test_143p_roadmap_records_meeting_prep_pack_and_blocks_144p_plus():
     roadmap = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"143P","stage_name":"Meeting Prep Pack v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "144P and later remain unauthorized" in roadmap
+    assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap

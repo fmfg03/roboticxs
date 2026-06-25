@@ -80,7 +80,7 @@ from app.today_command import (
     run_today_command,
 )
 
-RUNNABLE_TELEGRAM_ROBOT_STAGE = "147P"
+RUNNABLE_TELEGRAM_ROBOT_STAGE = "150P"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
 DEFAULT_POLL_TIMEOUT_SECONDS = 30
@@ -105,6 +105,14 @@ SUPPORTED_COMMANDS = (
     "/memory",
     "/memory_limits",
     "/memory_pending",
+)
+PRODUCT_MENU_LINES = (
+    "Today: /today, /miss",
+    "Brief: /brief, /suggest_brief",
+    "Prep: /prep <suggestion_id>",
+    "Tasks: /inbox, /inbox_done <item_id>, /inbox_dismiss <item_id>",
+    "Memory: /memory, /memory_pending, /memory_limits, /memory_approve <candidate_id>, /memory_reject <candidate_id>",
+    "Setup Check: /status",
 )
 DAILY_BRIEF_DATE = "2026-06-20"
 DAILY_BRIEF_TIMEZONE = "UTC"
@@ -347,11 +355,24 @@ def is_owner_authorized(
 def render_start_command_reply(config: TelegramRobotConfig) -> str:
     return "\n".join(
         [
-            f"Roboticxs is online.",
+            "Roboticxs",
+            "",
+            "Your private robot is online.",
             f"Robot: {config.robot_id}",
-            "This dev bot is owner-gated.",
-            "Available commands: /help, /status, /miss, /today, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending.",
-            "No external actions are enabled.",
+            "Access: owner-gated",
+            "",
+            "What I can help with:",
+            *PRODUCT_MENU_LINES,
+            "",
+            "Start here:",
+            "- /today for your daily view",
+            "- /brief for a meeting brief",
+            "- /status for setup and capability status",
+            "",
+            "Safety:",
+            "- I do not write Calendar or Gmail.",
+            "- I do not remember new facts without approval.",
+            "- I do not take external actions without approval.",
             "No action was taken.",
         ]
     )
@@ -360,24 +381,16 @@ def render_start_command_reply(config: TelegramRobotConfig) -> str:
 def render_help_command_reply() -> str:
     return "\n".join(
         [
-            "Available commands:",
-            "/start",
-            "/help",
-            "/status",
-            "/miss",
-            "/today",
-            "/loops",
-            "/inbox",
-            "/inbox_done",
-            "/inbox_dismiss",
-            "/prep",
-            "/brief",
-            "/suggest_brief",
-            "/memory_approve",
-            "/memory_reject",
-            "/memory",
-            "/memory_limits",
-            "/memory_pending",
+            "Roboticxs Menu",
+            "",
+            *PRODUCT_MENU_LINES,
+            "",
+            "Notes:",
+            "- Tasks is your robot task inbox, not your Gmail inbox yet.",
+            "- Setup Check shows what is active, unavailable, blocked, or intentionally disabled.",
+            "- Memory changes require approval.",
+            "",
+            "No action was taken.",
         ]
     )
 
@@ -387,32 +400,39 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
     dev_mode_state = "enabled" if config.dev_mode else "disabled"
     return "\n".join(
         [
-            f"robot_id: {config.robot_id}",
-            "owner_gated: enabled",
-            "Hermes runtime bootstrap: available",
-            f"Telegram dev/sandbox mode: {dev_mode_state}",
-            f"live Telegram: {live_telegram_state}",
-            "external connectors: Google Calendar read-only optional",
-            "Calendar writes: disabled",
-            "LLM/model calls: disabled",
-            "tools: disabled",
-            "Memory Center mutation: disabled",
-            "proactive outbound: disabled",
-            "/miss command: enabled",
-            "/today command: enabled",
-            "/loops command: enabled",
-            "/inbox command: enabled",
-            "/inbox_done command: enabled",
-            "/inbox_dismiss command: enabled",
-            "/prep command: enabled",
-            "/brief command: enabled",
-            "/suggest_brief command: enabled",
-            "/memory_approve command: enabled",
-            "/memory_reject command: enabled",
-            "/memory command: enabled",
-            "/memory_limits command: enabled",
-            "/memory_pending command: enabled",
-            "roadmap state: 95P-147P closed, 147P runtime active",
+            "Setup Check",
+            "",
+            f"Robot: {config.robot_id}",
+            "Access: owner-gated",
+            f"Telegram replies: {live_telegram_state}",
+            f"Dev/sandbox mode: {dev_mode_state}",
+            "",
+            "Active now:",
+            "- Today and missed-item summaries",
+            "- Meeting briefs and prep packs",
+            "- Robot task inbox",
+            "- Memory visibility and approval receipts",
+            "",
+            "Unavailable or setup-dependent:",
+            "- Calendar reads require read-only Google setup.",
+            "- Gmail is not an inbox yet.",
+            "- Document review is not enabled in this shell yet.",
+            "",
+            "Intentionally disabled:",
+            "- Calendar writes: disabled",
+            "- Gmail writes: disabled",
+            "- Model calls: disabled",
+            "- Tool execution: disabled",
+            "- Workers: disabled",
+            "- Scheduler/proactive outbound: disabled",
+            "- Automatic Memory Center mutation: disabled",
+            "",
+            "Approval boundaries:",
+            "- I do not remember new facts without approval.",
+            "- I do not take external actions without approval.",
+            "- Task Inbox is your robot task inbox, not your Gmail inbox yet.",
+            "",
+            "Roadmap: 95P-151P closed, Meeting Prep Pack product flow active",
         ]
     )
 
@@ -420,8 +440,13 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
 def render_unknown_command_reply() -> str:
     return "\n".join(
         [
-            "Command not enabled.",
-            "Available commands: /start, /help, /status, /miss, /today, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending.",
+            "I do not know that command yet.",
+            "",
+            "Use /help to see the Roboticxs menu.",
+            "",
+            "Available areas:",
+            *PRODUCT_MENU_LINES,
+            "",
             "No action was taken.",
         ]
     )
@@ -960,6 +985,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             f"Owner gate: enabled ({len(validated.owner_ids)} allowed Telegram user id(s))",
             f"Dev mode: {'enabled' if validated.dev_mode else 'disabled'}",
             f"Dry run: {'enabled' if validated.dry_run else 'disabled'}",
+            "Product menu: Today, Brief, Prep, Tasks, Memory, Setup Check",
             "Available commands: /start, /help, /status, /miss, /today, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending",
             "External connectors: Google Calendar read-only optional",
             "Calendar writes: disabled",

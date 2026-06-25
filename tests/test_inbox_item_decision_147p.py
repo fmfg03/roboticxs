@@ -77,8 +77,12 @@ def test_147p_record_rejects_authority_expansion():
         InboxItemDecisionRecord(**{**asdict(valid), "persisted_state_written": True})
 
 
-def test_147p_roadmap_records_inbox_decision_and_blocks_148p_plus():
+def test_147p_roadmap_records_inbox_decision_and_later_closed_stages():
     roadmap = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"147P","stage_name":"Inbox Resolve / Dismiss v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "148P and later remain unauthorized" in roadmap
+    assert "148P later added local non-authority loop handoff evidence only" in roadmap
+    assert "149P later added local read-only runtime doctor diagnostics only" in roadmap
+    assert "150P later added customer-facing Telegram product shell copy only" in roadmap
+    assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
+    assert "152P and later remain unauthorized" in roadmap

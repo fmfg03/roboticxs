@@ -124,6 +124,9 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_146P_is_closed_committed_after_personal_admin_inbox_closeout",
     "stage_147P_is_closed_committed_after_inbox_item_decision_closeout",
     "stage_148P_is_closed_committed_after_factory_loop_handoff_harness_closeout",
+    "stage_149P_is_closed_committed_after_runtime_doctor_helper_manager_closeout",
+    "stage_150P_is_closed_committed_after_telegram_product_shell_closeout",
+    "stage_151P_is_closed_committed_after_meeting_prep_pack_product_flow_closeout",
     "do_not_invent_133P_without_explicit_maintainer_direction_in_repo_evidence",
     "do_not_invent_134P_without_explicit_maintainer_direction_in_repo_evidence",
     "do_not_invent_135P_without_explicit_maintainer_direction_in_repo_evidence",
@@ -140,6 +143,9 @@ REQUIRED_SEQUENCE_RULES = {
     "do_not_invent_146P_without_explicit_maintainer_direction_in_repo_evidence",
     "do_not_invent_147P_without_explicit_maintainer_direction_in_repo_evidence",
     "do_not_invent_148P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_149P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_150P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_151P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -228,6 +234,9 @@ EXPECTED_FINAL_SEQUENCE = {
     "146P": ("CLOSED_COMMITTED", "Personal Admin Inbox v0"),
     "147P": ("CLOSED_COMMITTED", "Inbox Resolve / Dismiss v0"),
     "148P": ("CLOSED_COMMITTED", "Factory Loop Handoff Harness v0"),
+    "149P": ("CLOSED_COMMITTED", "Runtime Doctor / Helper Manager v0"),
+    "150P": ("CLOSED_COMMITTED", "Telegram Product Shell v0"),
+    "151P": ("CLOSED_COMMITTED", "Meeting Prep Pack Product Flow v0"),
 }
 
 
@@ -250,7 +259,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_148P",
+        "local_evidence_scope": "stages_61P_through_151P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -262,7 +271,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 149)
+        f"{number}P" for number in range(67, 152)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -3066,7 +3075,7 @@ def test_143p_is_meeting_prep_pack_closed_committed_owner_gated_read_only():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the owner-requested read-only Meeting Prep Pack baseline. 143P adds /prep <suggestion_id> to the owner-gated Telegram command surface and composes existing 138P meeting suggestions, existing 139P selected suggested brief validation, and existing 136P Memory Center visibility only. It fails closed for unavailable Calendar context or stale suggestion ids, keeps pending memory proposals out of facts, and preserves Telegram sendMessage replies as the only external write. It does not authorize task persistence, follow-up intents, reminders, scheduler, callbacks, buttons, Memory Center mutation, ProposedMemory writes, Calendar writes, model/tool calls, worker dispatch, DeerFlow runtime integration, dependencies, billing, entitlement enforcement, or external writes beyond approved Telegram replies. 144P later added brief-derived pending memory candidates only. 145P and later remain unauthorized.",
+        "next_action": "Use as the owner-requested read-only Meeting Prep Pack baseline. 143P adds /prep <suggestion_id> to the owner-gated Telegram command surface and composes existing 138P meeting suggestions, existing 139P selected suggested brief validation, and existing 136P Memory Center visibility only. It fails closed for unavailable Calendar context or stale suggestion ids, keeps pending memory proposals out of facts, and preserves Telegram sendMessage replies as the only external write. It does not authorize task persistence, follow-up intents, reminders, scheduler, callbacks, buttons, Memory Center mutation, ProposedMemory writes, Calendar writes, model/tool calls, worker dispatch, DeerFlow runtime integration, dependencies, billing, entitlement enforcement, or external writes beyond approved Telegram replies. 144P later added brief-derived pending memory candidates only. 151P later added customer-facing Meeting Prep Pack product flow only. 152P and later remain unauthorized.",
     }
     for path in stages_by_id["143P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -3158,9 +3167,98 @@ def test_148p_is_factory_loop_handoff_harness_closed_committed_non_authority_onl
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local factory loop handoff harness baseline. 148P adds a non-authority local loop target that creates isolated worktrees, runs pytest and Open Loops checks, emits evidence.json, handoff.md, and risk_diff.md, labels output non_authority_candidate, and requires human review for promotion. It does not authorize merge, commit, deploy, live retrieval, external writes, Telegram live sends, Memory Center mutation, provider execution, billing, or secret access. 149P and later remain unauthorized.",
+        "next_action": "Use as the local factory loop handoff harness baseline. 148P adds a non-authority local loop target that creates isolated worktrees, runs pytest and Open Loops checks, emits evidence.json, handoff.md, and risk_diff.md, labels output non_authority_candidate, and requires human review for promotion. It does not authorize merge, commit, deploy, live retrieval, external writes, Telegram live sends, Memory Center mutation, provider execution, billing, or secret access. 149P later added local read-only runtime doctor diagnostics only. 150P later added customer-facing Telegram product shell copy only. 151P later added customer-facing Meeting Prep Pack product flow only. 152P and later remain unauthorized.",
     }
     for path in stages_by_id["148P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_149p_runtime_doctor_helper_manager_is_closed_committed_read_only_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["149P"] == {
+        "stage_id": "149P",
+        "stage_name": "Runtime Doctor / Helper Manager v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_149P_closeout",
+            "commit_message": "feat: add runtime doctor helper manager",
+            "paths": [
+                "docs/reference/RUNTIME_DOCTOR_HELPER_MANAGER_149P_v0_1.md",
+                "app/runtime_doctor.py",
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local read-only Runtime Doctor / Helper Manager baseline. 149P checks runtime config, env presence, .secrets path presence, OAuth JSON shape, Calendar readiness, Gmail readiness, and explicit authority boundaries without printing secrets or activating connectors. It does not authorize OAuth URL generation, token exchange, token refresh, Calendar reads or writes, Gmail reads or writes, Telegram live sends, Memory Center mutation, model/tool calls, worker dispatch, persistence, scheduler, billing, deployment, push, merge, PR creation, or 150P behavior beyond customer-facing Telegram product shell copy.",
+    }
+    for path in stages_by_id["149P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_150p_telegram_product_shell_is_closed_committed_customer_facing_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["150P"] == {
+        "stage_id": "150P",
+        "stage_name": "Telegram Product Shell v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_150P_closeout",
+            "commit_message": "feat: add telegram product shell",
+            "paths": [
+                "docs/reference/TELEGRAM_PRODUCT_SHELL_150P_v0_1.md",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_telegram_product_shell_150p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the customer-facing Telegram Product Shell baseline. 150P unifies /start, /help, /status, and unknown-command replies into a product menu with Today, Brief, Prep, Tasks, Memory, and Setup Check areas. It clarifies that /inbox is a robot task inbox, not Gmail, and keeps Checkup/Setup language customer-facing. It does not authorize new commands, connector activation, OAuth generation, OAuth token exchange, Calendar writes, Gmail reads or writes, Memory Center mutation, model/tool calls, worker dispatch, persistence, scheduler, billing, deployment, push, merge, PR creation, or 151P behavior beyond customer-facing Meeting Prep Pack product flow.",
+    }
+    for path in stages_by_id["150P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_151p_meeting_prep_pack_product_flow_is_closed_committed_customer_facing_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["151P"] == {
+        "stage_id": "151P",
+        "stage_name": "Meeting Prep Pack Product Flow v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_151P_closeout",
+            "commit_message": "feat: improve meeting prep product flow",
+            "paths": [
+                "docs/reference/MEETING_PREP_PACK_PRODUCT_FLOW_151P_v0_1.md",
+                "app/meeting_prep_pack.py",
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_meeting_prep_pack_product_flow_151p.py",
+                "tests/test_meeting_prep_pack_143p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the customer-facing Meeting Prep Pack Product Flow baseline. 151P improves /prep output with meeting context, agenda, known memory, open loops, missing inputs, suggested actions, safe next step, and boundaries. It does not authorize new commands, Calendar writes, Gmail reads or writes, Memory Center mutation, ProposedMemory writes, follow-up intents, scheduler, model/tool calls, worker dispatch, persistence, proactive outbound sends, billing, deployment, push, merge, PR creation, or 152P+ behavior.",
+    }
+    for path in stages_by_id["151P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 
