@@ -440,7 +440,7 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "Suggested next action:",
             "- Use /today for the daily view, /brief for a meeting brief, or /prep <suggestion_id> for prep.",
             "",
-            "Roadmap: 95P-154P closed, Task Inbox Flow active",
+            "Roadmap: 95P-155P closed, Memory Review Flow active",
         ]
     )
 
@@ -1012,7 +1012,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "Inbox Item Decisions: /inbox_done and /inbox_dismiss create local decision receipts only",
             "Meeting Prep Pack: /prep <suggestion_id> owner-requested read-only prep only",
             "Brief Memory Proposals: shown in /prep as pending owner review only",
-            "Brief Memory Decisions: /memory_approve and /memory_reject create local decision receipts only",
+            "Memory Review Decisions: /memory_approve and /memory_reject create local decision receipts only",
             "Proactive meeting suggestions: /suggest_brief owner-requested replies only",
             "Suggested meeting brief requests: /brief <suggestion_id> owner-requested replies only",
             "Proactive outbound: disabled",

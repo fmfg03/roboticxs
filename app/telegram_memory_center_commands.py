@@ -187,22 +187,26 @@ def render_memory_limits_command_reply(snapshot: TelegramMemoryCenterSnapshot) -
 
 def render_memory_pending_command_reply(snapshot: TelegramMemoryCenterSnapshot) -> str:
     lines = [
-        "Memory Pending",
+        "Memory Review",
         "",
-        "Status: local read-only proposal visibility",
-        f"Stage: {snapshot.stage}",
+        "Status: pending owner review",
         f"Pending proposals: {snapshot.pending_total_count}",
-        "Memory writes: disabled",
-        "Approval binding: disabled in 136P commands",
+        "Read-only: true",
         "",
-        "Pending proposals:",
+        "States:",
+        "- pending: waiting for owner review",
+        "- approved pending writeback: approved locally, not written to Memory Center yet",
+        "- rejected: rejected locally, not written",
+        "- not a fact yet: pending proposals are never used as approved memory",
+        "",
+        "Pending review:",
     ]
     if not snapshot.pending_proposals:
-        lines.append("- No pending memory proposals are visible in this local snapshot.")
+        lines.append("- Empty: no pending memory proposals are visible right now.")
     else:
         for proposal in snapshot.pending_proposals:
             lines.append(
-                f"- {proposal.proposal_type}: {proposal.proposed_memory_text} "
+                f"- pending | {proposal.proposal_id} | {proposal.proposal_type}: {proposal.proposed_memory_text} "
                 f"(confidence: {proposal.confidence})"
             )
     if snapshot.pending_total_count > len(snapshot.pending_proposals):
@@ -210,6 +214,19 @@ def render_memory_pending_command_reply(snapshot: TelegramMemoryCenterSnapshot) 
         lines.append(f"- Plus {remaining} more pending proposal(s) hidden by the local bound.")
     lines.extend(
         [
+            "",
+            "Suggested next action:",
+            "- Use /memory_approve <candidate_id> to create a local approved-pending-writeback receipt.",
+            "- Use /memory_reject <candidate_id> to create a local rejected receipt.",
+            "",
+            "Boundaries:",
+            "Memory writes: disabled",
+            "Memory Center mutation: disabled",
+            "ProposedMemory writes: disabled",
+            "Model calls: disabled",
+            "Tools: disabled",
+            "Worker dispatch: disabled",
+            "External writes: disabled",
             "",
             "No pending proposal was approved, rejected, edited, or written.",
             "No Memory Center mutation was performed.",

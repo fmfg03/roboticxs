@@ -37,7 +37,7 @@ class BriefMemoryProposalCandidate:
         if self.stage != BRIEF_MEMORY_PROPOSAL_STAGE:
             raise ValueError("144P brief memory candidates must identify the 144P stage.")
         if self.source_stage != MEETING_PREP_PACK_STAGE:
-            raise ValueError("144P brief memory candidates must originate from 143P prep packs.")
+            raise ValueError("144P brief memory candidates must originate from the active Meeting Prep Pack stage.")
         if self.status != BRIEF_MEMORY_PROPOSAL_STATUS:
             raise ValueError("144P brief memory candidates must remain pending owner review.")
         if self.treated_as_fact:
@@ -69,7 +69,7 @@ class BriefMemoryProposalRecord:
         if self.stage != BRIEF_MEMORY_PROPOSAL_STAGE:
             raise ValueError("144P brief memory proposal records must identify the 144P stage.")
         if self.source_stage != MEETING_PREP_PACK_STAGE:
-            raise ValueError("144P brief memory proposal records must originate from 143P prep packs.")
+            raise ValueError("144P brief memory proposal records must originate from the active Meeting Prep Pack stage.")
         if not self.read_only:
             raise ValueError("144P brief memory proposal records must be read-only.")
         if not self.owner_review_required:
@@ -196,7 +196,7 @@ def _candidates_from_prep_pack(prep_pack: MeetingPrepPackRecord) -> tuple[BriefM
             suggestion_id=prep_pack.suggestion_id,
             proposal_type="meeting_prep_preference_candidate",
             proposed_memory_text=proposed_text,
-            review_reason="Derived from an owner-requested 143P Meeting Prep Pack.",
+            review_reason="Derived from an owner-requested Meeting Prep Pack.",
             status=BRIEF_MEMORY_PROPOSAL_STATUS,
             approval_command=f"/memory_approve {candidate_id}",
             rejection_command=f"/memory_reject {candidate_id}",

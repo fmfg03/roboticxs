@@ -161,9 +161,9 @@ def test_136p_memory_pending_reply_lists_only_pending_proposals():
 
     reply = render_memory_pending_command_reply(snapshot)
 
-    assert "Memory Pending" in reply
+    assert "Memory Review" in reply
     assert "Pending proposals: 1" in reply
-    assert "business_context_candidate: ASISINT is an active client opportunity." in reply
+    assert "pending | proposal-136p | business_context_candidate: ASISINT is an active client opportunity." in reply
     assert "ASISINT is active client context." not in reply
     assert "No pending proposal was approved, rejected, edited, or written." in reply
 

@@ -11,7 +11,7 @@ from app.brief_memory_proposal import (
     build_brief_memory_proposal_record,
     render_brief_memory_proposal_record,
 )
-from app.meeting_prep_pack import build_meeting_prep_pack
+from app.meeting_prep_pack import MEETING_PREP_PACK_STAGE, build_meeting_prep_pack
 from tests.test_meeting_prep_pack_143p import memory_snapshot, suggestion_scan
 
 
@@ -35,12 +35,12 @@ def test_144p_builds_pending_owner_review_candidates_without_writes():
     record = build_brief_memory_proposal_record(prep_pack=prep_pack())
 
     assert record.stage == BRIEF_MEMORY_PROPOSAL_STAGE
-    assert record.source_stage == "143P"
+    assert record.source_stage == MEETING_PREP_PACK_STAGE
     assert record.status == "completed_with_candidates"
     assert len(record.candidates) == 1
     candidate = record.candidates[0]
     assert candidate.stage == "144P"
-    assert candidate.source_stage == "143P"
+    assert candidate.source_stage == MEETING_PREP_PACK_STAGE
     assert candidate.status == "pending_owner_review"
     assert candidate.treated_as_fact is False
     assert candidate.approval_command == f"/memory_approve {candidate.candidate_id}"
@@ -115,4 +115,4 @@ def test_144p_roadmap_records_brief_memory_proposal_and_blocks_145p_plus():
     roadmap = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"144P","stage_name":"Brief-Derived Memory Proposal v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "145P and later remain unauthorized" in roadmap
+    assert "156P and later remain unauthorized" in roadmap

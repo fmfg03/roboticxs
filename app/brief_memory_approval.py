@@ -103,26 +103,37 @@ def build_brief_memory_approval_decision(
 
 
 def render_brief_memory_approval_decision(record: BriefMemoryApprovalDecisionRecord) -> str:
+    product_status = "approved pending writeback" if record.choice == "approve" else "rejected"
     return "\n".join(
         [
-            "Brief Memory Decision",
+            "Memory Review Decision",
             "",
-            f"Stage: {record.stage}",
             f"Decision id: {record.decision_id}",
             f"Candidate id: {record.candidate_id}",
             f"Choice: {record.choice}",
-            f"Decision status: {record.decision_status}",
-            f"Source stage: {record.source_stage}",
+            f"Status: {product_status}",
+            f"Receipt status: {record.decision_status}",
             "Owner requested: true",
             "Local audit created: true",
+            "",
+            "Meaning:",
+            "- Your robot does not remember this as a fact yet.",
+            "- Approved memory remains approved_pending_writeback until a later writeback stage is approved.",
+            "- Rejected memory is not written.",
+            "",
+            "Boundaries:",
             "Memory writes: disabled",
             "Memory Center mutation: disabled",
             "ProposedMemory writes: disabled",
             "Writeback executed: false",
             "Calendar writes: disabled",
-            "LLM/model calls: disabled",
-            "Tools/workers: disabled",
+            "Model calls: disabled",
+            "Tools: disabled",
+            "Worker dispatch: disabled",
             "External writes: disabled",
+            "",
+            "Underlying source:",
+            f"- {record.source_stage}",
             "",
             "No memory was written.",
         ]

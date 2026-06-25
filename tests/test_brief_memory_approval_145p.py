@@ -77,9 +77,10 @@ def test_145p_render_names_no_memory_write():
     )
     rendered = render_brief_memory_approval_decision(record)
 
-    assert "Brief Memory Decision" in rendered
-    assert "Stage: 145P" in rendered
-    assert "Decision status: approved_pending_writeback" in rendered
+    assert "Memory Review Decision" in rendered
+    assert "Stage: 145P" not in rendered
+    assert "Status: approved pending writeback" in rendered
+    assert "Receipt status: approved_pending_writeback" in rendered
     assert "Memory Center mutation: disabled" in rendered
     assert "ProposedMemory writes: disabled" in rendered
     assert "Writeback executed: false" in rendered
@@ -111,4 +112,4 @@ def test_145p_roadmap_records_brief_memory_approval_and_blocks_146p_plus():
     roadmap = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"145P","stage_name":"Telegram Memory Approval for Brief Proposals v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "146P and later remain unauthorized" in roadmap
+    assert "156P and later remain unauthorized" in roadmap
