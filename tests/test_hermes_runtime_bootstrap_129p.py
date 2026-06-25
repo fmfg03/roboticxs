@@ -84,7 +84,7 @@ def test_129p_builds_runtime_online_status_for_valid_local_config():
     assert status.runtime_mode == "local-dev"
     assert status.robot_id == DEFAULT_ROBOT_ID
     assert status.owner_id == DEFAULT_OWNER_ID
-    assert status.roadmap_closed_through == "147P"
+    assert status.roadmap_closed_through == "148P"
     assert status.next_stage_authorized is False
     assert status.next_stage == NEXT_STAGE
     assert status.telegram_enabled is False
@@ -106,6 +106,8 @@ def test_129p_builds_runtime_online_status_for_valid_local_config():
     assert "brief_memory_approval" in status.available_local_features
     assert "personal_admin_inbox" in status.available_local_features
     assert "inbox_item_decision" in status.available_local_features
+    assert "roboticxs_loop_handoff" in status.available_local_features
+    assert "roboticxs_loop_cli" in status.available_local_features
     assert "demo_result_delivery_surface" in status.available_local_features
     assert "runnable_telegram_robot_mvp" in status.available_local_features
     assert "telegram_memory_center_commands" in status.available_local_features
@@ -131,7 +133,7 @@ def test_129p_text_report_contains_required_runtime_lines():
     assert f"Robot: {DEFAULT_ROBOT_ID}" in report.rendered_text
     assert f"Owner: {DEFAULT_OWNER_ID}" in report.rendered_text
     assert "Mode: local-dev" in report.rendered_text
-    assert "Roadmap: 95P-147P CLOSED_COMMITTED" in report.rendered_text
+    assert "Roadmap: 95P-148P CLOSED_COMMITTED" in report.rendered_text
     assert "Telegram: disabled" in report.rendered_text
     assert "Connectors: disabled" in report.rendered_text
     assert "LLM/model calls: disabled" in report.rendered_text
@@ -153,14 +155,15 @@ def test_129p_text_report_contains_required_runtime_lines():
     assert "Brief Memory Approval: available as local owner decision receipts only" in report.rendered_text
     assert "Personal Admin Inbox: available for owner-requested read-only inbox visibility only" in report.rendered_text
     assert "Inbox Item Decisions: available as local owner decision receipts only" in report.rendered_text
-    assert "Next authorized stage: 148P+ remains unauthorized." in report.rendered_text
+    assert "Factory Loop Handoff Harness: available for local non-authority loop evidence only" in report.rendered_text
+    assert "Next authorized stage: 149P+ remains unauthorized." in report.rendered_text
 
 
 def test_129p_json_report_is_renderable():
     report = run_hermes_runtime_bootstrap(output_format="json")
 
     assert '"runtime_online": true' in report.rendered_text
-    assert '"roadmap_closed_through": "147P"' in report.rendered_text
+    assert '"roadmap_closed_through": "148P"' in report.rendered_text
 
 
 def test_129p_main_prints_report_and_returns_zero(capsys: pytest.CaptureFixture[str]):
@@ -221,4 +224,7 @@ def test_129p_roadmap_registers_runtime_bootstrap_stage_and_135p_closed_with_136
     assert '"stage_id":"143P","stage_name":"Meeting Prep Pack v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"144P","stage_name":"Brief-Derived Memory Proposal v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"145P","stage_name":"Telegram Memory Approval for Brief Proposals v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "146P and later remain unauthorized" in roadmap
+    assert '"stage_id":"146P","stage_name":"Personal Admin Inbox v0","status":"CLOSED_COMMITTED"' in roadmap
+    assert '"stage_id":"147P","stage_name":"Inbox Resolve / Dismiss v0","status":"CLOSED_COMMITTED"' in roadmap
+    assert '"stage_id":"148P","stage_name":"Factory Loop Handoff Harness v0","status":"CLOSED_COMMITTED"' in roadmap
+    assert "149P and later remain unauthorized" in roadmap

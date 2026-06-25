@@ -123,6 +123,7 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_145P_is_closed_committed_after_brief_memory_approval_closeout",
     "stage_146P_is_closed_committed_after_personal_admin_inbox_closeout",
     "stage_147P_is_closed_committed_after_inbox_item_decision_closeout",
+    "stage_148P_is_closed_committed_after_factory_loop_handoff_harness_closeout",
     "do_not_invent_133P_without_explicit_maintainer_direction_in_repo_evidence",
     "do_not_invent_134P_without_explicit_maintainer_direction_in_repo_evidence",
     "do_not_invent_135P_without_explicit_maintainer_direction_in_repo_evidence",
@@ -138,6 +139,7 @@ REQUIRED_SEQUENCE_RULES = {
     "do_not_invent_145P_without_explicit_maintainer_direction_in_repo_evidence",
     "do_not_invent_146P_without_explicit_maintainer_direction_in_repo_evidence",
     "do_not_invent_147P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_148P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -225,6 +227,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "145P": ("CLOSED_COMMITTED", "Telegram Memory Approval for Brief Proposals v0"),
     "146P": ("CLOSED_COMMITTED", "Personal Admin Inbox v0"),
     "147P": ("CLOSED_COMMITTED", "Inbox Resolve / Dismiss v0"),
+    "148P": ("CLOSED_COMMITTED", "Factory Loop Handoff Harness v0"),
 }
 
 
@@ -247,7 +250,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_147P",
+        "local_evidence_scope": "stages_61P_through_148P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -259,7 +262,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 148)
+        f"{number}P" for number in range(67, 149)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -3128,6 +3131,36 @@ def test_145p_is_brief_memory_approval_closed_committed_local_decision_only():
         "next_action": "Use as the owner-requested brief memory decision baseline. 145P adds /memory_approve <candidate_id> and /memory_reject <candidate_id> to create deterministic local decision receipts for 144P candidates only. Approval status remains approved_pending_writeback and does not execute writeback. It does not authorize Memory Center mutation, ProposedMemory writes, task persistence, follow-up intents, reminders, scheduler, callbacks, buttons, Calendar writes, model/tool calls, worker dispatch, DeerFlow runtime integration, dependencies, billing, entitlement enforcement, or external writes beyond approved Telegram replies. 146P later added read-only personal inbox visibility only. 147P and later remain unauthorized.",
     }
     for path in stages_by_id["145P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_148p_is_factory_loop_handoff_harness_closed_committed_non_authority_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["148P"] == {
+        "stage_id": "148P",
+        "stage_name": "Factory Loop Handoff Harness v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_148P_closeout",
+            "commit_message": "feat: add factory loop handoff harness",
+            "paths": [
+                "docs/reference/ROBOTICXS_LOOP_HANDOFF_TARGET_v0_1.md",
+                "app/roboticxs_loop_handoff.py",
+                "app/roboticxs_loop_cli.py",
+                "tests/test_roboticxs_loop_handoff_target.py",
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local factory loop handoff harness baseline. 148P adds a non-authority local loop target that creates isolated worktrees, runs pytest and Open Loops checks, emits evidence.json, handoff.md, and risk_diff.md, labels output non_authority_candidate, and requires human review for promotion. It does not authorize merge, commit, deploy, live retrieval, external writes, Telegram live sends, Memory Center mutation, provider execution, billing, or secret access. 149P and later remain unauthorized.",
+    }
+    for path in stages_by_id["148P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 
