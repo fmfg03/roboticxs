@@ -171,4 +171,4 @@ def test_151p_roadmap_records_meeting_prep_product_flow_and_blocks_152p_plus():
     roadmap = ROADMAP_PATH.read_text(encoding="utf-8")
 
     assert '"stage_id":"151P","stage_name":"Meeting Prep Pack Product Flow v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "170P and later remain unauthorized" in roadmap
+    assert "171P and later remain unauthorized" in roadmap

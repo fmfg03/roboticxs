@@ -89,4 +89,4 @@ def test_146p_roadmap_records_inbox_and_blocks_147p_plus():
     roadmap = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"146P","stage_name":"Personal Admin Inbox v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "170P and later remain unauthorized" in roadmap
+    assert "171P and later remain unauthorized" in roadmap
