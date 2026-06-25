@@ -9,6 +9,7 @@ This runbook configures Roboticxs for Google Calendar and Gmail read-only OAuth 
 - Calendar starts read-only with `https://www.googleapis.com/auth/calendar.readonly`.
 - Gmail defaults to metadata-only with `https://www.googleapis.com/auth/gmail.metadata`.
 - Use `--gmail-mode readonly` only when Roboticxs must read email body content.
+- Google classifies Gmail `metadata` and `readonly` as restricted scopes; keep this as an owner/test-user pilot unless the app goes through the required verification and security assessment path.
 
 ## Google Cloud setup
 
