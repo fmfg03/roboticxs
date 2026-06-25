@@ -299,7 +299,8 @@ def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
     assert '"stage_id":"150P","stage_name":"Telegram Product Shell v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"stage_id":"151P","stage_name":"Meeting Prep Pack Product Flow v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"stage_id":"152P","stage_name":"Today / Brief Product Flow v0","status":"CLOSED_COMMITTED"' in roadmap_text
-    assert "153P and later remain unauthorized" in roadmap_text
+    assert '"stage_id":"153P","stage_name":"Setup & Capability Status v0","status":"CLOSED_COMMITTED"' in roadmap_text
+    assert "154P and later remain unauthorized" in roadmap_text
     assert '"status":"NEXT_ELIGIBLE"' not in roadmap_text
 
 
