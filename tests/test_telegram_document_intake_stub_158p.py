@@ -142,4 +142,4 @@ def test_158p_reference_and_roadmap_close_document_stub_without_authority_expans
     assert "does not download files" in reference
     assert "mutate Memory Center" in reference
     assert '"stage_id":"158P","stage_name":"Telegram Document Intake Stub v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "165P and later remain unauthorized" in roadmap
+    assert "166P and later remain unauthorized" in roadmap

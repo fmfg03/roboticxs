@@ -140,6 +140,7 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_162P_is_closed_committed_after_calendar_backed_today_prep_closeout",
     "stage_163P_is_closed_committed_after_gmail_readonly_context_scan_closeout",
     "stage_164P_is_closed_committed_after_context_scan_proposed_memories_closeout",
+    "stage_165P_is_closed_committed_after_memory_store_closeout",
     "do_not_invent_133P_without_explicit_maintainer_direction_in_repo_evidence",
     "do_not_invent_134P_without_explicit_maintainer_direction_in_repo_evidence",
     "do_not_invent_135P_without_explicit_maintainer_direction_in_repo_evidence",
@@ -172,6 +173,7 @@ REQUIRED_SEQUENCE_RULES = {
     "do_not_invent_162P_without_explicit_maintainer_direction_in_repo_evidence",
     "do_not_invent_163P_without_explicit_maintainer_direction_in_repo_evidence",
     "do_not_invent_164P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_165P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -276,6 +278,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "162P": ("CLOSED_COMMITTED", "Calendar-Backed Today / Prep v0"),
     "163P": ("CLOSED_COMMITTED", "Gmail Read-Only Context Scan v0"),
     "164P": ("CLOSED_COMMITTED", "Context Scan -> Proposed Memories v0"),
+    "165P": ("CLOSED_COMMITTED", "Memory Store v0"),
 }
 
 
@@ -298,7 +301,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_164P",
+        "local_evidence_scope": "stages_61P_through_165P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -310,7 +313,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 165)
+        f"{number}P" for number in range(67, 166)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -3114,7 +3117,7 @@ def test_143p_is_meeting_prep_pack_closed_committed_owner_gated_read_only():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the owner-requested read-only Meeting Prep Pack baseline. 143P adds /prep <suggestion_id> to the owner-gated Telegram command surface and composes existing 138P meeting suggestions, existing 139P selected suggested brief validation, and existing 136P Memory Center visibility only. It fails closed for unavailable Calendar context or stale suggestion ids, keeps pending memory proposals out of facts, and preserves Telegram sendMessage replies as the only external write. It does not authorize task persistence, follow-up intents, reminders, scheduler, callbacks, buttons, Memory Center mutation, ProposedMemory writes, Calendar writes, model/tool calls, worker dispatch, DeerFlow runtime integration, dependencies, billing, entitlement enforcement, or external writes beyond approved Telegram replies. 144P later added brief-derived pending memory candidates only. 151P later added customer-facing Meeting Prep Pack product flow only. 152P later added customer-facing Today / Brief product flow only. 153P later added customer-facing Setup & Capability Status only. 154P later added customer-facing Task Inbox Flow only. 155P later added customer-facing Memory Review Flow only. 156P later added customer-facing First-Run Onboarding only. 157P later added local deterministic Telegram Demo Loop only. 158P later added draft-only Telegram document metadata intake only. 159P later added customer-facing Telegram Product Copy Consolidation only. 160P later added local Customer MVP Baseline verification only. 161P later added shared Setup Capability Status Component copy only. 162P later added read-only Calendar-backed Today / Prep only. 163P later added Gmail Read-Only Context Scan only. 164P later added context-derived proposed memory candidates only. 165P and later remain unauthorized.",
+        "next_action": "Use as the owner-requested read-only Meeting Prep Pack baseline. 143P adds /prep <suggestion_id> to the owner-gated Telegram command surface and composes existing 138P meeting suggestions, existing 139P selected suggested brief validation, and existing 136P Memory Center visibility only. It fails closed for unavailable Calendar context or stale suggestion ids, keeps pending memory proposals out of facts, and preserves Telegram sendMessage replies as the only external write. It does not authorize task persistence, follow-up intents, reminders, scheduler, callbacks, buttons, Memory Center mutation, ProposedMemory writes, Calendar writes, model/tool calls, worker dispatch, DeerFlow runtime integration, dependencies, billing, entitlement enforcement, or external writes beyond approved Telegram replies. 144P later added brief-derived pending memory candidates only. 151P later added customer-facing Meeting Prep Pack product flow only. 152P later added customer-facing Today / Brief product flow only. 153P later added customer-facing Setup & Capability Status only. 154P later added customer-facing Task Inbox Flow only. 155P later added customer-facing Memory Review Flow only. 156P later added customer-facing First-Run Onboarding only. 157P later added local deterministic Telegram Demo Loop only. 158P later added draft-only Telegram document metadata intake only. 159P later added customer-facing Telegram Product Copy Consolidation only. 160P later added local Customer MVP Baseline verification only. 161P later added shared Setup Capability Status Component copy only. 162P later added read-only Calendar-backed Today / Prep only. 163P later added Gmail Read-Only Context Scan only. 164P later added context-derived proposed memory candidates only. 165P later added local Memory Store only. 166P and later remain unauthorized.",
     }
     for path in stages_by_id["143P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -3206,7 +3209,7 @@ def test_148p_is_factory_loop_handoff_harness_closed_committed_non_authority_onl
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the local factory loop handoff harness baseline. 148P adds a non-authority local loop target that creates isolated worktrees, runs pytest and Open Loops checks, emits evidence.json, handoff.md, and risk_diff.md, labels output non_authority_candidate, and requires human review for promotion. It does not authorize merge, commit, deploy, live retrieval, external writes, Telegram live sends, Memory Center mutation, provider execution, billing, or secret access. 149P later added local read-only runtime doctor diagnostics only. 150P later added customer-facing Telegram product shell copy only. 151P later added customer-facing Meeting Prep Pack product flow only. 152P later added customer-facing Today / Brief product flow only. 153P later added customer-facing Setup & Capability Status only. 154P later added customer-facing Task Inbox Flow only. 155P later added customer-facing Memory Review Flow only. 156P later added customer-facing First-Run Onboarding only. 157P later added local deterministic Telegram Demo Loop only. 158P later added draft-only Telegram document metadata intake only. 159P later added customer-facing Telegram Product Copy Consolidation only. 160P later added local Customer MVP Baseline verification only. 161P later added shared Setup Capability Status Component copy only. 162P later added read-only Calendar-backed Today / Prep only. 163P later added Gmail Read-Only Context Scan only. 164P later added context-derived proposed memory candidates only. 165P and later remain unauthorized.",
+        "next_action": "Use as the local factory loop handoff harness baseline. 148P adds a non-authority local loop target that creates isolated worktrees, runs pytest and Open Loops checks, emits evidence.json, handoff.md, and risk_diff.md, labels output non_authority_candidate, and requires human review for promotion. It does not authorize merge, commit, deploy, live retrieval, external writes, Telegram live sends, Memory Center mutation, provider execution, billing, or secret access. 149P later added local read-only runtime doctor diagnostics only. 150P later added customer-facing Telegram product shell copy only. 151P later added customer-facing Meeting Prep Pack product flow only. 152P later added customer-facing Today / Brief product flow only. 153P later added customer-facing Setup & Capability Status only. 154P later added customer-facing Task Inbox Flow only. 155P later added customer-facing Memory Review Flow only. 156P later added customer-facing First-Run Onboarding only. 157P later added local deterministic Telegram Demo Loop only. 158P later added draft-only Telegram document metadata intake only. 159P later added customer-facing Telegram Product Copy Consolidation only. 160P later added local Customer MVP Baseline verification only. 161P later added shared Setup Capability Status Component copy only. 162P later added read-only Calendar-backed Today / Prep only. 163P later added Gmail Read-Only Context Scan only. 164P later added context-derived proposed memory candidates only. 165P later added local Memory Store only. 166P and later remain unauthorized.",
     }
     for path in stages_by_id["148P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
@@ -3768,9 +3771,42 @@ def test_164p_context_scan_proposed_memories_is_closed_committed_review_only():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the Context Scan -> Proposed Memories baseline. 164P converts existing read-only Calendar context candidates and Gmail context signals into local pending owner-review memory candidates. It does not authorize Memory Center mutation, durable memory writes, ProposedMemory writes, approval decision creation, Calendar writes, Gmail send or modify, model/tool calls, worker dispatch, scheduler, billing, deployment, push, merge, PR creation, or 165P behavior.",
+        "next_action": "Use as the Context Scan -> Proposed Memories baseline. 164P converts existing read-only Calendar context candidates and Gmail context signals into local pending owner-review memory candidates. It does not authorize Memory Center mutation, durable memory writes, ProposedMemory writes, approval decision creation, Calendar writes, Gmail send or modify, model/tool calls, worker dispatch, scheduler, billing, deployment, push, merge, PR creation, or 165P behavior beyond Memory Store.",
     }
     for path in stages_by_id["164P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_165p_memory_store_is_closed_committed_local_store_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["165P"] == {
+        "stage_id": "165P",
+        "stage_name": "Memory Store v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_165P_closeout",
+            "commit_message": "feat: add local memory store",
+            "paths": [
+                "docs/reference/MEMORY_STORE_165P_v0_1.md",
+                "app/memory_store.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_memory_store_165p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Memory Store baseline. 165P stores owner-approved memory locally, supports add/edit/forget/pin receipts, and exports active local memory to existing Telegram Memory Center visibility. It does not authorize Memory Center mutation, database migrations, remote persistence, ProposedMemory writes, Calendar writes, Gmail writes, connector activation, model/tool calls, worker dispatch, scheduler, billing, deployment, push, merge, PR creation, or 166P behavior.",
+    }
+    for path in stages_by_id["165P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 

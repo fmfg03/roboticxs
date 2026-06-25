@@ -468,7 +468,7 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "",
             *render_setup_capability_status_sections(),
             "",
-            "Roadmap: 95P-164P closed, Context Scan Proposed Memories active",
+            "Roadmap: 95P-165P closed, Memory Store active",
         ]
     )
 
