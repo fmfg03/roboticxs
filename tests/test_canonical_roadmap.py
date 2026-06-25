@@ -119,6 +119,7 @@ REQUIRED_SEQUENCE_RULES = {
     "stage_141P_is_closed_committed_after_today_command_closeout",
     "stage_142P_is_closed_committed_after_open_loops_command_closeout",
     "stage_143P_is_closed_committed_after_meeting_prep_pack_closeout",
+    "stage_144P_is_closed_committed_after_brief_memory_proposal_closeout",
     "do_not_invent_133P_without_explicit_maintainer_direction_in_repo_evidence",
     "do_not_invent_134P_without_explicit_maintainer_direction_in_repo_evidence",
     "do_not_invent_135P_without_explicit_maintainer_direction_in_repo_evidence",
@@ -130,6 +131,7 @@ REQUIRED_SEQUENCE_RULES = {
     "do_not_invent_141P_without_explicit_maintainer_direction_in_repo_evidence",
     "do_not_invent_142P_without_explicit_maintainer_direction_in_repo_evidence",
     "do_not_invent_143P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_144P_without_explicit_maintainer_direction_in_repo_evidence",
     "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
     "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
 }
@@ -213,6 +215,7 @@ EXPECTED_FINAL_SEQUENCE = {
     "141P": ("CLOSED_COMMITTED", "Today Command v0"),
     "142P": ("CLOSED_COMMITTED", "Open Loops Command v0"),
     "143P": ("CLOSED_COMMITTED", "Meeting Prep Pack v0"),
+    "144P": ("CLOSED_COMMITTED", "Brief-Derived Memory Proposal v0"),
 }
 
 
@@ -235,7 +238,7 @@ def test_authority_policy_separates_local_evidence_from_maintainer_direction():
 
     assert authority == {
         "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
-        "local_evidence_scope": "stages_61P_through_143P",
+        "local_evidence_scope": "stages_61P_through_144P",
         "forward_sequence_source": "explicit_maintainer_direction",
         "runtime_truth_source": "local_repo",
         "roadmap_inclusion_authorizes_implementation": False,
@@ -247,7 +250,7 @@ def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
     stage_ids = [stage["stage_id"] for stage in stages]
 
     assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
-        f"{number}P" for number in range(67, 144)
+        f"{number}P" for number in range(67, 145)
     ]
     assert len(stage_ids) == len(set(stage_ids))
     assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
@@ -3051,9 +3054,40 @@ def test_143p_is_meeting_prep_pack_closed_committed_owner_gated_read_only():
             ],
         },
         "implementation_authorized": False,
-        "next_action": "Use as the owner-requested read-only Meeting Prep Pack baseline. 143P adds /prep <suggestion_id> to the owner-gated Telegram command surface and composes existing 138P meeting suggestions, existing 139P selected suggested brief validation, and existing 136P Memory Center visibility only. It fails closed for unavailable Calendar context or stale suggestion ids, keeps pending memory proposals out of facts, and preserves Telegram sendMessage replies as the only external write. It does not authorize task persistence, follow-up intents, reminders, scheduler, callbacks, buttons, Memory Center mutation, ProposedMemory writes, Calendar writes, model/tool calls, worker dispatch, DeerFlow runtime integration, dependencies, billing, entitlement enforcement, or external writes beyond approved Telegram replies. 144P and later remain unauthorized.",
+        "next_action": "Use as the owner-requested read-only Meeting Prep Pack baseline. 143P adds /prep <suggestion_id> to the owner-gated Telegram command surface and composes existing 138P meeting suggestions, existing 139P selected suggested brief validation, and existing 136P Memory Center visibility only. It fails closed for unavailable Calendar context or stale suggestion ids, keeps pending memory proposals out of facts, and preserves Telegram sendMessage replies as the only external write. It does not authorize task persistence, follow-up intents, reminders, scheduler, callbacks, buttons, Memory Center mutation, ProposedMemory writes, Calendar writes, model/tool calls, worker dispatch, DeerFlow runtime integration, dependencies, billing, entitlement enforcement, or external writes beyond approved Telegram replies. 144P later added brief-derived pending memory candidates only. 145P and later remain unauthorized.",
     }
     for path in stages_by_id["143P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_144p_is_brief_memory_proposal_closed_committed_pending_owner_review_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["144P"] == {
+        "stage_id": "144P",
+        "stage_name": "Brief-Derived Memory Proposal v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_144P_closeout",
+            "commit_message": "feat: add brief memory proposals",
+            "paths": [
+                "docs/reference/BRIEF_MEMORY_PROPOSAL_144P_v0_1.md",
+                "app/brief_memory_proposal.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_brief_memory_proposal_144p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the brief-derived pending memory proposal baseline. 144P adds deterministic memory candidates to owner-requested /prep replies from the existing 143P Meeting Prep Pack only. Candidates are marked pending owner review and are not treated as facts. It does not authorize approval decisions, Memory Center mutation, ProposedMemory writes, task persistence, follow-up intents, reminders, scheduler, callbacks, buttons, Calendar writes, model/tool calls, worker dispatch, DeerFlow runtime integration, dependencies, billing, entitlement enforcement, or external writes beyond approved Telegram replies. 145P and later remain unauthorized.",
+    }
+    for path in stages_by_id["144P"]["local_evidence"]["paths"]:
         assert (REPO_ROOT / path).is_file()
 
 

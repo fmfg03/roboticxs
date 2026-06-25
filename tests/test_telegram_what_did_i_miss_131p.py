@@ -54,7 +54,7 @@ def test_131p_status_marks_miss_enabled_brief_disabled_and_runtime_active():
 
     assert "/miss command: enabled" in reply
     assert "/brief command: enabled" in reply
-    assert "roadmap state: 95P-143P closed, 143P runtime active" in reply
+    assert "roadmap state: 95P-144P closed, 144P runtime active" in reply
 
 
 def test_131p_authorized_miss_produces_deterministic_local_read_only_reply():

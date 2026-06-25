@@ -324,7 +324,7 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "/memory command: enabled" in receipt.reply_text
     assert "/memory_limits command: enabled" in receipt.reply_text
     assert "/memory_pending command: enabled" in receipt.reply_text
-    assert "roadmap state: 95P-143P closed, 143P runtime active" in receipt.reply_text
+    assert "roadmap state: 95P-144P closed, 144P runtime active" in receipt.reply_text
 
 
 def test_130p_unknown_command_from_authorized_owner_produces_safe_fallback():
@@ -523,7 +523,7 @@ def test_130p_main_uses_injected_client_for_bounded_run(
 def test_130p_startup_report_is_deterministic():
     report = build_telegram_robot_startup_report(build_valid_config())
 
-    assert "Stage: 143P" in report
+    assert "Stage: 144P" in report
     assert "Owner gate: enabled" in report
     assert "Available commands: /start, /help, /status, /miss, /today, /loops, /prep, /brief, /suggest_brief, /memory, /memory_limits, /memory_pending" in report
     assert "External connectors: Google Calendar read-only optional" in report
@@ -763,6 +763,12 @@ def test_143p_prep_command_returns_owner_requested_read_only_meeting_prep_pack(m
     assert "Stage: 143P" in receipt.reply_text
     assert "Client demo prep meeting" in receipt.reply_text
     assert "Francisco prefers compact daily briefings." in receipt.reply_text
+    assert "Memory candidates:" in receipt.reply_text
+    assert "pending owner review" in receipt.reply_text
+    assert "/memory_approve" in receipt.reply_text
+    assert "/memory_reject" in receipt.reply_text
+    assert "Memory candidates are pending owner review and are not treated as facts." in receipt.reply_text
+    assert "No memory was written." in receipt.reply_text
     assert "Calendar writes: disabled" in receipt.reply_text
     assert "Memory Center mutation: disabled" in receipt.reply_text
     assert "ProposedMemory writes: disabled" in receipt.reply_text
@@ -903,4 +909,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"135P","stage_name":"Real Calendar Meeting Brief Composer v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "143P later added an owner-requested read-only Meeting Prep Pack command only. 144P and later remain unauthorized" in roadmap
+    assert "144P later added brief-derived pending memory candidates only. 145P and later remain unauthorized" in roadmap

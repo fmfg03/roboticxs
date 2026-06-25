@@ -9,6 +9,11 @@ from typing import Protocol
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+from app.brief_memory_proposal import (
+    BriefMemoryProposalRecord,
+    build_brief_memory_proposal_record,
+    render_brief_memory_candidate_section,
+)
 from app.daily_brief_what_did_i_miss import (
     DailyBriefRegistry,
     DailyBriefSourceBundle,
@@ -60,7 +65,7 @@ from app.today_command import (
     run_today_command,
 )
 
-RUNNABLE_TELEGRAM_ROBOT_STAGE = "143P"
+RUNNABLE_TELEGRAM_ROBOT_STAGE = "144P"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
 DEFAULT_POLL_TIMEOUT_SECONDS = 30
@@ -377,7 +382,7 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "/memory command: enabled",
             "/memory_limits command: enabled",
             "/memory_pending command: enabled",
-            "roadmap state: 95P-143P closed, 143P runtime active",
+            "roadmap state: 95P-144P closed, 144P runtime active",
         ]
     )
 
@@ -581,6 +586,7 @@ def render_command_reply(
     today_record: TodayCommandRecord | None = None,
     open_loops_record: OpenLoopsCommandRecord | None = None,
     meeting_prep_pack: MeetingPrepPackRecord | None = None,
+    brief_memory_proposal: BriefMemoryProposalRecord | None = None,
 ) -> str:
     if command == "/start":
         return render_start_command_reply(config)
@@ -601,7 +607,16 @@ def render_command_reply(
     if command == "/prep":
         if meeting_prep_pack is None:
             raise TelegramRobotConfigError("rejected_missing_meeting_prep_pack")
-        return render_meeting_prep_pack(meeting_prep_pack)
+        reply = render_meeting_prep_pack(meeting_prep_pack)
+        if brief_memory_proposal is None:
+            return reply
+        return "\n".join(
+            [
+                reply,
+                "",
+                *render_brief_memory_candidate_section(brief_memory_proposal),
+            ]
+        )
     if command == "/brief":
         if suggested_meeting_brief is not None:
             return render_requested_suggested_brief_reply(suggested_meeting_brief)
@@ -684,6 +699,7 @@ def handle_incoming_command(
     today_record = None
     open_loops_record = None
     meeting_prep_pack = None
+    brief_memory_proposal = None
     if authorized and incoming_command.command == "/brief" and brief_suggestion_id:
         suggested_meeting_brief = run_suggested_meeting_brief_request(
             owner_id=config.owner_id,
@@ -723,6 +739,7 @@ def handle_incoming_command(
             calendar_http_client=calendar_http_client,
             memory_source_bundle=memory_source_bundle,
         )
+        brief_memory_proposal = build_brief_memory_proposal_record(prep_pack=meeting_prep_pack)
     if authorized:
         reply_text = render_command_reply(
             incoming_command.command,
@@ -734,6 +751,7 @@ def handle_incoming_command(
             today_record=today_record,
             open_loops_record=open_loops_record,
             meeting_prep_pack=meeting_prep_pack,
+            brief_memory_proposal=brief_memory_proposal,
         )
     else:
         reply_text = render_unauthorized_reply()
@@ -850,6 +868,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "Today command: /today owner-requested read-only summary only",
             "Open Loops command: /loops owner-requested read-only unresolved loops only",
             "Meeting Prep Pack: /prep <suggestion_id> owner-requested read-only prep only",
+            "Brief Memory Proposals: shown in /prep as pending owner review only",
             "Proactive meeting suggestions: /suggest_brief owner-requested replies only",
             "Suggested meeting brief requests: /brief <suggestion_id> owner-requested replies only",
             "Proactive outbound: disabled",

@@ -9,9 +9,9 @@ import sys
 
 
 HERMES_RUNTIME_BOOTSTRAP_STAGE = "129P"
-ROADMAP_CLOSED_THROUGH = "143P"
-NEXT_STAGE = "144P"
-NEXT_STAGE_LABEL = "144P+ remains unauthorized."
+ROADMAP_CLOSED_THROUGH = "144P"
+NEXT_STAGE = "145P"
+NEXT_STAGE_LABEL = "145P+ remains unauthorized."
 DEFAULT_RUNTIME_MODE = "local-dev"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
@@ -30,6 +30,7 @@ FEATURE_MODULES = (
     ("today_command", "app.today_command", False),
     ("open_loops_command", "app.open_loops_command", False),
     ("meeting_prep_pack", "app.meeting_prep_pack", False),
+    ("brief_memory_proposal", "app.brief_memory_proposal", False),
     ("demo_result_delivery_surface", "app.demo_result_delivery_surface", False),
     ("skill_pack_activation_surface", "app.skill_pack_activation_surface", False),
     ("memory_center_writeback", "app.memory_center_writeback", False),
@@ -238,7 +239,7 @@ def render_hermes_runtime_bootstrap_report(
             f"Owner: {status.owner_id}",
             f"Owner Display Name: {status.owner_display_name}",
             f"Mode: {status.runtime_mode}",
-            f"Roadmap: 95P-143P CLOSED_COMMITTED",
+            f"Roadmap: 95P-144P CLOSED_COMMITTED",
             f"Roadmap Closed Through: {status.roadmap_closed_through}",
             f"Telegram: {'enabled' if status.telegram_enabled else 'disabled'}",
             f"Connectors: {'enabled' if status.connectors_enabled else 'disabled'}",
@@ -275,6 +276,7 @@ def render_hermes_runtime_bootstrap_report(
                 "Today Command: available for owner-requested Telegram replies only",
                 "Open Loops Command: available for owner-requested Telegram replies only",
                 "Meeting Prep Pack: available for owner-requested Telegram replies only",
+                "Brief Memory Proposals: available as owner-reviewed candidates only",
                 f"Next authorized stage: {NEXT_STAGE_LABEL}",
                 f"Generated At: {status.generated_at}",
             ]
