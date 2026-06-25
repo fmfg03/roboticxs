@@ -14,6 +14,11 @@ from app.brief_memory_proposal import (
     build_brief_memory_proposal_record,
     render_brief_memory_candidate_section,
 )
+from app.brief_memory_approval import (
+    BriefMemoryApprovalDecisionRecord,
+    build_brief_memory_approval_decision,
+    render_brief_memory_approval_decision,
+)
 from app.daily_brief_what_did_i_miss import (
     DailyBriefRegistry,
     DailyBriefSourceBundle,
@@ -65,7 +70,7 @@ from app.today_command import (
     run_today_command,
 )
 
-RUNNABLE_TELEGRAM_ROBOT_STAGE = "144P"
+RUNNABLE_TELEGRAM_ROBOT_STAGE = "145P"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
 DEFAULT_POLL_TIMEOUT_SECONDS = 30
@@ -82,6 +87,8 @@ SUPPORTED_COMMANDS = (
     "/prep",
     "/brief",
     "/suggest_brief",
+    "/memory_approve",
+    "/memory_reject",
     "/memory",
     "/memory_limits",
     "/memory_pending",
@@ -330,7 +337,7 @@ def render_start_command_reply(config: TelegramRobotConfig) -> str:
             f"Roboticxs is online.",
             f"Robot: {config.robot_id}",
             "This dev bot is owner-gated.",
-            "Available commands: /help, /status, /miss, /today, /loops, /prep, /brief, /suggest_brief, /memory, /memory_limits, /memory_pending.",
+            "Available commands: /help, /status, /miss, /today, /loops, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending.",
             "No external actions are enabled.",
             "No action was taken.",
         ]
@@ -350,6 +357,8 @@ def render_help_command_reply() -> str:
             "/prep",
             "/brief",
             "/suggest_brief",
+            "/memory_approve",
+            "/memory_reject",
             "/memory",
             "/memory_limits",
             "/memory_pending",
@@ -379,10 +388,12 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "/prep command: enabled",
             "/brief command: enabled",
             "/suggest_brief command: enabled",
+            "/memory_approve command: enabled",
+            "/memory_reject command: enabled",
             "/memory command: enabled",
             "/memory_limits command: enabled",
             "/memory_pending command: enabled",
-            "roadmap state: 95P-144P closed, 144P runtime active",
+            "roadmap state: 95P-145P closed, 145P runtime active",
         ]
     )
 
@@ -391,7 +402,7 @@ def render_unknown_command_reply() -> str:
     return "\n".join(
         [
             "Command not enabled.",
-            "Available commands: /start, /help, /status, /miss, /today, /loops, /prep, /brief, /suggest_brief, /memory, /memory_limits, /memory_pending.",
+            "Available commands: /start, /help, /status, /miss, /today, /loops, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending.",
             "No action was taken.",
         ]
     )
@@ -587,6 +598,7 @@ def render_command_reply(
     open_loops_record: OpenLoopsCommandRecord | None = None,
     meeting_prep_pack: MeetingPrepPackRecord | None = None,
     brief_memory_proposal: BriefMemoryProposalRecord | None = None,
+    brief_memory_decision: BriefMemoryApprovalDecisionRecord | None = None,
 ) -> str:
     if command == "/start":
         return render_start_command_reply(config)
@@ -625,6 +637,10 @@ def render_command_reply(
         if proactive_meeting_suggestion is None:
             raise TelegramRobotConfigError("rejected_missing_proactive_meeting_suggestion")
         return render_suggest_brief_command_reply(proactive_meeting_suggestion)
+    if command in {"/memory_approve", "/memory_reject"}:
+        if brief_memory_decision is None:
+            raise TelegramRobotConfigError("rejected_missing_brief_memory_decision")
+        return render_brief_memory_approval_decision(brief_memory_decision)
     if command == "/memory":
         return render_memory_command_reply(config, source_bundle=memory_source_bundle)
     if command == "/memory_limits":
@@ -693,6 +709,14 @@ def handle_incoming_command(
         incoming_command.raw_text,
         command="/prep",
     )
+    memory_approve_candidate_id = extract_telegram_command_argument(
+        incoming_command.raw_text,
+        command="/memory_approve",
+    )
+    memory_reject_candidate_id = extract_telegram_command_argument(
+        incoming_command.raw_text,
+        command="/memory_reject",
+    )
     suggested_meeting_brief = None
     calendar_result = None
     proactive_meeting_suggestion = None
@@ -700,6 +724,7 @@ def handle_incoming_command(
     open_loops_record = None
     meeting_prep_pack = None
     brief_memory_proposal = None
+    brief_memory_decision = None
     if authorized and incoming_command.command == "/brief" and brief_suggestion_id:
         suggested_meeting_brief = run_suggested_meeting_brief_request(
             owner_id=config.owner_id,
@@ -740,6 +765,20 @@ def handle_incoming_command(
             memory_source_bundle=memory_source_bundle,
         )
         brief_memory_proposal = build_brief_memory_proposal_record(prep_pack=meeting_prep_pack)
+    if authorized and incoming_command.command == "/memory_approve":
+        brief_memory_decision = build_brief_memory_approval_decision(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            candidate_id=memory_approve_candidate_id or "",
+            choice="approve",
+        )
+    if authorized and incoming_command.command == "/memory_reject":
+        brief_memory_decision = build_brief_memory_approval_decision(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            candidate_id=memory_reject_candidate_id or "",
+            choice="reject",
+        )
     if authorized:
         reply_text = render_command_reply(
             incoming_command.command,
@@ -752,6 +791,7 @@ def handle_incoming_command(
             open_loops_record=open_loops_record,
             meeting_prep_pack=meeting_prep_pack,
             brief_memory_proposal=brief_memory_proposal,
+            brief_memory_decision=brief_memory_decision,
         )
     else:
         reply_text = render_unauthorized_reply()
@@ -858,7 +898,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             f"Owner gate: enabled ({len(validated.owner_ids)} allowed Telegram user id(s))",
             f"Dev mode: {'enabled' if validated.dev_mode else 'disabled'}",
             f"Dry run: {'enabled' if validated.dry_run else 'disabled'}",
-            "Available commands: /start, /help, /status, /miss, /today, /loops, /prep, /brief, /suggest_brief, /memory, /memory_limits, /memory_pending",
+            "Available commands: /start, /help, /status, /miss, /today, /loops, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending",
             "External connectors: Google Calendar read-only optional",
             "Calendar writes: disabled",
             "LLM/model calls: disabled",
@@ -869,6 +909,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "Open Loops command: /loops owner-requested read-only unresolved loops only",
             "Meeting Prep Pack: /prep <suggestion_id> owner-requested read-only prep only",
             "Brief Memory Proposals: shown in /prep as pending owner review only",
+            "Brief Memory Decisions: /memory_approve and /memory_reject create local decision receipts only",
             "Proactive meeting suggestions: /suggest_brief owner-requested replies only",
             "Suggested meeting brief requests: /brief <suggestion_id> owner-requested replies only",
             "Proactive outbound: disabled",

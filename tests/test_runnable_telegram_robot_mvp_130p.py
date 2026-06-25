@@ -263,7 +263,7 @@ def test_130p_start_from_authorized_owner_produces_deterministic_online_response
     assert receipt.reply_text == render_start_command_reply(config)
     assert "Roboticxs is online." in receipt.reply_text
     assert "This dev bot is owner-gated." in receipt.reply_text
-    assert "Available commands: /help, /status, /miss, /today, /loops, /prep, /brief, /suggest_brief, /memory, /memory_limits, /memory_pending." in receipt.reply_text
+    assert "Available commands: /help, /status, /miss, /today, /loops, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending." in receipt.reply_text
     assert "No external actions are enabled." in receipt.reply_text
 
 
@@ -324,7 +324,7 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "/memory command: enabled" in receipt.reply_text
     assert "/memory_limits command: enabled" in receipt.reply_text
     assert "/memory_pending command: enabled" in receipt.reply_text
-    assert "roadmap state: 95P-144P closed, 144P runtime active" in receipt.reply_text
+    assert "roadmap state: 95P-145P closed, 145P runtime active" in receipt.reply_text
 
 
 def test_130p_unknown_command_from_authorized_owner_produces_safe_fallback():
@@ -340,7 +340,7 @@ def test_130p_unknown_command_from_authorized_owner_produces_safe_fallback():
 
     assert receipt.reply_text == render_unknown_command_reply()
     assert "Command not enabled." in receipt.reply_text
-    assert "Available commands: /start, /help, /status, /miss, /today, /loops, /prep, /brief, /suggest_brief, /memory, /memory_limits, /memory_pending." in receipt.reply_text
+    assert "Available commands: /start, /help, /status, /miss, /today, /loops, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending." in receipt.reply_text
     assert "No action was taken." in receipt.reply_text
 
 
@@ -523,9 +523,9 @@ def test_130p_main_uses_injected_client_for_bounded_run(
 def test_130p_startup_report_is_deterministic():
     report = build_telegram_robot_startup_report(build_valid_config())
 
-    assert "Stage: 144P" in report
+    assert "Stage: 145P" in report
     assert "Owner gate: enabled" in report
-    assert "Available commands: /start, /help, /status, /miss, /today, /loops, /prep, /brief, /suggest_brief, /memory, /memory_limits, /memory_pending" in report
+    assert "Available commands: /start, /help, /status, /miss, /today, /loops, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending" in report
     assert "External connectors: Google Calendar read-only optional" in report
     assert "Calendar writes: disabled" in report
     assert "LLM/model calls: disabled" in report
@@ -802,6 +802,45 @@ def test_143p_unauthorized_prep_does_not_read_calendar_or_memory(monkeypatch: py
     assert receipt.reply_text == render_unauthorized_reply()
     assert calendar_client.calls == []
     assert "Meeting Prep Pack" not in receipt.reply_text
+
+
+def test_145p_memory_approve_returns_local_decision_without_writeback():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/memory_approve candidate-145p"))
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+    )
+
+    assert receipt.command == "/memory_approve"
+    assert receipt.authorized is True
+    assert "Brief Memory Decision" in receipt.reply_text
+    assert "Stage: 145P" in receipt.reply_text
+    assert "Choice: approve" in receipt.reply_text
+    assert "Decision status: approved_pending_writeback" in receipt.reply_text
+    assert "Writeback executed: false" in receipt.reply_text
+    assert "No memory was written." in receipt.reply_text
+
+
+def test_145p_unauthorized_memory_reject_does_not_create_decision():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    incoming = parse_telegram_incoming_command(
+        build_command_update(telegram_user_id=999999999, text="/memory_reject candidate-145p")
+    )
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+    )
+
+    assert receipt.authorized is False
+    assert receipt.reply_text == render_unauthorized_reply()
+    assert "Brief Memory Decision" not in receipt.reply_text
 
 
 def test_139p_owner_can_request_suggested_meeting_brief_by_suggestion_id(monkeypatch: pytest.MonkeyPatch):

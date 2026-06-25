@@ -47,7 +47,7 @@ def test_134p_status_exposes_calendar_readonly_surface_without_write_authority()
     assert "Calendar writes: disabled" in reply
     assert "LLM/model calls: disabled" in reply
     assert "Memory Center mutation: disabled" in reply
-    assert "roadmap state: 95P-144P closed, 144P runtime active" in reply
+    assert "roadmap state: 95P-145P closed, 145P runtime active" in reply
 
 
 def test_134p_authorized_brief_uses_readonly_calendar_snapshot(monkeypatch):

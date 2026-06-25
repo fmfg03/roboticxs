@@ -291,7 +291,8 @@ def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
     assert '"stage_id":"142P","stage_name":"Open Loops Command v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"stage_id":"143P","stage_name":"Meeting Prep Pack v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"stage_id":"144P","stage_name":"Brief-Derived Memory Proposal v0","status":"CLOSED_COMMITTED"' in roadmap_text
-    assert "145P and later remain unauthorized" in roadmap_text
+    assert '"stage_id":"145P","stage_name":"Telegram Memory Approval for Brief Proposals v0","status":"CLOSED_COMMITTED"' in roadmap_text
+    assert "146P and later remain unauthorized" in roadmap_text
     assert '"status":"NEXT_ELIGIBLE"' not in roadmap_text
 
 
