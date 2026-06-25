@@ -9,9 +9,9 @@ import sys
 
 
 HERMES_RUNTIME_BOOTSTRAP_STAGE = "129P"
-ROADMAP_CLOSED_THROUGH = "170P"
-NEXT_STAGE = "171P"
-NEXT_STAGE_LABEL = "171P+ remains unauthorized."
+ROADMAP_CLOSED_THROUGH = "171P"
+NEXT_STAGE = "172P"
+NEXT_STAGE_LABEL = "172P+ remains unauthorized."
 DEFAULT_RUNTIME_MODE = "local-dev"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
@@ -50,6 +50,7 @@ FEATURE_MODULES = (
     ("token_usage_cost_meter", "app.token_usage_cost_meter", False),
     ("model_router_runtime", "app.model_router_runtime", False),
     ("proactive_suggestion_loop", "app.proactive_suggestion_loop", False),
+    ("suggestion_inbox", "app.suggestion_inbox", False),
     ("demo_result_delivery_surface", "app.demo_result_delivery_surface", False),
     ("skill_pack_activation_surface", "app.skill_pack_activation_surface", False),
     ("memory_center_writeback", "app.memory_center_writeback", False),
@@ -258,7 +259,7 @@ def render_hermes_runtime_bootstrap_report(
             f"Owner: {status.owner_id}",
             f"Owner Display Name: {status.owner_display_name}",
             f"Mode: {status.runtime_mode}",
-            f"Roadmap: 95P-170P CLOSED_COMMITTED",
+            f"Roadmap: 95P-171P CLOSED_COMMITTED",
             f"Roadmap Closed Through: {status.roadmap_closed_through}",
             f"Telegram: {'enabled' if status.telegram_enabled else 'disabled'}",
             f"Connectors: {'enabled' if status.connectors_enabled else 'disabled'}",
@@ -316,6 +317,7 @@ def render_hermes_runtime_bootstrap_report(
                 "Token Usage + Cost Meter: available for local estimated /usage reporting only",
                 "Model Router Runtime: available for local mode selection only",
                 "Proactive Suggestion Loop: available for local suggestions only",
+                "Suggestion Inbox: available for owner-requested local suggestion review only",
                 "Personal Admin Inbox: available for owner-requested read-only inbox visibility only",
                 "Inbox Item Decisions: available as local owner decision receipts only",
                 "Task Inbox Flow: available for customer-facing task inbox visibility and local receipts only",

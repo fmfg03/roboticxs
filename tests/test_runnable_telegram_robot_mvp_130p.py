@@ -264,6 +264,7 @@ def test_130p_start_from_authorized_owner_produces_deterministic_online_response
     assert "Welcome. Your private robot is online." in receipt.reply_text
     assert "Access: owner-gated" in receipt.reply_text
     assert "Today: /today, /miss" in receipt.reply_text
+    assert "Suggestions: /suggestions" in receipt.reply_text
     assert "Tasks: /inbox, /inbox_done <item_id>, /inbox_dismiss <item_id>" in receipt.reply_text
     assert "I do not take external actions without approval." in receipt.reply_text
 
@@ -286,6 +287,7 @@ def test_130p_help_from_authorized_owner_produces_deterministic_command_list():
     assert "Roboticxs Menu" in receipt.reply_text
     assert "/brief" in receipt.reply_text
     assert "/suggest_brief" in receipt.reply_text
+    assert "/suggestions" in receipt.reply_text
     assert "/memory" in receipt.reply_text
     assert "/memory_limits" in receipt.reply_text
     assert "/memory_pending" in receipt.reply_text
@@ -316,7 +318,30 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "Automatic Memory Center mutation: disabled" in receipt.reply_text
     assert "Scheduler/proactive outbound: disabled" in receipt.reply_text
     assert "Task Inbox is your robot task inbox, not your Gmail inbox yet." in receipt.reply_text
-    assert "Roadmap: 95P-170P closed, Proactive Suggestion Loop active" in receipt.reply_text
+    assert "Roadmap: 95P-171P closed, Suggestion Inbox active" in receipt.reply_text
+
+
+def test_171p_suggestions_command_returns_owner_requested_local_inbox():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/suggestions"))
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+    )
+
+    assert receipt.authorized is True
+    assert "Suggestion Inbox" in receipt.reply_text
+    assert "Stage: 171P" in receipt.reply_text
+    assert "Status: 0 pending suggestion(s)" in receipt.reply_text
+    assert "No pending suggestions in the local inbox." in receipt.reply_text
+    assert "No action has been taken." in receipt.reply_text
+    assert "Decision flow: disabled" in receipt.reply_text
+    assert "Draft creation: disabled" in receipt.reply_text
+    assert "Memory writes: disabled" in receipt.reply_text
+    assert "External writes: disabled" in receipt.reply_text
 
 
 def test_130p_unknown_command_from_authorized_owner_produces_safe_fallback():
@@ -510,6 +535,7 @@ def test_130p_main_uses_injected_client_for_bounded_run(
     assert "/miss" in captured.out
     assert "/brief" in captured.out
     assert "/suggest_brief" in captured.out
+    assert "/suggestions" in captured.out
     assert fake_client.sent_messages[0]["text"] == render_status_command_reply(build_valid_config())
 
 
@@ -519,7 +545,7 @@ def test_130p_startup_report_is_deterministic():
     assert "Stage: 150P" in report
     assert "Owner gate: enabled" in report
     assert "Product menu: Today, Brief, Prep, Tasks, Memory, Documents, Setup Check" in report
-    assert "Available commands: /start, /help, /status, /miss, /today, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending, document upload" in report
+    assert "Available commands: /start, /help, /status, /miss, /today, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending, document upload" in report
     assert "External connectors: Google Calendar read-only optional" in report
     assert "Calendar writes: disabled" in report
     assert "LLM/model calls: disabled" in report
@@ -530,6 +556,7 @@ def test_130p_startup_report_is_deterministic():
     assert "Open Loops command: /loops owner-requested read-only unresolved loops only" in report
     assert "Document Intake: Telegram document metadata receives draft-only local replies only" in report
     assert "Proactive meeting suggestions: /suggest_brief owner-requested replies only" in report
+    assert "Suggestion Inbox: /suggestions owner-requested local pending suggestions only" in report
     assert "Suggested meeting brief requests: /brief <suggestion_id> owner-requested replies only" in report
     assert "Proactive outbound: disabled" in report
 
@@ -973,4 +1000,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "171P and later remain unauthorized" in roadmap
+    assert "172P and later remain unauthorized" in roadmap
