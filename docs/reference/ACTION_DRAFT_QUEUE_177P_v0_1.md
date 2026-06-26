@@ -47,4 +47,4 @@ Every reply must say: "No external action was taken."
 
 177P does not create Gmail drafts. It does not send messages. It does not persist tasks. It does not approve, edit, expire, or export drafts. Those remain candidate future stages only.
 
-184P and later remain unauthorized.
+185P and later remain unauthorized.

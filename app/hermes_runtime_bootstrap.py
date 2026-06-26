@@ -9,9 +9,9 @@ import sys
 
 
 HERMES_RUNTIME_BOOTSTRAP_STAGE = "129P"
-ROADMAP_CLOSED_THROUGH = "183P"
-NEXT_STAGE = "184P"
-NEXT_STAGE_LABEL = "184P+ remains unauthorized."
+ROADMAP_CLOSED_THROUGH = "184P"
+NEXT_STAGE = "185P"
+NEXT_STAGE_LABEL = "185P+ remains unauthorized."
 DEFAULT_RUNTIME_MODE = "local-dev"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
@@ -45,6 +45,7 @@ FEATURE_MODULES = (
     ("live_connector_readiness_check", "app.live_connector_readiness_check", False),
     ("calendar_context_binding_v1", "app.calendar_context_binding_v1", False),
     ("gmail_context_binding_v1", "app.gmail_context_binding_v1", False),
+    ("source_trace_receipts", "app.source_trace_receipts", False),
     ("setup_capability_status_component", "app.setup_capability_status_component", False),
     ("calendar_backed_today_prep", "app.calendar_backed_today_prep", False),
     ("gmail_readonly_context_scan", "app.gmail_readonly_context_scan", False),
@@ -271,7 +272,7 @@ def render_hermes_runtime_bootstrap_report(
             f"Owner: {status.owner_id}",
             f"Owner Display Name: {status.owner_display_name}",
             f"Mode: {status.runtime_mode}",
-            f"Roadmap: 95P-183P CLOSED_COMMITTED",
+            f"Roadmap: 95P-184P CLOSED_COMMITTED",
             f"Roadmap Closed Through: {status.roadmap_closed_through}",
             f"Telegram: {'enabled' if status.telegram_enabled else 'disabled'}",
             f"Connectors: {'enabled' if status.connectors_enabled else 'disabled'}",
@@ -324,6 +325,7 @@ def render_hermes_runtime_bootstrap_report(
                 "Live Connector Readiness Check: available for owner-requested read-only readiness only",
                 "Calendar Context Binding v1: available for owner-requested Calendar source trace only",
                 "Gmail Context Binding v1: available for owner-requested Gmail source trace only",
+                "Source Trace Receipts: available for owner-requested unified source receipts only",
                 "Setup Capability Status Component: available for shared customer-facing setup copy only",
                 "Calendar-Backed Today / Prep: available for read-only Calendar product context only",
                 "Gmail Read-Only Context Scan: available for read-only Gmail context signals only",

@@ -393,7 +393,7 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "Task Inbox is your robot task inbox, not your Gmail inbox yet." in receipt.reply_text
     assert "Live connector readiness:" in receipt.reply_text
     assert "- Full check: /checkup" in receipt.reply_text
-    assert "Roadmap: 95P-183P closed, Gmail Context Binding active" in receipt.reply_text
+    assert "Roadmap: 95P-184P closed, Source Trace Receipts active" in receipt.reply_text
 
 
 def test_181p_checkup_command_returns_live_connector_readiness_without_external_writes():
@@ -976,22 +976,22 @@ def test_174p_daily_brief_command_returns_cross_source_read_only_summary(monkeyp
     assert "Daily Brief" in receipt.reply_text
     assert "Stage: 174P" in receipt.reply_text
     assert "Client demo prep meeting" in receipt.reply_text
-    assert "Source trace:" in receipt.reply_text
-    assert "- Calendar: connected" in receipt.reply_text
+    assert "Source Trace Receipt" in receipt.reply_text
+    assert "Stage: 184P" in receipt.reply_text
+    assert "- Calendar: used" in receipt.reply_text
     assert "evt-client-demo | Client demo prep meeting" in receipt.reply_text
     assert "be relevant for prep" in receipt.reply_text
-    assert "Gmail source trace:" in receipt.reply_text
-    assert "- Gmail: connected" in receipt.reply_text
-    assert "thr-183p | msg-183p | Client proposal prep" in receipt.reply_text
+    assert "- Gmail: used" in receipt.reply_text
+    assert "- Memory: used" in receipt.reply_text
+    assert "- Documents: not_used" in receipt.reply_text
+    assert "- Usage/Cost: not_used" in receipt.reply_text
     assert "Francisco prefers compact daily briefings." in receipt.reply_text
     assert "Calendar writes: disabled" in receipt.reply_text
-    assert "Gmail send/modify: disabled" in receipt.reply_text
-    assert "Memory Store writes: disabled" in receipt.reply_text
-    assert "Memory Center mutation: disabled" in receipt.reply_text
-    assert "Draft creation: disabled" in receipt.reply_text
+    assert "Gmail send: disabled" in receipt.reply_text
+    assert "Gmail modify/delete: disabled" in receipt.reply_text
+    assert "Memory mutation: approval_required" in receipt.reply_text
     assert "Model calls: disabled" in receipt.reply_text
     assert "Tools/workers: disabled" in receipt.reply_text
-    assert "Scheduler/proactive sends: disabled" in receipt.reply_text
     assert "External writes: disabled" in receipt.reply_text
     assert "No external action was taken." in receipt.reply_text
 
@@ -1017,11 +1017,11 @@ def test_183p_daily_brief_keeps_calendar_context_when_gmail_fails_closed(monkeyp
     assert len(gmail_client.calls) == 1
     assert "Client demo prep meeting" in receipt.reply_text
     assert "Gmail: unavailable (gmail_read_failed_closed)." in receipt.reply_text
-    assert "Gmail source trace:" in receipt.reply_text
+    assert "Source Trace Receipt" in receipt.reply_text
     assert "- Gmail: blocked" in receipt.reply_text
-    assert "- Reason: gmail_read_failed_closed" in receipt.reply_text
-    assert "- Next: run /checkup" in receipt.reply_text
-    assert "- Writes: disabled" in receipt.reply_text
+    assert "Reason: gmail_read_failed_closed" in receipt.reply_text
+    assert "Next: run /checkup" in receipt.reply_text
+    assert "Gmail send: disabled" in receipt.reply_text
 
 
 def test_174p_unauthorized_daily_brief_does_not_read_calendar_or_memory(monkeypatch: pytest.MonkeyPatch):
@@ -1225,13 +1225,12 @@ def test_143p_prep_command_returns_owner_requested_read_only_meeting_prep_pack(m
     assert "Recent email context:" in receipt.reply_text
     assert "Documents / risks:" in receipt.reply_text
     assert "be relevant for prep" in receipt.reply_text
-    assert "Gmail source trace:" in receipt.reply_text
-    assert "- Gmail: connected" in receipt.reply_text
-    assert "thr-183p | msg-183p | Client proposal prep" in receipt.reply_text
+    assert "Source Trace Receipt" in receipt.reply_text
+    assert "Stage: 184P" in receipt.reply_text
+    assert "- Gmail: used" in receipt.reply_text
     assert "Next steps:" in receipt.reply_text
     assert "Client demo prep meeting" in receipt.reply_text
-    assert "Source trace:" in receipt.reply_text
-    assert "- Calendar: connected" in receipt.reply_text
+    assert "- Calendar: used" in receipt.reply_text
     assert "evt-client-demo | Client demo prep meeting" in receipt.reply_text
     assert "Francisco prefers compact daily briefings." in receipt.reply_text
     assert "Memory candidates:" in receipt.reply_text
@@ -1241,8 +1240,9 @@ def test_143p_prep_command_returns_owner_requested_read_only_meeting_prep_pack(m
     assert "Memory candidates are pending owner review and are not treated as facts." in receipt.reply_text
     assert "No memory was written." in receipt.reply_text
     assert "Calendar writes: disabled" in receipt.reply_text
-    assert "Gmail send/modify: disabled" in receipt.reply_text
-    assert "Memory Center mutation: disabled" in receipt.reply_text
+    assert "Gmail send: disabled" in receipt.reply_text
+    assert "Gmail modify/delete: disabled" in receipt.reply_text
+    assert "Memory mutation: approval_required" in receipt.reply_text
     assert "Draft creation: disabled" in receipt.reply_text
     assert "Scheduler/proactive sends: disabled" in receipt.reply_text
     assert "Model calls: disabled" in receipt.reply_text
@@ -1495,4 +1495,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "184P and later remain unauthorized" in roadmap
+    assert "185P and later remain unauthorized" in roadmap

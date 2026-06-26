@@ -84,7 +84,7 @@ def test_129p_builds_runtime_online_status_for_valid_local_config():
     assert status.runtime_mode == "local-dev"
     assert status.robot_id == DEFAULT_ROBOT_ID
     assert status.owner_id == DEFAULT_OWNER_ID
-    assert status.roadmap_closed_through == "183P"
+    assert status.roadmap_closed_through == "184P"
     assert status.next_stage_authorized is False
     assert status.next_stage == NEXT_STAGE
     assert status.telegram_enabled is False
@@ -115,6 +115,7 @@ def test_129p_builds_runtime_online_status_for_valid_local_config():
     assert "live_connector_readiness_check" in status.available_local_features
     assert "calendar_context_binding_v1" in status.available_local_features
     assert "gmail_context_binding_v1" in status.available_local_features
+    assert "source_trace_receipts" in status.available_local_features
     assert "telegram_memory_center_commands" in status.available_local_features
     assert "context_scan_proposed_memory" in status.available_local_features
     assert "memory_store" in status.available_local_features
@@ -154,7 +155,7 @@ def test_129p_text_report_contains_required_runtime_lines():
     assert f"Robot: {DEFAULT_ROBOT_ID}" in report.rendered_text
     assert f"Owner: {DEFAULT_OWNER_ID}" in report.rendered_text
     assert "Mode: local-dev" in report.rendered_text
-    assert "Roadmap: 95P-183P CLOSED_COMMITTED" in report.rendered_text
+    assert "Roadmap: 95P-184P CLOSED_COMMITTED" in report.rendered_text
     assert "Telegram: disabled" in report.rendered_text
     assert "Connectors: disabled" in report.rendered_text
     assert "LLM/model calls: disabled" in report.rendered_text
@@ -187,6 +188,7 @@ def test_129p_text_report_contains_required_runtime_lines():
     assert "Live Connector Readiness Check: available for owner-requested read-only readiness only" in report.rendered_text
     assert "Calendar Context Binding v1: available for owner-requested Calendar source trace only" in report.rendered_text
     assert "Gmail Context Binding v1: available for owner-requested Gmail source trace only" in report.rendered_text
+    assert "Source Trace Receipts: available for owner-requested unified source receipts only" in report.rendered_text
     assert "Setup Capability Status Component: available for shared customer-facing setup copy only" in report.rendered_text
     assert "Calendar-Backed Today / Prep: available for read-only Calendar product context only" in report.rendered_text
     assert "Gmail Read-Only Context Scan: available for read-only Gmail context signals only" in report.rendered_text
@@ -212,14 +214,14 @@ def test_129p_text_report_contains_required_runtime_lines():
     assert "Factory Loop Handoff Harness: available for local non-authority loop evidence only" in report.rendered_text
     assert "Runtime Doctor: available for local read-only readiness diagnostics only" in report.rendered_text
     assert "Telegram Product Shell: available for customer-facing menu and setup status only" in report.rendered_text
-    assert "Next authorized stage: 184P+ remains unauthorized." in report.rendered_text
+    assert "Next authorized stage: 185P+ remains unauthorized." in report.rendered_text
 
 
 def test_129p_json_report_is_renderable():
     report = run_hermes_runtime_bootstrap(output_format="json")
 
     assert '"runtime_online": true' in report.rendered_text
-    assert '"roadmap_closed_through": "183P"' in report.rendered_text
+    assert '"roadmap_closed_through": "184P"' in report.rendered_text
 
 
 def test_129p_main_prints_report_and_returns_zero(capsys: pytest.CaptureFixture[str]):
@@ -290,4 +292,4 @@ def test_129p_roadmap_registers_runtime_bootstrap_stage_and_135p_closed_with_136
     assert '"stage_id":"153P","stage_name":"Setup & Capability Status v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"154P","stage_name":"Task Inbox Flow v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"155P","stage_name":"Memory Review Flow v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "184P and later remain unauthorized" in roadmap
+    assert "185P and later remain unauthorized" in roadmap
