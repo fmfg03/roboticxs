@@ -485,7 +485,7 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "Task Inbox is your robot task inbox, not your Gmail inbox yet." in receipt.reply_text
     assert "Live connector readiness:" in receipt.reply_text
     assert "- Full check: /checkup" in receipt.reply_text
-    assert "Roadmap: 95P-189P closed, Skill Manifest Runtime Gates v0 active" in receipt.reply_text
+    assert "Roadmap: 95P-190P closed, Controlled Live Pilot Baseline v0 active" in receipt.reply_text
     assert "Skill Manifest Runtime Gates: active" in receipt.reply_text
 
 
@@ -741,6 +741,31 @@ def test_180p_demo_command_returns_customer_mvp_demo_pack_without_external_write
     assert "No external action was taken." in receipt.reply_text
 
 
+def test_190p_pilot_command_returns_controlled_live_pilot_receipt_without_send_authority():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/pilot"))
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+    )
+
+    assert receipt.authorized is True
+    assert "Controlled Live Pilot Baseline" in receipt.reply_text
+    assert "Stage: 190P" in receipt.reply_text
+    assert "/daily_brief" in receipt.reply_text
+    assert "/prep" in receipt.reply_text
+    assert "/suggestion_draft" in receipt.reply_text
+    assert "/draft_approve" in receipt.reply_text
+    assert "/export_email" in receipt.reply_text
+    assert "Source Trace Receipt" in receipt.reply_text
+    assert "Usage & Cost Ledger" in receipt.reply_text
+    assert "No email was sent." in receipt.reply_text
+    assert "No external irreversible action was taken." in receipt.reply_text
+
+
 def test_130p_unknown_command_from_authorized_owner_produces_safe_fallback():
     config = build_valid_config()
     client = FakeTelegramClient()
@@ -951,7 +976,7 @@ def test_130p_startup_report_is_deterministic():
     assert "Stage: 150P" in report
     assert "Owner gate: enabled" in report
     assert "Product menu: Today, Brief, Prep, Drafts, Usage, Tasks, Memory, Documents, Setup Check" in report
-    assert "Available commands: /start, /help, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory, /memory_limits, /memory_pending, document upload" in report
+    assert "Available commands: /start, /help, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory, /memory_limits, /memory_pending, document upload" in report
     assert "External connectors: Google Calendar read-only optional" in report
     assert "Calendar writes: disabled" in report
     assert "LLM/model calls: disabled" in report
@@ -976,6 +1001,7 @@ def test_130p_startup_report_is_deterministic():
     assert "Approved Output Export: /export_* creates local export payloads only" in report
     assert "Usage & Cost Ledger: /usage shows local estimated usage only" in report
     assert "Skill Manifest Runtime Gates: available for local command skill boundaries only" in report
+    assert "Controlled Live Pilot Baseline: /pilot owner-requested controlled pilot receipt only" in report
     assert "Suggested meeting brief requests: /brief <suggestion_id> owner-requested replies only" in report
     assert "Proactive outbound: disabled" in report
 
@@ -1909,4 +1935,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "190P and later remain unauthorized" in roadmap
+    assert "191P and later remain unauthorized" in roadmap

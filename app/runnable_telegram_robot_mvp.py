@@ -41,6 +41,11 @@ from app.cross_source_daily_brief import (
     build_cross_source_daily_brief,
     render_cross_source_daily_brief,
 )
+from app.controlled_live_pilot_baseline import (
+    ControlledLivePilotReceipt,
+    build_controlled_live_pilot_baseline,
+    render_controlled_live_pilot_receipt,
+)
 from app.brief_memory_approval import (
     BriefMemoryApprovalDecisionRecord,
     build_brief_memory_approval_decision,
@@ -214,6 +219,7 @@ SUPPORTED_COMMANDS = (
     "/today",
     "/daily_brief",
     "/demo",
+    "/pilot",
     "/gmail_thread",
     "/loops",
     "/inbox",
@@ -248,7 +254,7 @@ SUPPORTED_COMMANDS = (
     "/document",
 )
 PRODUCT_MENU_LINES = (
-    "Today: /today, /miss, /daily_brief, /demo",
+    "Today: /today, /miss, /daily_brief, /demo, /pilot",
     "Brief: /brief, /suggest_brief, /gmail_thread <thread_id>",
     "Prep: /prep <suggestion_id>",
     "Suggestions: /suggestions, /suggestion_dismiss <suggestion_id>, /suggestion_snooze <suggestion_id>, /suggestion_memory <suggestion_id>, /suggestion_draft <suggestion_id>, /suggestion_followup <suggestion_id>",
@@ -644,7 +650,7 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "",
             *render_skill_runtime_boundary_lines(),
             "",
-            "Roadmap: 95P-189P closed, Skill Manifest Runtime Gates v0 active",
+            "Roadmap: 95P-190P closed, Controlled Live Pilot Baseline v0 active",
         ]
     )
 
@@ -878,6 +884,7 @@ def render_command_reply(
     approved_output_export: ApprovedOutputExportRecord | None = None,
     approved_gmail_draft_creation: ApprovedGmailDraftCreationRecord | None = None,
     customer_mvp_demo_pack: object | None = None,
+    controlled_live_pilot: ControlledLivePilotReceipt | None = None,
     live_connector_readiness: LiveConnectorReadinessReport | None = None,
     calendar_source_trace: CalendarContextSourceTrace | None = None,
     gmail_source_trace: GmailContextSourceTrace | None = None,
@@ -914,6 +921,10 @@ def render_command_reply(
         from app.customer_mvp_demo_pack_v1 import render_customer_mvp_demo_pack_v1
 
         return render_customer_mvp_demo_pack_v1(customer_mvp_demo_pack)
+    if command == "/pilot":
+        if controlled_live_pilot is None:
+            raise TelegramRobotConfigError("rejected_missing_controlled_live_pilot")
+        return render_controlled_live_pilot_receipt(controlled_live_pilot)
     if command == "/gmail_thread":
         if gmail_thread_drilldown is None:
             raise TelegramRobotConfigError("rejected_missing_gmail_thread_drilldown")
@@ -1176,6 +1187,7 @@ def handle_incoming_command(
     approved_output_export = None
     approved_gmail_draft_creation = None
     customer_mvp_demo_pack = None
+    controlled_live_pilot = None
     live_connector_readiness = None
     calendar_source_trace = None
     gmail_source_trace = None
@@ -1257,6 +1269,13 @@ def handle_incoming_command(
         customer_mvp_demo_pack = build_customer_mvp_demo_pack_v1(
             owner_id=config.owner_id,
             robot_id=config.robot_id,
+        )
+    if authorized and incoming_command.command == "/pilot":
+        controlled_live_pilot = build_controlled_live_pilot_baseline(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            gmail_draft_http_client=gmail_draft_http_client,
+            usage_entries=usage_ledger_entries,
         )
     if authorized and incoming_command.command in {"/checkup", "/setup"}:
         live_connector_readiness = build_live_connector_readiness_report(
@@ -1501,6 +1520,7 @@ def handle_incoming_command(
             approved_output_export=approved_output_export,
             approved_gmail_draft_creation=approved_gmail_draft_creation,
             customer_mvp_demo_pack=customer_mvp_demo_pack,
+            controlled_live_pilot=controlled_live_pilot,
             live_connector_readiness=live_connector_readiness,
             calendar_source_trace=calendar_source_trace,
             gmail_source_trace=gmail_source_trace,
@@ -1613,7 +1633,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             f"Dev mode: {'enabled' if validated.dev_mode else 'disabled'}",
             f"Dry run: {'enabled' if validated.dry_run else 'disabled'}",
             "Product menu: Today, Brief, Prep, Drafts, Usage, Tasks, Memory, Documents, Setup Check",
-            "Available commands: /start, /help, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory, /memory_limits, /memory_pending, document upload",
+            "Available commands: /start, /help, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory, /memory_limits, /memory_pending, document upload",
             "External connectors: Google Calendar read-only optional",
             "Calendar writes: disabled",
             "LLM/model calls: disabled",
@@ -1623,6 +1643,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "Today command: /today owner-requested read-only summary only",
             "Cross-Source Daily Brief: /daily_brief owner-requested read-only brief only",
             "Customer MVP Demo Pack v1: /demo owner-requested local demo only",
+            "Controlled Live Pilot Baseline: /pilot owner-requested controlled pilot receipt only",
             "Live Connector Readiness Check: /checkup owner-requested read-only readiness only",
             "Gmail Thread Drilldown: /gmail_thread <thread_id> owner-requested read-only metadata only",
             "Open Loops command: /loops owner-requested read-only unresolved loops only",

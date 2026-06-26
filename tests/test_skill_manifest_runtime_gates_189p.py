@@ -36,6 +36,7 @@ def test_189p_maps_main_telegram_commands_to_skill_manifests():
     expected = {
         "/start": "basic",
         "/help": "basic",
+        "/pilot": "basic",
         "/status": "setup",
         "/checkup": "setup",
         "/setup": "setup",

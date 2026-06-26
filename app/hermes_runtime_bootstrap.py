@@ -9,9 +9,9 @@ import sys
 
 
 HERMES_RUNTIME_BOOTSTRAP_STAGE = "129P"
-ROADMAP_CLOSED_THROUGH = "189P"
-NEXT_STAGE = "190P"
-NEXT_STAGE_LABEL = "190P+ remains unauthorized."
+ROADMAP_CLOSED_THROUGH = "190P"
+NEXT_STAGE = "191P"
+NEXT_STAGE_LABEL = "191P+ remains unauthorized."
 DEFAULT_RUNTIME_MODE = "local-dev"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
@@ -50,6 +50,7 @@ FEATURE_MODULES = (
     ("memory_source_forget_receipts", "app.memory_source_forget_receipts", False),
     ("usage_cost_ledger", "app.usage_cost_ledger", False),
     ("skill_manifest_runtime_gates", "app.skill_manifest_runtime_gates", False),
+    ("controlled_live_pilot_baseline", "app.controlled_live_pilot_baseline", False),
     ("setup_capability_status_component", "app.setup_capability_status_component", False),
     ("calendar_backed_today_prep", "app.calendar_backed_today_prep", False),
     ("gmail_readonly_context_scan", "app.gmail_readonly_context_scan", False),
@@ -277,7 +278,7 @@ def render_hermes_runtime_bootstrap_report(
             f"Owner: {status.owner_id}",
             f"Owner Display Name: {status.owner_display_name}",
             f"Mode: {status.runtime_mode}",
-            f"Roadmap: 95P-189P CLOSED_COMMITTED",
+            f"Roadmap: 95P-190P CLOSED_COMMITTED",
             f"Roadmap Closed Through: {status.roadmap_closed_through}",
             f"Telegram: {'enabled' if status.telegram_enabled else 'disabled'}",
             f"Connectors: {'enabled' if status.connectors_enabled else 'disabled'}",
@@ -335,6 +336,7 @@ def render_hermes_runtime_bootstrap_report(
                 "Memory Source & Forget Receipts: available for local memory provenance and forget/edit receipts only",
                 "Usage & Cost Ledger: available for local estimated usage reporting only",
                 "Skill Manifest Runtime Gates: available for local command skill boundaries only",
+                "Controlled Live Pilot Baseline: available for owner-requested controlled pilot receipts only",
                 "Setup Capability Status Component: available for shared customer-facing setup copy only",
                 "Calendar-Backed Today / Prep: available for read-only Calendar product context only",
                 "Gmail Read-Only Context Scan: available for read-only Gmail context signals only",
