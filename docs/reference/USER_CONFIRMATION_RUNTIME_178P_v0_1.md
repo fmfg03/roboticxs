@@ -33,7 +33,7 @@ Provide explicit local confirmation receipts for draft approval candidates. This
 - Scheduler or proactive sends.
 - External writes beyond approved Telegram replies.
 - Deployment, push, merge, or PR creation.
-- 179P behavior.
+- 179P behavior beyond Approved Output Export.
 
 Every reply must say: "No external action was taken."
 
@@ -50,4 +50,4 @@ Every reply must say: "No external action was taken."
 
 178P does not export text, create Gmail drafts, send emails, schedule events, persist tasks, update memory, or alter draft queue state. It records owner confirmation intent only.
 
-179P and later remain unauthorized.
+180P and later remain unauthorized.
