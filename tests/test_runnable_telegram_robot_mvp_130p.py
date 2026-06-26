@@ -454,6 +454,8 @@ def test_130p_help_from_authorized_owner_produces_deterministic_command_list():
     assert "/memory" in receipt.reply_text
     assert "/memory_limits" in receipt.reply_text
     assert "/memory_pending" in receipt.reply_text
+    assert "Skill gates:" in receipt.reply_text
+    assert "- Gmail Drafts:" in receipt.reply_text
     assert "/brief is not enabled yet." not in receipt.reply_text
 
 
@@ -483,7 +485,8 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "Task Inbox is your robot task inbox, not your Gmail inbox yet." in receipt.reply_text
     assert "Live connector readiness:" in receipt.reply_text
     assert "- Full check: /checkup" in receipt.reply_text
-    assert "Roadmap: 95P-188P closed, Usage & Cost Ledger v0 active" in receipt.reply_text
+    assert "Roadmap: 95P-189P closed, Skill Manifest Runtime Gates v0 active" in receipt.reply_text
+    assert "Skill Manifest Runtime Gates: active" in receipt.reply_text
 
 
 def test_181p_checkup_command_returns_live_connector_readiness_without_external_writes():
@@ -749,8 +752,10 @@ def test_130p_unknown_command_from_authorized_owner_produces_safe_fallback():
         config=config,
     )
 
-    assert receipt.reply_text == render_unknown_command_reply()
     assert "I do not know that command yet." in receipt.reply_text
+    assert "Skill Runtime Gate" in receipt.reply_text
+    assert "Decision: REFUSE_SCOPE" in receipt.reply_text
+    assert "Execution authorized: false" in receipt.reply_text
     assert "Use /help to see the Roboticxs menu." in receipt.reply_text
     assert "Setup Check: /status, /checkup, /setup" in receipt.reply_text
     assert "No external action was taken." in receipt.reply_text
@@ -970,6 +975,7 @@ def test_130p_startup_report_is_deterministic():
     assert "User Confirmation Runtime: /draft_* creates local confirmation receipts only" in report
     assert "Approved Output Export: /export_* creates local export payloads only" in report
     assert "Usage & Cost Ledger: /usage shows local estimated usage only" in report
+    assert "Skill Manifest Runtime Gates: available for local command skill boundaries only" in report
     assert "Suggested meeting brief requests: /brief <suggestion_id> owner-requested replies only" in report
     assert "Proactive outbound: disabled" in report
 
@@ -1903,4 +1909,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "189P and later remain unauthorized" in roadmap
+    assert "190P and later remain unauthorized" in roadmap

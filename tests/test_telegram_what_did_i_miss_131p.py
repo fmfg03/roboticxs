@@ -53,7 +53,7 @@ def test_131p_status_marks_miss_enabled_brief_disabled_and_runtime_active():
 
     assert "Today and missed-item summaries" in reply
     assert "Meeting briefs and prep packs" in reply
-    assert "Roadmap: 95P-188P closed, Usage & Cost Ledger v0 active" in reply
+    assert "Roadmap: 95P-189P closed, Skill Manifest Runtime Gates v0 active" in reply
 
 
 def test_131p_authorized_miss_produces_deterministic_local_read_only_reply():
@@ -129,7 +129,8 @@ def test_131p_unknown_fallback_lists_brief_after_132p():
         config=config,
     )
 
-    assert receipt.reply_text == render_unknown_command_reply()
+    assert "Skill Runtime Gate" in receipt.reply_text
+    assert "Decision: REFUSE_SCOPE" in receipt.reply_text
     assert "Available areas:" in receipt.reply_text
     assert "Today: /today, /miss" in receipt.reply_text
     assert "Brief: /brief, /suggest_brief" in receipt.reply_text

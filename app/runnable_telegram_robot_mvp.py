@@ -146,6 +146,12 @@ from app.setup_capability_status_component import (
     render_compact_setup_capability_block,
     render_setup_capability_status_sections,
 )
+from app.skill_manifest_runtime_gates import (
+    classify_command_for_skill_gate,
+    render_skill_runtime_boundary_lines,
+    render_skill_runtime_gate_decision,
+    render_skill_runtime_manifest_summary,
+)
 from app.source_trace_receipts import (
     SourceTraceReceipt,
     append_source_trace_receipt,
@@ -602,6 +608,9 @@ def render_help_command_reply() -> str:
             "",
             *PRODUCT_MENU_LINES,
             "",
+            "Skill gates:",
+            *render_skill_runtime_manifest_summary(),
+            "",
             "Notes:",
             "- Tasks is your robot task inbox, not your Gmail inbox yet.",
             "- Setup Check shows what is active, unavailable, blocked, or intentionally disabled.",
@@ -633,16 +642,20 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "",
             *render_compact_live_connector_readiness_block(readiness),
             "",
-            "Roadmap: 95P-188P closed, Usage & Cost Ledger v0 active",
+            *render_skill_runtime_boundary_lines(),
+            "",
+            "Roadmap: 95P-189P closed, Skill Manifest Runtime Gates v0 active",
         ]
     )
 
 
-def render_unknown_command_reply() -> str:
+def render_unknown_command_reply(skill_gate_decision_text: str | None = None) -> str:
+    skill_gate_lines = [skill_gate_decision_text, ""] if skill_gate_decision_text else []
     return "\n".join(
         [
             "I do not know that command yet.",
             "",
+            *skill_gate_lines,
             "Use /help to see the Roboticxs menu.",
             "",
             "Available areas:",
@@ -1013,7 +1026,13 @@ def render_command_reply(
         if document_intake is None:
             raise TelegramRobotConfigError("rejected_missing_document_intake")
         return render_telegram_document_intake_stub(document_intake)
-    return render_unknown_command_reply()
+    skill_gate_decision = classify_command_for_skill_gate(
+        owner_id=config.owner_id,
+        robot_id=config.robot_id,
+        command=command,
+        raw_text=command,
+    )
+    return render_unknown_command_reply(render_skill_runtime_gate_decision(skill_gate_decision))
 
 
 def render_memory_command_reply(
@@ -1622,6 +1641,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "User Confirmation Runtime: /draft_* creates local confirmation receipts only",
             "Approved Output Export: /export_* creates local export payloads only",
             "Usage & Cost Ledger: /usage shows local estimated usage only",
+            "Skill Manifest Runtime Gates: available for local command skill boundaries only",
             "Suggested meeting brief requests: /brief <suggestion_id> owner-requested replies only",
             "Proactive outbound: disabled",
         ]
