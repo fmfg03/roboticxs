@@ -159,4 +159,4 @@ def test_163p_reference_and_roadmap_close_gmail_context_scan_without_authority_e
     assert "does not authorize Gmail send" in reference
     assert "Memory Center mutation" in reference
     assert '"stage_id":"163P","stage_name":"Gmail Read-Only Context Scan v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "175P and later remain unauthorized" in roadmap
+    assert "176P and later remain unauthorized" in roadmap

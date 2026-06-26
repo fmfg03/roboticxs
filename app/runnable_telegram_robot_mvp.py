@@ -53,6 +53,11 @@ from app.meeting_prep_pack import (
     render_meeting_prep_pack,
     run_meeting_prep_pack,
 )
+from app.meeting_prep_pack_v1 import (
+    MeetingPrepPackV1Record,
+    build_meeting_prep_pack_v1,
+    render_meeting_prep_pack_v1,
+)
 from app.memory_approval_telegram_flow import (
     MemoryApprovalTelegramReceipt,
     MemoryReviewInbox,
@@ -521,7 +526,7 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "",
             *render_setup_capability_status_sections(),
             "",
-            "Roadmap: 95P-174P closed, Cross-Source Daily Brief active",
+            "Roadmap: 95P-175P closed, Meeting Prep Pack v1 active",
         ]
     )
 
@@ -737,6 +742,7 @@ def render_command_reply(
     personal_admin_inbox: PersonalAdminInboxRecord | None = None,
     inbox_item_decision: InboxItemDecisionRecord | None = None,
     meeting_prep_pack: MeetingPrepPackRecord | None = None,
+    meeting_prep_pack_v1: MeetingPrepPackV1Record | None = None,
     brief_memory_proposal: BriefMemoryProposalRecord | None = None,
     brief_memory_decision: BriefMemoryApprovalDecisionRecord | None = None,
     memory_review_inbox: MemoryReviewInbox | None = None,
@@ -777,7 +783,11 @@ def render_command_reply(
     if command == "/prep":
         if meeting_prep_pack is None:
             raise TelegramRobotConfigError("rejected_missing_meeting_prep_pack")
-        reply = render_meeting_prep_pack(meeting_prep_pack)
+        reply = (
+            render_meeting_prep_pack_v1(meeting_prep_pack_v1)
+            if meeting_prep_pack_v1 is not None
+            else render_meeting_prep_pack(meeting_prep_pack)
+        )
         if brief_memory_proposal is None:
             return reply
         return "\n".join(
@@ -926,6 +936,7 @@ def handle_incoming_command(
     personal_admin_inbox = None
     inbox_item_decision = None
     meeting_prep_pack = None
+    meeting_prep_pack_v1 = None
     brief_memory_proposal = None
     brief_memory_decision = None
     memory_review_inbox = None
@@ -1010,6 +1021,11 @@ def handle_incoming_command(
             calendar_http_client=calendar_http_client,
             memory_source_bundle=memory_source_bundle,
         )
+        meeting_prep_pack_v1 = build_meeting_prep_pack_v1(
+            base_pack=meeting_prep_pack,
+            gmail_scan=run_gmail_readonly_context_scan(env={}),
+            document_reviews=(),
+        )
         brief_memory_proposal = build_brief_memory_proposal_record(prep_pack=meeting_prep_pack)
     if authorized and incoming_command.command in {"/memory_review", "/memory_approve", "/memory_reject", "/memory_edit"}:
         memory_review_inbox = build_memory_review_inbox(
@@ -1092,6 +1108,7 @@ def handle_incoming_command(
             personal_admin_inbox=personal_admin_inbox,
             inbox_item_decision=inbox_item_decision,
             meeting_prep_pack=meeting_prep_pack,
+            meeting_prep_pack_v1=meeting_prep_pack_v1,
             brief_memory_proposal=brief_memory_proposal,
             brief_memory_decision=brief_memory_decision,
             memory_review_inbox=memory_review_inbox,
@@ -1219,6 +1236,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "Personal Admin Inbox: /inbox owner-requested read-only pending items only",
             "Inbox Item Decisions: /inbox_done and /inbox_dismiss create local decision receipts only",
             "Meeting Prep Pack: /prep <suggestion_id> owner-requested read-only prep only",
+            "Meeting Prep Pack v1: /prep includes read-only email/document context when locally available",
             "Brief Memory Proposals: shown in /prep as pending owner review only",
             "Memory Review Decisions: /memory_approve, /memory_reject, and /memory_edit create local decision receipts only",
             "Document Intake: Telegram document metadata receives draft-only local replies only",

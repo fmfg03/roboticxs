@@ -27,4 +27,4 @@ The customer-facing summary is suitable for `/usage`-style output:
 
 This is local estimated usage only, not live billing or provider reconciliation. 168P does not authorize provider calls, billing API calls, connector activation, external writes, database migrations, remote persistence, model routing changes, BYOK setup, payment enforcement, deployment, push, merge, or PR creation.
 
-175P and later remain unauthorized.
+176P and later remain unauthorized.

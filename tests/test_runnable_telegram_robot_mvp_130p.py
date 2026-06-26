@@ -319,7 +319,7 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "Automatic Memory Center mutation: disabled" in receipt.reply_text
     assert "Scheduler/proactive outbound: disabled" in receipt.reply_text
     assert "Task Inbox is your robot task inbox, not your Gmail inbox yet." in receipt.reply_text
-    assert "Roadmap: 95P-174P closed, Cross-Source Daily Brief active" in receipt.reply_text
+    assert "Roadmap: 95P-175P closed, Meeting Prep Pack v1 active" in receipt.reply_text
 
 
 def test_171p_suggestions_command_returns_owner_requested_local_inbox():
@@ -581,6 +581,7 @@ def test_130p_startup_report_is_deterministic():
     assert "Memory Center mutation: disabled" in report
     assert "Today command: /today owner-requested read-only summary only" in report
     assert "Cross-Source Daily Brief: /daily_brief owner-requested read-only brief only" in report
+    assert "Meeting Prep Pack v1: /prep includes read-only email/document context when locally available" in report
     assert "Open Loops command: /loops owner-requested read-only unresolved loops only" in report
     assert "Memory Review Decisions: /memory_approve, /memory_reject, and /memory_edit create local decision receipts only" in report
     assert "Document Intake: Telegram document metadata receives draft-only local replies only" in report
@@ -880,8 +881,12 @@ def test_143p_prep_command_returns_owner_requested_read_only_meeting_prep_pack(m
     assert receipt.authorized is True
     assert len(calendar_client.calls) == 1
     assert "Meeting Prep Pack" in receipt.reply_text
+    assert "Stage: 175P" in receipt.reply_text
     assert "Meeting context:" in receipt.reply_text
-    assert "Safe next step:" in receipt.reply_text
+    assert "Recent email context:" in receipt.reply_text
+    assert "Documents / risks:" in receipt.reply_text
+    assert "Gmail: unavailable (missing_access_token)." in receipt.reply_text
+    assert "Next steps:" in receipt.reply_text
     assert "Client demo prep meeting" in receipt.reply_text
     assert "Francisco prefers compact daily briefings." in receipt.reply_text
     assert "Memory candidates:" in receipt.reply_text
@@ -891,9 +896,10 @@ def test_143p_prep_command_returns_owner_requested_read_only_meeting_prep_pack(m
     assert "Memory candidates are pending owner review and are not treated as facts." in receipt.reply_text
     assert "No memory was written." in receipt.reply_text
     assert "Calendar writes: disabled" in receipt.reply_text
+    assert "Gmail send/modify: disabled" in receipt.reply_text
     assert "Memory Center mutation: disabled" in receipt.reply_text
-    assert "ProposedMemory writes: disabled" in receipt.reply_text
-    assert "Scheduler/reminders: disabled" in receipt.reply_text
+    assert "Draft creation: disabled" in receipt.reply_text
+    assert "Scheduler/proactive sends: disabled" in receipt.reply_text
     assert "Model calls: disabled" in receipt.reply_text
     assert "Tools/workers: disabled" in receipt.reply_text
     assert "External writes: disabled" in receipt.reply_text
@@ -1144,4 +1150,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "175P and later remain unauthorized" in roadmap
+    assert "176P and later remain unauthorized" in roadmap
