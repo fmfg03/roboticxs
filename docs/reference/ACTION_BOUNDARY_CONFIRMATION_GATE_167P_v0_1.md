@@ -28,4 +28,4 @@ Decision labels: ALLOW, DRAFT_ONLY, ASK_CONFIRMATION, ESCALATE, BLOCK.
 
 The gate may say: "I can prepare this, but I cannot send it or change anything without your confirmation." It may prepare an action packet requirement, but it does not approve or execute the action.
 
-172P and later remain unauthorized.
+173P and later remain unauthorized.
