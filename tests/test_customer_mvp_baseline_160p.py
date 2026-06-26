@@ -89,4 +89,4 @@ def test_160p_reference_and_roadmap_close_customer_mvp_without_authority_expansi
     assert "does not add commands" in reference
     assert "Memory Center mutation" in reference
     assert '"stage_id":"160P","stage_name":"Customer MVP Baseline v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "178P and later remain unauthorized" in roadmap
+    assert "179P and later remain unauthorized" in roadmap

@@ -153,6 +153,6 @@ def test_177p_reference_and_roadmap_close_action_draft_queue_only():
 
     assert "177P is Action Draft Queue v0 only." in reference
     assert "Gmail draft creation" in reference
-    assert "178P and later remain unauthorized" in reference
+    assert "179P and later remain unauthorized" in reference
     assert '"stage_id":"177P","stage_name":"Action Draft Queue v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "178P and later remain unauthorized" in roadmap
+    assert "179P and later remain unauthorized" in roadmap
