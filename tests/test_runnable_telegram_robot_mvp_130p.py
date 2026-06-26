@@ -33,6 +33,7 @@ from app.suggestion_decision_flow import build_suggestion_decision_receipt
 from app.suggestion_inbox import build_suggestion_inbox
 from app.telegram_memory_center_commands import TelegramMemoryCenterSourceBundle
 from app.memory_center_projection import MemoryCenterItem
+from app.usage_cost_ledger import build_usage_cost_ledger_entry
 from app.user_confirmation_runtime import build_user_confirmation_receipt
 
 
@@ -482,7 +483,7 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "Task Inbox is your robot task inbox, not your Gmail inbox yet." in receipt.reply_text
     assert "Live connector readiness:" in receipt.reply_text
     assert "- Full check: /checkup" in receipt.reply_text
-    assert "Roadmap: 95P-187P closed, Memory Source & Forget Receipts v0 active" in receipt.reply_text
+    assert "Roadmap: 95P-188P closed, Usage & Cost Ledger v0 active" in receipt.reply_text
 
 
 def test_181p_checkup_command_returns_live_connector_readiness_without_external_writes():
@@ -944,8 +945,8 @@ def test_130p_startup_report_is_deterministic():
 
     assert "Stage: 150P" in report
     assert "Owner gate: enabled" in report
-    assert "Product menu: Today, Brief, Prep, Drafts, Tasks, Memory, Documents, Setup Check" in report
-    assert "Available commands: /start, /help, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory, /memory_limits, /memory_pending, document upload" in report
+    assert "Product menu: Today, Brief, Prep, Drafts, Usage, Tasks, Memory, Documents, Setup Check" in report
+    assert "Available commands: /start, /help, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory, /memory_limits, /memory_pending, document upload" in report
     assert "External connectors: Google Calendar read-only optional" in report
     assert "Calendar writes: disabled" in report
     assert "LLM/model calls: disabled" in report
@@ -968,6 +969,7 @@ def test_130p_startup_report_is_deterministic():
     assert "Action Draft Queue: /drafts owner-requested local approval candidates only" in report
     assert "User Confirmation Runtime: /draft_* creates local confirmation receipts only" in report
     assert "Approved Output Export: /export_* creates local export payloads only" in report
+    assert "Usage & Cost Ledger: /usage shows local estimated usage only" in report
     assert "Suggested meeting brief requests: /brief <suggestion_id> owner-requested replies only" in report
     assert "Proactive outbound: disabled" in report
 
@@ -1672,6 +1674,89 @@ def test_187p_memory_edit_preserves_pending_proposal_edit_when_id_is_not_approve
     assert "No memory was written." in receipt.reply_text
 
 
+def test_188p_usage_command_renders_injected_local_usage_ledger_without_external_calls():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/usage"))
+    usage_entries = (
+        build_usage_cost_ledger_entry(
+            owner_id="local-owner",
+            robot_id="roboticxs-dev",
+            task_id="prep-telegram-188p",
+            command="/prep",
+            task_class="meeting_prep",
+            provider="local_fixture",
+            model="balanced_standard_v1",
+            model_mode="balanced",
+            input_tokens=1200,
+            output_tokens=360,
+            estimated_cost_usd=0.001896,
+            latency_ms=125,
+            status="completed",
+            created_at="2026-06-26T12:00:00+00:00",
+        ),
+        build_usage_cost_ledger_entry(
+            owner_id="local-owner",
+            robot_id="roboticxs-dev",
+            task_id="doc-telegram-188p",
+            command="/document",
+            task_class="document_review",
+            provider="local_fixture",
+            model="advanced_reasoning_v1",
+            model_mode="premium",
+            input_tokens=2000,
+            output_tokens=700,
+            estimated_cost_usd=0.00621,
+            latency_ms=220,
+            status="completed",
+            created_at="2026-06-26T13:00:00+00:00",
+        ),
+    )
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+        usage_ledger_entries=usage_entries,
+    )
+
+    assert receipt.command == "/usage"
+    assert receipt.authorized is True
+    assert "Usage & Cost Ledger" in receipt.reply_text
+    assert "Stage: 188P" in receipt.reply_text
+    assert "Tasks run: 2" in receipt.reply_text
+    assert "Estimated cost: $0.008106" in receipt.reply_text
+    assert "Documents reviewed: 1" in receipt.reply_text
+    assert "Most expensive task: doc-telegram-188p ($0.006210)" in receipt.reply_text
+    assert "- /prep: 1" in receipt.reply_text
+    assert "- /document: 1" in receipt.reply_text
+    assert "Live billing: disabled" in receipt.reply_text
+    assert "Provider calls: disabled" in receipt.reply_text
+    assert "External writes: disabled" in receipt.reply_text
+
+
+def test_188p_usage_command_empty_state_is_local_only():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/usage"))
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+    )
+
+    assert receipt.command == "/usage"
+    assert receipt.authorized is True
+    assert "Usage & Cost Ledger" in receipt.reply_text
+    assert "Stage: 188P" in receipt.reply_text
+    assert "Tasks run: 0" in receipt.reply_text
+    assert "No local usage records yet." in receipt.reply_text
+    assert "Live billing: disabled" in receipt.reply_text
+    assert "Provider calls: disabled" in receipt.reply_text
+    assert "Persistence: disabled" in receipt.reply_text
+
+
 def test_173p_unauthorized_memory_reject_does_not_create_decision():
     config = build_valid_config()
     client = FakeTelegramClient()
@@ -1818,4 +1903,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "188P and later remain unauthorized" in roadmap
+    assert "189P and later remain unauthorized" in roadmap

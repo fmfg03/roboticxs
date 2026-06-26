@@ -145,6 +145,6 @@ def test_186p_reference_and_roadmap_close_document_review_pack_v1_only():
 
     assert "186P - Document Review Pack v1" in reference
     assert "186P is Document Review Pack v1 only." in reference
-    assert "188P and later remain unauthorized" in reference
+    assert "189P and later remain unauthorized" in reference
     assert '"stage_id":"186P","stage_name":"Document Review Pack v1","status":"CLOSED_COMMITTED"' in roadmap
-    assert "188P and later remain unauthorized" in roadmap
+    assert "189P and later remain unauthorized" in roadmap

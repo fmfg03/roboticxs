@@ -48,4 +48,4 @@
 - external writes;
 - deployment, push, merge, or PR creation.
 
-188P and later remain unauthorized.
+189P and later remain unauthorized.

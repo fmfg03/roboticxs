@@ -185,6 +185,11 @@ from app.user_confirmation_runtime import (
     build_user_confirmation_receipt,
     render_user_confirmation_receipt,
 )
+from app.usage_cost_ledger import (
+    UsageCostLedgerEntry,
+    render_usage_cost_ledger_summary,
+    summarize_usage_cost_ledger,
+)
 
 RUNNABLE_TELEGRAM_ROBOT_STAGE = "150P"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
@@ -225,6 +230,7 @@ SUPPORTED_COMMANDS = (
     "/export_text",
     "/export_email",
     "/export_file",
+    "/usage",
     "/memory_review",
     "/memory_approve",
     "/memory_reject",
@@ -241,6 +247,7 @@ PRODUCT_MENU_LINES = (
     "Prep: /prep <suggestion_id>",
     "Suggestions: /suggestions, /suggestion_dismiss <suggestion_id>, /suggestion_snooze <suggestion_id>, /suggestion_memory <suggestion_id>, /suggestion_draft <suggestion_id>, /suggestion_followup <suggestion_id>",
     "Drafts: /drafts, /draft_approve <draft_id>, /draft_reject <draft_id>, /draft_edit <draft_id> <text>, /draft_expire <draft_id>, /export_text <confirmation_id>, /export_email <confirmation_id>, /export_file <confirmation_id>",
+    "Usage: /usage",
     "Tasks: /inbox, /inbox_done <item_id>, /inbox_dismiss <item_id>",
     "Memory: /memory, /memory_review, /memory_pending, /memory_limits, /memory_approve <candidate_id>, /memory_reject <candidate_id>, /memory_edit <candidate_or_memory_id> <text>, /memory_forget <memory_id>",
     "Documents: send a file for draft-only intake",
@@ -626,7 +633,7 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "",
             *render_compact_live_connector_readiness_block(readiness),
             "",
-            "Roadmap: 95P-187P closed, Memory Source & Forget Receipts v0 active",
+            "Roadmap: 95P-188P closed, Usage & Cost Ledger v0 active",
         ]
     )
 
@@ -864,6 +871,7 @@ def render_command_reply(
     source_trace_receipt: SourceTraceReceipt | None = None,
     cross_source_daily_brief: CrossSourceDailyBriefRecord | None = None,
     gmail_thread_drilldown: GmailThreadDrilldownRecord | None = None,
+    usage_ledger_entries: tuple[UsageCostLedgerEntry, ...] = (),
 ) -> str:
     if command == "/start":
         return render_start_command_reply(config)
@@ -967,6 +975,14 @@ def render_command_reply(
         if approved_output_export is None:
             raise TelegramRobotConfigError("rejected_missing_approved_output_export")
         return render_approved_output_export(approved_output_export)
+    if command == "/usage":
+        return render_usage_cost_ledger_summary(
+            summarize_usage_cost_ledger(
+                owner_id=config.owner_id,
+                robot_id=config.robot_id,
+                entries=usage_ledger_entries,
+            )
+        )
     if command == "/memory_review":
         if memory_review_inbox is None:
             raise TelegramRobotConfigError("rejected_missing_memory_review_inbox")
@@ -1061,6 +1077,7 @@ def handle_incoming_command(
     memory_source_bundle: TelegramMemoryCenterSourceBundle | None = None,
     confirmation_receipts: tuple[UserConfirmationReceipt, ...] = (),
     document_extracted_text_by_file_id: dict[str, str] | None = None,
+    usage_ledger_entries: tuple[UsageCostLedgerEntry, ...] = (),
 ) -> TelegramSendReceipt:
     authorized = is_owner_authorized(
         telegram_user_id=incoming_command.telegram_user_id,
@@ -1469,6 +1486,7 @@ def handle_incoming_command(
             calendar_source_trace=calendar_source_trace,
             gmail_source_trace=gmail_source_trace,
             source_trace_receipt=source_trace_receipt,
+            usage_ledger_entries=usage_ledger_entries,
         )
     else:
         reply_text = render_unauthorized_reply()
@@ -1575,8 +1593,8 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             f"Owner gate: enabled ({len(validated.owner_ids)} allowed Telegram user id(s))",
             f"Dev mode: {'enabled' if validated.dev_mode else 'disabled'}",
             f"Dry run: {'enabled' if validated.dry_run else 'disabled'}",
-            "Product menu: Today, Brief, Prep, Drafts, Tasks, Memory, Documents, Setup Check",
-            "Available commands: /start, /help, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory, /memory_limits, /memory_pending, document upload",
+            "Product menu: Today, Brief, Prep, Drafts, Usage, Tasks, Memory, Documents, Setup Check",
+            "Available commands: /start, /help, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory, /memory_limits, /memory_pending, document upload",
             "External connectors: Google Calendar read-only optional",
             "Calendar writes: disabled",
             "LLM/model calls: disabled",
@@ -1603,6 +1621,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "Action Draft Queue: /drafts owner-requested local approval candidates only",
             "User Confirmation Runtime: /draft_* creates local confirmation receipts only",
             "Approved Output Export: /export_* creates local export payloads only",
+            "Usage & Cost Ledger: /usage shows local estimated usage only",
             "Suggested meeting brief requests: /brief <suggestion_id> owner-requested replies only",
             "Proactive outbound: disabled",
         ]

@@ -138,4 +138,4 @@ def test_176p_reference_and_roadmap_close_gmail_thread_drilldown_only():
     assert "/gmail_thread <thread_id>" in reference
     assert "does not authorize Gmail send" in reference
     assert '"stage_id":"176P","stage_name":"Gmail Thread Drilldown v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "188P and later remain unauthorized" in roadmap
+    assert "189P and later remain unauthorized" in roadmap
