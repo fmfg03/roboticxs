@@ -92,6 +92,6 @@ def test_180p_reference_and_roadmap_close_customer_demo_only():
 
     assert "180P is Customer MVP Demo Pack v1 only." in reference
     assert "Demo status is `completed_local_customer_mvp_demo_v1`" in reference
-    assert "181P and later remain unauthorized" in reference
+    assert "182P and later remain unauthorized" in reference
     assert '"stage_id":"180P","stage_name":"Customer MVP Demo Pack v1","status":"CLOSED_COMMITTED"' in roadmap
-    assert "181P and later remain unauthorized" in roadmap
+    assert "182P and later remain unauthorized" in roadmap

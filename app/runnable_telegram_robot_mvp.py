@@ -56,6 +56,12 @@ from app.inbox_item_decision import (
     build_inbox_item_decision,
     render_inbox_item_decision,
 )
+from app.live_connector_readiness_check import (
+    LiveConnectorReadinessReport,
+    build_live_connector_readiness_report,
+    render_compact_live_connector_readiness_block,
+    render_live_connector_readiness_report,
+)
 from app.meeting_brief_demo_flow import (
     MeetingBriefDemoDependencyBundle,
     MeetingBriefDemoFixture,
@@ -151,6 +157,8 @@ SUPPORTED_COMMANDS = (
     "/start",
     "/help",
     "/status",
+    "/checkup",
+    "/setup",
     "/miss",
     "/today",
     "/daily_brief",
@@ -195,7 +203,7 @@ PRODUCT_MENU_LINES = (
     "Tasks: /inbox, /inbox_done <item_id>, /inbox_dismiss <item_id>",
     "Memory: /memory, /memory_review, /memory_pending, /memory_limits, /memory_approve <candidate_id>, /memory_reject <candidate_id>, /memory_edit <candidate_id> <text>",
     "Documents: send a file for draft-only intake",
-    "Setup Check: /status",
+    "Setup Check: /status, /checkup, /setup",
 )
 NO_ACTION_TAKEN_LINE = "No external action was taken."
 DAILY_BRIEF_DATE = "2026-06-20"
@@ -563,6 +571,7 @@ def render_help_command_reply() -> str:
 def render_status_command_reply(config: TelegramRobotConfig) -> str:
     live_telegram_state = "disabled" if config.dry_run else "enabled"
     dev_mode_state = "enabled" if config.dev_mode else "disabled"
+    readiness = build_live_connector_readiness_report(owner_id=config.owner_id, robot_id=config.robot_id)
     return "\n".join(
         [
             "Setup Check",
@@ -574,7 +583,9 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "",
             *render_setup_capability_status_sections(),
             "",
-            "Roadmap: 95P-180P closed, Customer MVP Demo Pack active",
+            *render_compact_live_connector_readiness_block(readiness),
+            "",
+            "Roadmap: 95P-181P closed, Live Connector Readiness Check active",
         ]
     )
 
@@ -802,6 +813,7 @@ def render_command_reply(
     user_confirmation: UserConfirmationReceipt | None = None,
     approved_output_export: ApprovedOutputExportRecord | None = None,
     customer_mvp_demo_pack: object | None = None,
+    live_connector_readiness: LiveConnectorReadinessReport | None = None,
     cross_source_daily_brief: CrossSourceDailyBriefRecord | None = None,
     gmail_thread_drilldown: GmailThreadDrilldownRecord | None = None,
 ) -> str:
@@ -811,6 +823,10 @@ def render_command_reply(
         return render_help_command_reply()
     if command == "/status":
         return render_status_command_reply(config)
+    if command in {"/checkup", "/setup"}:
+        if live_connector_readiness is None:
+            raise TelegramRobotConfigError("rejected_missing_live_connector_readiness")
+        return render_live_connector_readiness_report(live_connector_readiness)
     if command == "/miss":
         return render_miss_command_reply(config)
     if command == "/today":
@@ -1036,6 +1052,7 @@ def handle_incoming_command(
     user_confirmation = None
     approved_output_export = None
     customer_mvp_demo_pack = None
+    live_connector_readiness = None
     if authorized and incoming_command.command == "/brief" and brief_suggestion_id:
         suggested_meeting_brief = run_suggested_meeting_brief_request(
             owner_id=config.owner_id,
@@ -1081,6 +1098,11 @@ def handle_incoming_command(
         from app.customer_mvp_demo_pack_v1 import build_customer_mvp_demo_pack_v1
 
         customer_mvp_demo_pack = build_customer_mvp_demo_pack_v1(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+        )
+    if authorized and incoming_command.command in {"/checkup", "/setup"}:
+        live_connector_readiness = build_live_connector_readiness_report(
             owner_id=config.owner_id,
             robot_id=config.robot_id,
         )
@@ -1255,6 +1277,7 @@ def handle_incoming_command(
             user_confirmation=user_confirmation,
             approved_output_export=approved_output_export,
             customer_mvp_demo_pack=customer_mvp_demo_pack,
+            live_connector_readiness=live_connector_readiness,
         )
     else:
         reply_text = render_unauthorized_reply()
@@ -1362,7 +1385,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             f"Dev mode: {'enabled' if validated.dev_mode else 'disabled'}",
             f"Dry run: {'enabled' if validated.dry_run else 'disabled'}",
             "Product menu: Today, Brief, Prep, Drafts, Tasks, Memory, Documents, Setup Check",
-            "Available commands: /start, /help, /status, /miss, /today, /daily_brief, /demo, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory, /memory_limits, /memory_pending, document upload",
+            "Available commands: /start, /help, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory, /memory_limits, /memory_pending, document upload",
             "External connectors: Google Calendar read-only optional",
             "Calendar writes: disabled",
             "LLM/model calls: disabled",
@@ -1372,6 +1395,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "Today command: /today owner-requested read-only summary only",
             "Cross-Source Daily Brief: /daily_brief owner-requested read-only brief only",
             "Customer MVP Demo Pack v1: /demo owner-requested local demo only",
+            "Live Connector Readiness Check: /checkup owner-requested read-only readiness only",
             "Gmail Thread Drilldown: /gmail_thread <thread_id> owner-requested read-only metadata only",
             "Open Loops command: /loops owner-requested read-only unresolved loops only",
             "Personal Admin Inbox: /inbox owner-requested read-only pending items only",
