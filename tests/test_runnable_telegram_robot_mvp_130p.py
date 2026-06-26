@@ -319,7 +319,7 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "Automatic Memory Center mutation: disabled" in receipt.reply_text
     assert "Scheduler/proactive outbound: disabled" in receipt.reply_text
     assert "Task Inbox is your robot task inbox, not your Gmail inbox yet." in receipt.reply_text
-    assert "Roadmap: 95P-175P closed, Meeting Prep Pack v1 active" in receipt.reply_text
+    assert "Roadmap: 95P-176P closed, Gmail Thread Drilldown active" in receipt.reply_text
 
 
 def test_171p_suggestions_command_returns_owner_requested_local_inbox():
@@ -572,7 +572,7 @@ def test_130p_startup_report_is_deterministic():
     assert "Stage: 150P" in report
     assert "Owner gate: enabled" in report
     assert "Product menu: Today, Brief, Prep, Tasks, Memory, Documents, Setup Check" in report
-    assert "Available commands: /start, /help, /status, /miss, /today, /daily_brief, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory, /memory_limits, /memory_pending, document upload" in report
+    assert "Available commands: /start, /help, /status, /miss, /today, /daily_brief, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory, /memory_limits, /memory_pending, document upload" in report
     assert "External connectors: Google Calendar read-only optional" in report
     assert "Calendar writes: disabled" in report
     assert "LLM/model calls: disabled" in report
@@ -581,6 +581,7 @@ def test_130p_startup_report_is_deterministic():
     assert "Memory Center mutation: disabled" in report
     assert "Today command: /today owner-requested read-only summary only" in report
     assert "Cross-Source Daily Brief: /daily_brief owner-requested read-only brief only" in report
+    assert "Gmail Thread Drilldown: /gmail_thread <thread_id> owner-requested read-only metadata only" in report
     assert "Meeting Prep Pack v1: /prep includes read-only email/document context when locally available" in report
     assert "Open Loops command: /loops owner-requested read-only unresolved loops only" in report
     assert "Memory Review Decisions: /memory_approve, /memory_reject, and /memory_edit create local decision receipts only" in report
@@ -756,6 +757,51 @@ def test_174p_unauthorized_daily_brief_does_not_read_calendar_or_memory(monkeypa
     assert receipt.reply_text == render_unauthorized_reply()
     assert calendar_client.calls == []
     assert "Daily Brief" not in receipt.reply_text
+
+
+def test_176p_gmail_thread_command_fails_closed_without_token(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.delenv("ROBOTICXS_GOOGLE_GMAIL_ACCESS_TOKEN", raising=False)
+    monkeypatch.delenv("ROBOTICXS_GOOGLE_OAUTH_ACCESS_TOKEN", raising=False)
+    monkeypatch.delenv("ROBOTICXS_GOOGLE_CALENDAR_ACCESS_TOKEN", raising=False)
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/gmail_thread thread-176p"))
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+    )
+
+    assert receipt.command == "/gmail_thread"
+    assert receipt.authorized is True
+    assert "Gmail Thread Drilldown" in receipt.reply_text
+    assert "Stage: 176P" in receipt.reply_text
+    assert "Status: blocked_gmail_thread_unavailable" in receipt.reply_text
+    assert "Thread: thread-176p" in receipt.reply_text
+    assert "Blocked reason: missing_access_token" in receipt.reply_text
+    assert "Gmail send: disabled" in receipt.reply_text
+    assert "Gmail modify/archive/label: disabled" in receipt.reply_text
+    assert "Gmail delete: disabled" in receipt.reply_text
+    assert "No external action was taken." in receipt.reply_text
+
+
+def test_176p_unauthorized_gmail_thread_does_not_render_thread():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    incoming = parse_telegram_incoming_command(
+        build_command_update(telegram_user_id=999999999, text="/gmail_thread thread-176p")
+    )
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+    )
+
+    assert receipt.authorized is False
+    assert receipt.reply_text == render_unauthorized_reply()
+    assert "Gmail Thread Drilldown" not in receipt.reply_text
 
 
 def test_141p_unauthorized_today_does_not_read_calendar_or_memory(monkeypatch: pytest.MonkeyPatch):
@@ -1150,4 +1196,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "176P and later remain unauthorized" in roadmap
+    assert "177P and later remain unauthorized" in roadmap

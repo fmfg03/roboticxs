@@ -103,4 +103,4 @@ def test_155p_reference_and_roadmap_close_memory_review_without_authority_expans
     assert "mutate Memory Center" in reference
     assert "not facts yet" in reference
     assert '"stage_id":"155P","stage_name":"Memory Review Flow v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "176P and later remain unauthorized" in roadmap
+    assert "177P and later remain unauthorized" in roadmap

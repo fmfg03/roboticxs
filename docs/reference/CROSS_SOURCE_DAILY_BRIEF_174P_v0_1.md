@@ -17,4 +17,4 @@ Every reply must say: "No external action was taken."
 
 174P does not authorize Calendar writes, Gmail send/modify, Memory Store writes, Memory Center mutation, draft creation, model calls, tool calls, worker dispatch, scheduler/proactive sends, connector activation beyond existing read-only surfaces, external writes, deployment, push, merge, or PR creation.
 
-176P and later remain unauthorized.
+177P and later remain unauthorized.

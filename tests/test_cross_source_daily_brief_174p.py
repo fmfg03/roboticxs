@@ -227,4 +227,4 @@ def test_174p_reference_and_roadmap_close_cross_source_daily_brief_only():
     assert "/daily_brief" in reference
     assert "does not authorize Calendar writes" in reference
     assert '"stage_id":"174P","stage_name":"Cross-Source Daily Brief v1","status":"CLOSED_COMMITTED"' in roadmap
-    assert "176P and later remain unauthorized" in roadmap
+    assert "177P and later remain unauthorized" in roadmap

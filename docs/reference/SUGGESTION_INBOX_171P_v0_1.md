@@ -18,4 +18,4 @@ Each rendered inbox must say: "No action has been taken."
 
 171P does not authorize suggestion decisions, dismiss, snooze, save memory, create draft, follow-up questions, callbacks, live Telegram sends beyond owner-requested command replies, execution, connector activation, Memory Center writes, worker dispatch, external writes, scheduler work, provider calls, deployment, push, merge, or PR creation.
 
-176P and later remain unauthorized.
+177P and later remain unauthorized.

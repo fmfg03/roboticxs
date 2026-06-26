@@ -197,4 +197,4 @@ def test_175p_reference_and_roadmap_close_meeting_prep_v1_only():
     assert "/prep" in reference
     assert "does not authorize Calendar writes" in reference
     assert '"stage_id":"175P","stage_name":"Meeting Prep Pack v1","status":"CLOSED_COMMITTED"' in roadmap
-    assert "176P and later remain unauthorized" in roadmap
+    assert "177P and later remain unauthorized" in roadmap
