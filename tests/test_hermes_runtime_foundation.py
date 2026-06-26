@@ -243,7 +243,11 @@ def test_no_telegram_caregiver_document_background_or_connector_runtime_was_adde
     assert "app/document_control.py" not in changed
     assert "app/file_intake_control.py" not in changed
     assert "app/file_retrieval_adapter.py" not in changed
-    assert all("connector" not in path.lower() for path in changed)
+    allowed_connector_named_paths = {
+        "docs/reference/LIVE_CONNECTOR_READINESS_CHECK_181P_v0_1.md",
+        "tests/test_live_connector_readiness_check_181p.py",
+    }
+    assert all("connector" not in path.lower() or path in allowed_connector_named_paths for path in changed)
 
 
 def test_roadmap_marks_78p_complete_and_later_stages_without_inventing_86p():

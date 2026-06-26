@@ -24,6 +24,12 @@ from app.brief_memory_proposal import (
     build_brief_memory_proposal_record,
     render_brief_memory_candidate_section,
 )
+from app.calendar_context_binding_v1 import (
+    CalendarContextSourceTrace,
+    append_calendar_source_trace,
+    build_calendar_context_source_trace,
+)
+from app.calendar_context_scan import build_calendar_context_scan_record
 from app.cross_source_daily_brief import (
     CrossSourceDailyBriefRecord,
     build_cross_source_daily_brief,
@@ -71,8 +77,8 @@ from app.meeting_brief_demo_flow import (
 )
 from app.meeting_prep_pack import (
     MeetingPrepPackRecord,
+    build_meeting_prep_pack,
     render_meeting_prep_pack,
-    run_meeting_prep_pack,
 )
 from app.meeting_prep_pack_v1 import (
     MeetingPrepPackV1Record,
@@ -99,6 +105,7 @@ from app.personal_admin_inbox import (
 )
 from app.proactive_meeting_suggestion import (
     ProactiveMeetingSuggestionScanRecord,
+    build_proactive_meeting_suggestion_scan,
     render_proactive_meeting_suggestion_scan,
     run_proactive_meeting_suggestion_scan,
 )
@@ -137,8 +144,8 @@ from app.telegram_document_intake_stub import (
 )
 from app.today_command import (
     TodayCommandRecord,
+    build_today_command_record,
     render_today_command,
-    run_today_command,
 )
 from app.user_confirmation_runtime import (
     UserConfirmationReceipt,
@@ -585,7 +592,7 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "",
             *render_compact_live_connector_readiness_block(readiness),
             "",
-            "Roadmap: 95P-181P closed, Live Connector Readiness Check active",
+            "Roadmap: 95P-182P closed, Calendar Context Binding active",
         ]
     )
 
@@ -814,6 +821,7 @@ def render_command_reply(
     approved_output_export: ApprovedOutputExportRecord | None = None,
     customer_mvp_demo_pack: object | None = None,
     live_connector_readiness: LiveConnectorReadinessReport | None = None,
+    calendar_source_trace: CalendarContextSourceTrace | None = None,
     cross_source_daily_brief: CrossSourceDailyBriefRecord | None = None,
     gmail_thread_drilldown: GmailThreadDrilldownRecord | None = None,
 ) -> str:
@@ -832,11 +840,13 @@ def render_command_reply(
     if command == "/today":
         if today_record is None:
             raise TelegramRobotConfigError("rejected_missing_today_command_record")
-        return render_today_command(today_record)
+        reply = render_today_command(today_record)
+        return append_calendar_source_trace(reply, calendar_source_trace) if calendar_source_trace else reply
     if command == "/daily_brief":
         if cross_source_daily_brief is None:
             raise TelegramRobotConfigError("rejected_missing_cross_source_daily_brief")
-        return render_cross_source_daily_brief(cross_source_daily_brief)
+        reply = render_cross_source_daily_brief(cross_source_daily_brief)
+        return append_calendar_source_trace(reply, calendar_source_trace) if calendar_source_trace else reply
     if command == "/demo":
         if customer_mvp_demo_pack is None:
             raise TelegramRobotConfigError("rejected_missing_customer_mvp_demo_pack")
@@ -868,14 +878,15 @@ def render_command_reply(
             else render_meeting_prep_pack(meeting_prep_pack)
         )
         if brief_memory_proposal is None:
-            return reply
-        return "\n".join(
+            return append_calendar_source_trace(reply, calendar_source_trace) if calendar_source_trace else reply
+        reply = "\n".join(
             [
                 reply,
                 "",
                 *render_brief_memory_candidate_section(brief_memory_proposal),
             ]
         )
+        return append_calendar_source_trace(reply, calendar_source_trace) if calendar_source_trace else reply
     if command == "/brief":
         if suggested_meeting_brief is not None:
             return render_requested_suggested_brief_reply(suggested_meeting_brief)
@@ -1053,6 +1064,7 @@ def handle_incoming_command(
     approved_output_export = None
     customer_mvp_demo_pack = None
     live_connector_readiness = None
+    calendar_source_trace = None
     if authorized and incoming_command.command == "/brief" and brief_suggestion_id:
         suggested_meeting_brief = run_suggested_meeting_brief_request(
             owner_id=config.owner_id,
@@ -1071,16 +1083,35 @@ def handle_incoming_command(
             calendar_http_client=calendar_http_client,
         )
     if authorized and incoming_command.command == "/today":
-        today_record = run_today_command(
+        calendar_result = run_google_calendar_readonly_connector(
+            http_client=calendar_http_client,
+        )
+        calendar_source_trace = build_calendar_context_source_trace(calendar_result=calendar_result)
+        context_scan = build_calendar_context_scan_record(
             owner_id=config.owner_id,
             robot_id=config.robot_id,
-            calendar_http_client=calendar_http_client,
-            memory_source_bundle=memory_source_bundle,
+            calendar_result=calendar_result,
+        )
+        suggestion_scan = build_proactive_meeting_suggestion_scan(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            context_scan=context_scan,
+        )
+        today_record = build_today_command_record(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            suggestion_scan=suggestion_scan,
+            memory_snapshot=build_memory_center_telegram_snapshot(
+                owner_id=config.owner_id,
+                robot_id=config.robot_id,
+                source_bundle=memory_source_bundle,
+            ),
         )
     if authorized and incoming_command.command == "/daily_brief":
         calendar_result = run_google_calendar_readonly_connector(
             http_client=calendar_http_client,
         )
+        calendar_source_trace = build_calendar_context_source_trace(calendar_result=calendar_result)
         gmail_scan = run_gmail_readonly_context_scan(env={})
         cross_source_daily_brief = build_cross_source_daily_brief(
             owner_id=config.owner_id,
@@ -1137,12 +1168,31 @@ def handle_incoming_command(
             choice="dismiss",
         )
     if authorized and incoming_command.command == "/prep":
-        meeting_prep_pack = run_meeting_prep_pack(
+        calendar_result = run_google_calendar_readonly_connector(
+            http_client=calendar_http_client,
+        )
+        calendar_source_trace = build_calendar_context_source_trace(calendar_result=calendar_result)
+        context_scan = build_calendar_context_scan_record(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            calendar_result=calendar_result,
+        )
+        suggestion_scan = build_proactive_meeting_suggestion_scan(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            context_scan=context_scan,
+        )
+        memory_snapshot = build_memory_center_telegram_snapshot(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            source_bundle=memory_source_bundle,
+        )
+        meeting_prep_pack = build_meeting_prep_pack(
             owner_id=config.owner_id,
             robot_id=config.robot_id,
             suggestion_id=prep_suggestion_id or "",
-            calendar_http_client=calendar_http_client,
-            memory_source_bundle=memory_source_bundle,
+            suggestion_scan=suggestion_scan,
+            memory_snapshot=memory_snapshot,
         )
         meeting_prep_pack_v1 = build_meeting_prep_pack_v1(
             base_pack=meeting_prep_pack,
@@ -1278,6 +1328,7 @@ def handle_incoming_command(
             approved_output_export=approved_output_export,
             customer_mvp_demo_pack=customer_mvp_demo_pack,
             live_connector_readiness=live_connector_readiness,
+            calendar_source_trace=calendar_source_trace,
         )
     else:
         reply_text = render_unauthorized_reply()

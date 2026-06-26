@@ -310,7 +310,7 @@ def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
     assert '"stage_id":"161P","stage_name":"Setup Capability Status Component v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"stage_id":"162P","stage_name":"Calendar-Backed Today / Prep v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"stage_id":"163P","stage_name":"Gmail Read-Only Context Scan v0","status":"CLOSED_COMMITTED"' in roadmap_text
-    assert "182P and later remain unauthorized" in roadmap_text
+    assert "183P and later remain unauthorized" in roadmap_text
     assert '"status":"NEXT_ELIGIBLE"' not in roadmap_text
 
 
@@ -335,6 +335,10 @@ def test_no_connector_or_mcp_config_was_added_for_new_capability():
         if ("mcp" in path.lower() or "connector" in path.lower())
         and "ROADMAP_CONTINUATION_AUTHORIZATION_GATE" not in path
         and "test_roadmap_continuation_authorization_gate" not in path
+        and "LIVE_CONNECTOR_READINESS_CHECK_181P" not in path
+        and "test_live_connector_readiness_check_181p" not in path
+        and "CALENDAR_CONTEXT_BINDING_V1_182P" not in path
+        and "test_calendar_context_binding_v1_182p" not in path
     ]
 
     assert connector_or_mcp_changes == []

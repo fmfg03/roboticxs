@@ -327,7 +327,7 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "Task Inbox is your robot task inbox, not your Gmail inbox yet." in receipt.reply_text
     assert "Live connector readiness:" in receipt.reply_text
     assert "- Full check: /checkup" in receipt.reply_text
-    assert "Roadmap: 95P-181P closed, Live Connector Readiness Check active" in receipt.reply_text
+    assert "Roadmap: 95P-182P closed, Calendar Context Binding active" in receipt.reply_text
 
 
 def test_181p_checkup_command_returns_live_connector_readiness_without_external_writes():
@@ -842,6 +842,11 @@ def test_141p_today_command_returns_owner_requested_read_only_summary(monkeypatc
     assert "Suggested next action:" in receipt.reply_text
     assert "Blocked / unavailable sources:" in receipt.reply_text
     assert "Client demo prep meeting" in receipt.reply_text
+    assert "Source trace:" in receipt.reply_text
+    assert "- Calendar: connected" in receipt.reply_text
+    assert "- Calendar id: primary" in receipt.reply_text
+    assert "evt-client-demo | Client demo prep meeting" in receipt.reply_text
+    assert "- Writes: disabled" in receipt.reply_text
     assert "/brief" in receipt.reply_text
     assert "Approved visible memories: 1" in receipt.reply_text
     assert "Calendar writes: disabled" in receipt.reply_text
@@ -852,6 +857,30 @@ def test_141p_today_command_returns_owner_requested_read_only_summary(monkeypatc
     assert "Worker dispatch: disabled" in receipt.reply_text
     assert "External writes: disabled" in receipt.reply_text
     assert "Proactive outbound: disabled" in receipt.reply_text
+    assert "No external action was taken." in receipt.reply_text
+
+
+def test_182p_today_calendar_unavailable_source_trace_points_to_checkup(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.delenv("ROBOTICXS_GOOGLE_CALENDAR_ACCESS_TOKEN", raising=False)
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    calendar_client = FakeCalendarHttpClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/today"))
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+        calendar_http_client=calendar_client,
+    )
+
+    assert receipt.authorized is True
+    assert calendar_client.calls == []
+    assert "Source trace:" in receipt.reply_text
+    assert "- Calendar: not_connected" in receipt.reply_text
+    assert "- Reason: missing_access_token" in receipt.reply_text
+    assert "- Next: run /checkup" in receipt.reply_text
+    assert "- Writes: disabled" in receipt.reply_text
     assert "No external action was taken." in receipt.reply_text
 
 
@@ -878,6 +907,9 @@ def test_174p_daily_brief_command_returns_cross_source_read_only_summary(monkeyp
     assert "Daily Brief" in receipt.reply_text
     assert "Stage: 174P" in receipt.reply_text
     assert "Client demo prep meeting" in receipt.reply_text
+    assert "Source trace:" in receipt.reply_text
+    assert "- Calendar: connected" in receipt.reply_text
+    assert "evt-client-demo | Client demo prep meeting" in receipt.reply_text
     assert "Gmail: unavailable (missing_access_token)." in receipt.reply_text
     assert "Francisco prefers compact daily briefings." in receipt.reply_text
     assert "Calendar writes: disabled" in receipt.reply_text
@@ -1092,6 +1124,9 @@ def test_143p_prep_command_returns_owner_requested_read_only_meeting_prep_pack(m
     assert "Gmail: unavailable (missing_access_token)." in receipt.reply_text
     assert "Next steps:" in receipt.reply_text
     assert "Client demo prep meeting" in receipt.reply_text
+    assert "Source trace:" in receipt.reply_text
+    assert "- Calendar: connected" in receipt.reply_text
+    assert "evt-client-demo | Client demo prep meeting" in receipt.reply_text
     assert "Francisco prefers compact daily briefings." in receipt.reply_text
     assert "Memory candidates:" in receipt.reply_text
     assert "pending owner review" in receipt.reply_text
@@ -1354,4 +1389,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "182P and later remain unauthorized" in roadmap
+    assert "183P and later remain unauthorized" in roadmap
