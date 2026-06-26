@@ -76,7 +76,7 @@ def test_150p_start_shell_explains_product_in_30_seconds_without_secret_leaks():
     assert "Brief: /brief, /suggest_brief" in reply
     assert "Prep: /prep <suggestion_id>" in reply
     assert "Tasks: /inbox, /inbox_done <item_id>, /inbox_dismiss <item_id>" in reply
-    assert "Memory: /memory, /memory_pending, /memory_limits" in reply
+    assert "Memory: /memory, /memory_review, /memory_pending, /memory_limits" in reply
     assert "Setup Check: /status" in reply
     assert "secret-bot-token-150p" not in reply
     assert "Doctor" not in reply
@@ -150,4 +150,4 @@ def test_150p_roadmap_records_product_shell_and_blocks_151p_plus():
 
     assert '"stage_id":"150P","stage_name":"Telegram Product Shell v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P behavior beyond customer-facing Meeting Prep Pack product flow" in roadmap
-    assert "173P and later remain unauthorized" in roadmap
+    assert "174P and later remain unauthorized" in roadmap

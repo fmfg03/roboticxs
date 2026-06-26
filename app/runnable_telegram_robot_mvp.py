@@ -47,6 +47,14 @@ from app.meeting_prep_pack import (
     render_meeting_prep_pack,
     run_meeting_prep_pack,
 )
+from app.memory_approval_telegram_flow import (
+    MemoryApprovalTelegramReceipt,
+    MemoryReviewInbox,
+    build_memory_approval_telegram_receipt,
+    build_memory_review_inbox,
+    render_memory_approval_telegram_receipt,
+    render_memory_review_inbox,
+)
 from app.open_loops_command import (
     OpenLoopsCommandRecord,
     render_open_loops_command,
@@ -127,8 +135,10 @@ SUPPORTED_COMMANDS = (
     "/suggestion_memory",
     "/suggestion_draft",
     "/suggestion_followup",
+    "/memory_review",
     "/memory_approve",
     "/memory_reject",
+    "/memory_edit",
     "/memory",
     "/memory_limits",
     "/memory_pending",
@@ -140,7 +150,7 @@ PRODUCT_MENU_LINES = (
     "Prep: /prep <suggestion_id>",
     "Suggestions: /suggestions, /suggestion_dismiss <suggestion_id>, /suggestion_snooze <suggestion_id>, /suggestion_memory <suggestion_id>, /suggestion_draft <suggestion_id>, /suggestion_followup <suggestion_id>",
     "Tasks: /inbox, /inbox_done <item_id>, /inbox_dismiss <item_id>",
-    "Memory: /memory, /memory_pending, /memory_limits, /memory_approve <candidate_id>, /memory_reject <candidate_id>",
+    "Memory: /memory, /memory_review, /memory_pending, /memory_limits, /memory_approve <candidate_id>, /memory_reject <candidate_id>, /memory_edit <candidate_id> <text>",
     "Documents: send a file for draft-only intake",
     "Setup Check: /status",
 )
@@ -420,6 +430,15 @@ def _suggestion_decision_choice_from_command(command: str) -> str:
     }[command]
 
 
+def _split_memory_edit_argument(argument: str) -> tuple[str, str]:
+    parts = argument.strip().split(maxsplit=1)
+    if not parts:
+        return "", ""
+    if len(parts) == 1:
+        return parts[0], ""
+    return parts[0], parts[1].strip()
+
+
 def is_owner_authorized(
     *,
     telegram_user_id: int,
@@ -495,7 +514,7 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "",
             *render_setup_capability_status_sections(),
             "",
-            "Roadmap: 95P-172P closed, Suggestion Decision Flow active",
+            "Roadmap: 95P-173P closed, Memory Approval Telegram Flow active",
         ]
     )
 
@@ -713,6 +732,8 @@ def render_command_reply(
     meeting_prep_pack: MeetingPrepPackRecord | None = None,
     brief_memory_proposal: BriefMemoryProposalRecord | None = None,
     brief_memory_decision: BriefMemoryApprovalDecisionRecord | None = None,
+    memory_review_inbox: MemoryReviewInbox | None = None,
+    memory_approval_decision: MemoryApprovalTelegramReceipt | None = None,
     document_intake: TelegramDocumentIntakeStubRecord | None = None,
     suggestion_inbox: SuggestionInbox | None = None,
     suggestion_decision: SuggestionDecisionReceipt | None = None,
@@ -776,10 +797,18 @@ def render_command_reply(
         if suggestion_decision is None:
             raise TelegramRobotConfigError("rejected_missing_suggestion_decision")
         return render_suggestion_decision_receipt(suggestion_decision)
+    if command == "/memory_review":
+        if memory_review_inbox is None:
+            raise TelegramRobotConfigError("rejected_missing_memory_review_inbox")
+        return render_memory_review_inbox(memory_review_inbox)
     if command in {"/memory_approve", "/memory_reject"}:
-        if brief_memory_decision is None:
-            raise TelegramRobotConfigError("rejected_missing_brief_memory_decision")
-        return render_brief_memory_approval_decision(brief_memory_decision)
+        if memory_approval_decision is None:
+            raise TelegramRobotConfigError("rejected_missing_memory_approval_decision")
+        return render_memory_approval_telegram_receipt(memory_approval_decision)
+    if command == "/memory_edit":
+        if memory_approval_decision is None:
+            raise TelegramRobotConfigError("rejected_missing_memory_approval_decision")
+        return render_memory_approval_telegram_receipt(memory_approval_decision)
     if command == "/memory":
         return render_memory_command_reply(config, source_bundle=memory_source_bundle)
     if command == "/memory_limits":
@@ -860,6 +889,10 @@ def handle_incoming_command(
         incoming_command.raw_text,
         command="/memory_reject",
     )
+    memory_edit_argument = extract_telegram_command_argument(
+        incoming_command.raw_text,
+        command="/memory_edit",
+    )
     inbox_done_item_id = extract_telegram_command_argument(
         incoming_command.raw_text,
         command="/inbox_done",
@@ -882,6 +915,8 @@ def handle_incoming_command(
     meeting_prep_pack = None
     brief_memory_proposal = None
     brief_memory_decision = None
+    memory_review_inbox = None
+    memory_approval_decision = None
     document_intake = None
     suggestion_inbox = None
     suggestion_decision = None
@@ -946,19 +981,39 @@ def handle_incoming_command(
             memory_source_bundle=memory_source_bundle,
         )
         brief_memory_proposal = build_brief_memory_proposal_record(prep_pack=meeting_prep_pack)
+    if authorized and incoming_command.command in {"/memory_review", "/memory_approve", "/memory_reject", "/memory_edit"}:
+        memory_review_inbox = build_memory_review_inbox(
+            snapshot=build_memory_center_telegram_snapshot(
+                owner_id=config.owner_id,
+                robot_id=config.robot_id,
+                source_bundle=memory_source_bundle,
+            )
+        )
     if authorized and incoming_command.command == "/memory_approve":
-        brief_memory_decision = build_brief_memory_approval_decision(
+        memory_approval_decision = build_memory_approval_telegram_receipt(
             owner_id=config.owner_id,
             robot_id=config.robot_id,
             candidate_id=memory_approve_candidate_id or "",
             choice="approve",
+            inbox=memory_review_inbox,
         )
     if authorized and incoming_command.command == "/memory_reject":
-        brief_memory_decision = build_brief_memory_approval_decision(
+        memory_approval_decision = build_memory_approval_telegram_receipt(
             owner_id=config.owner_id,
             robot_id=config.robot_id,
             candidate_id=memory_reject_candidate_id or "",
             choice="reject",
+            inbox=memory_review_inbox,
+        )
+    if authorized and incoming_command.command == "/memory_edit":
+        edit_candidate_id, edit_text = _split_memory_edit_argument(memory_edit_argument or "")
+        memory_approval_decision = build_memory_approval_telegram_receipt(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            candidate_id=edit_candidate_id,
+            choice="edit",
+            inbox=memory_review_inbox,
+            edited_memory_text=edit_text,
         )
     if authorized and incoming_command.command == "/document":
         if incoming_command.document is None:
@@ -1008,6 +1063,8 @@ def handle_incoming_command(
             meeting_prep_pack=meeting_prep_pack,
             brief_memory_proposal=brief_memory_proposal,
             brief_memory_decision=brief_memory_decision,
+            memory_review_inbox=memory_review_inbox,
+            memory_approval_decision=memory_approval_decision,
             document_intake=document_intake,
             suggestion_inbox=suggestion_inbox,
             suggestion_decision=suggestion_decision,
@@ -1118,12 +1175,12 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             f"Dev mode: {'enabled' if validated.dev_mode else 'disabled'}",
             f"Dry run: {'enabled' if validated.dry_run else 'disabled'}",
             "Product menu: Today, Brief, Prep, Tasks, Memory, Documents, Setup Check",
-            "Available commands: /start, /help, /status, /miss, /today, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /memory_approve, /memory_reject, /memory, /memory_limits, /memory_pending, document upload",
+            "Available commands: /start, /help, /status, /miss, /today, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory, /memory_limits, /memory_pending, document upload",
             "External connectors: Google Calendar read-only optional",
             "Calendar writes: disabled",
             "LLM/model calls: disabled",
             "Tools: disabled",
-            "Memory Center commands: /memory, /memory_limits, /memory_pending",
+            "Memory Center commands: /memory, /memory_review, /memory_limits, /memory_pending",
             "Memory Center mutation: disabled",
             "Today command: /today owner-requested read-only summary only",
             "Open Loops command: /loops owner-requested read-only unresolved loops only",
@@ -1131,7 +1188,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "Inbox Item Decisions: /inbox_done and /inbox_dismiss create local decision receipts only",
             "Meeting Prep Pack: /prep <suggestion_id> owner-requested read-only prep only",
             "Brief Memory Proposals: shown in /prep as pending owner review only",
-            "Memory Review Decisions: /memory_approve and /memory_reject create local decision receipts only",
+            "Memory Review Decisions: /memory_approve, /memory_reject, and /memory_edit create local decision receipts only",
             "Document Intake: Telegram document metadata receives draft-only local replies only",
             "Proactive meeting suggestions: /suggest_brief owner-requested replies only",
             "Suggestion Inbox: /suggestions owner-requested local pending suggestions only",

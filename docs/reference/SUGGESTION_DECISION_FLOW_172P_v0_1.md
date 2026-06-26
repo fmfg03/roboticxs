@@ -16,4 +16,4 @@ Every rendered receipt must say: "No action has been taken."
 
 172P does not authorize drafts, memory writes, scheduler snoozes, follow-up messages, callbacks, live Telegram sends beyond owner-requested command replies, execution, connector activation, Memory Center writes, worker dispatch, external writes, provider calls, deployment, push, merge, or PR creation.
 
-173P and later remain unauthorized.
+174P and later remain unauthorized.
