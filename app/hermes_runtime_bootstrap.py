@@ -9,9 +9,9 @@ import sys
 
 
 HERMES_RUNTIME_BOOTSTRAP_STAGE = "129P"
-ROADMAP_CLOSED_THROUGH = "176P"
-NEXT_STAGE = "177P"
-NEXT_STAGE_LABEL = "177P+ remains unauthorized."
+ROADMAP_CLOSED_THROUGH = "177P"
+NEXT_STAGE = "178P"
+NEXT_STAGE_LABEL = "178P+ remains unauthorized."
 DEFAULT_RUNTIME_MODE = "local-dev"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
@@ -54,6 +54,7 @@ FEATURE_MODULES = (
     ("proactive_suggestion_loop", "app.proactive_suggestion_loop", False),
     ("suggestion_inbox", "app.suggestion_inbox", False),
     ("suggestion_decision_flow", "app.suggestion_decision_flow", False),
+    ("action_draft_queue", "app.action_draft_queue", False),
     ("memory_approval_telegram_flow", "app.memory_approval_telegram_flow", False),
     ("cross_source_daily_brief", "app.cross_source_daily_brief", False),
     ("demo_result_delivery_surface", "app.demo_result_delivery_surface", False),
@@ -264,7 +265,7 @@ def render_hermes_runtime_bootstrap_report(
             f"Owner: {status.owner_id}",
             f"Owner Display Name: {status.owner_display_name}",
             f"Mode: {status.runtime_mode}",
-            f"Roadmap: 95P-176P CLOSED_COMMITTED",
+            f"Roadmap: 95P-177P CLOSED_COMMITTED",
             f"Roadmap Closed Through: {status.roadmap_closed_through}",
             f"Telegram: {'enabled' if status.telegram_enabled else 'disabled'}",
             f"Connectors: {'enabled' if status.connectors_enabled else 'disabled'}",
@@ -326,6 +327,7 @@ def render_hermes_runtime_bootstrap_report(
                 "Proactive Suggestion Loop: available for local suggestions only",
                 "Suggestion Inbox: available for owner-requested local suggestion review only",
                 "Suggestion Decision Flow: available for owner-requested local decision receipts only",
+                "Action Draft Queue: available for owner-requested local draft approval candidates only",
                 "Memory Approval Telegram Flow: available for owner-requested local memory approval receipts only",
                 "Cross-Source Daily Brief: available for owner-requested read-only daily brief only",
                 "Personal Admin Inbox: available for owner-requested read-only inbox visibility only",

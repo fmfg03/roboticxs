@@ -116,4 +116,4 @@ def test_152p_reference_and_roadmap_close_product_flow_without_authority_expansi
     assert "does not add new commands" in reference
     assert "mutate Memory Center" in reference
     assert '"stage_id":"152P","stage_name":"Today / Brief Product Flow v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "177P and later remain unauthorized" in roadmap
+    assert "178P and later remain unauthorized" in roadmap

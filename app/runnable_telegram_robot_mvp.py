@@ -9,6 +9,11 @@ from typing import Protocol
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+from app.action_draft_queue import (
+    ActionDraftQueue,
+    build_action_draft_queue,
+    render_action_draft_queue,
+)
 from app.brief_memory_proposal import (
     BriefMemoryProposalRecord,
     build_brief_memory_proposal_record,
@@ -153,6 +158,7 @@ SUPPORTED_COMMANDS = (
     "/suggestion_memory",
     "/suggestion_draft",
     "/suggestion_followup",
+    "/drafts",
     "/memory_review",
     "/memory_approve",
     "/memory_reject",
@@ -167,6 +173,7 @@ PRODUCT_MENU_LINES = (
     "Brief: /brief, /suggest_brief, /gmail_thread <thread_id>",
     "Prep: /prep <suggestion_id>",
     "Suggestions: /suggestions, /suggestion_dismiss <suggestion_id>, /suggestion_snooze <suggestion_id>, /suggestion_memory <suggestion_id>, /suggestion_draft <suggestion_id>, /suggestion_followup <suggestion_id>",
+    "Drafts: /drafts",
     "Tasks: /inbox, /inbox_done <item_id>, /inbox_dismiss <item_id>",
     "Memory: /memory, /memory_review, /memory_pending, /memory_limits, /memory_approve <candidate_id>, /memory_reject <candidate_id>, /memory_edit <candidate_id> <text>",
     "Documents: send a file for draft-only intake",
@@ -532,7 +539,7 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "",
             *render_setup_capability_status_sections(),
             "",
-            "Roadmap: 95P-176P closed, Gmail Thread Drilldown active",
+            "Roadmap: 95P-177P closed, Action Draft Queue active",
         ]
     )
 
@@ -756,6 +763,7 @@ def render_command_reply(
     document_intake: TelegramDocumentIntakeStubRecord | None = None,
     suggestion_inbox: SuggestionInbox | None = None,
     suggestion_decision: SuggestionDecisionReceipt | None = None,
+    action_draft_queue: ActionDraftQueue | None = None,
     cross_source_daily_brief: CrossSourceDailyBriefRecord | None = None,
     gmail_thread_drilldown: GmailThreadDrilldownRecord | None = None,
 ) -> str:
@@ -830,6 +838,10 @@ def render_command_reply(
         if suggestion_decision is None:
             raise TelegramRobotConfigError("rejected_missing_suggestion_decision")
         return render_suggestion_decision_receipt(suggestion_decision)
+    if command == "/drafts":
+        if action_draft_queue is None:
+            raise TelegramRobotConfigError("rejected_missing_action_draft_queue")
+        return render_action_draft_queue(action_draft_queue)
     if command == "/memory_review":
         if memory_review_inbox is None:
             raise TelegramRobotConfigError("rejected_missing_memory_review_inbox")
@@ -960,6 +972,7 @@ def handle_incoming_command(
     document_intake = None
     suggestion_inbox = None
     suggestion_decision = None
+    action_draft_queue = None
     if authorized and incoming_command.command == "/brief" and brief_suggestion_id:
         suggested_meeting_brief = run_suggested_meeting_brief_request(
             owner_id=config.owner_id,
@@ -1112,6 +1125,12 @@ def handle_incoming_command(
             choice=_suggestion_decision_choice_from_command(incoming_command.command),
             inbox=suggestion_inbox,
         )
+    if authorized and incoming_command.command == "/drafts":
+        action_draft_queue = build_action_draft_queue(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            decisions=(),
+        )
     if authorized:
         reply_text = render_command_reply(
             incoming_command.command,
@@ -1135,6 +1154,7 @@ def handle_incoming_command(
             document_intake=document_intake,
             suggestion_inbox=suggestion_inbox,
             suggestion_decision=suggestion_decision,
+            action_draft_queue=action_draft_queue,
         )
     else:
         reply_text = render_unauthorized_reply()
@@ -1241,8 +1261,8 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             f"Owner gate: enabled ({len(validated.owner_ids)} allowed Telegram user id(s))",
             f"Dev mode: {'enabled' if validated.dev_mode else 'disabled'}",
             f"Dry run: {'enabled' if validated.dry_run else 'disabled'}",
-            "Product menu: Today, Brief, Prep, Tasks, Memory, Documents, Setup Check",
-            "Available commands: /start, /help, /status, /miss, /today, /daily_brief, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory, /memory_limits, /memory_pending, document upload",
+            "Product menu: Today, Brief, Prep, Drafts, Tasks, Memory, Documents, Setup Check",
+            "Available commands: /start, /help, /status, /miss, /today, /daily_brief, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /drafts, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory, /memory_limits, /memory_pending, document upload",
             "External connectors: Google Calendar read-only optional",
             "Calendar writes: disabled",
             "LLM/model calls: disabled",
@@ -1263,6 +1283,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "Proactive meeting suggestions: /suggest_brief owner-requested replies only",
             "Suggestion Inbox: /suggestions owner-requested local pending suggestions only",
             "Suggestion Decisions: /suggestion_* owner-requested local receipts only",
+            "Action Draft Queue: /drafts owner-requested local approval candidates only",
             "Suggested meeting brief requests: /brief <suggestion_id> owner-requested replies only",
             "Proactive outbound: disabled",
         ]
