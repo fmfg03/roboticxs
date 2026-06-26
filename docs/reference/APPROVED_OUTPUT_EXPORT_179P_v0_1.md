@@ -32,7 +32,7 @@ Expose approved draft output as a local export payload after a 178P approval rec
 - Scheduler or proactive sends.
 - External writes beyond approved Telegram replies.
 - Deployment, push, merge, or PR creation.
-- 180P behavior.
+- 180P behavior beyond Customer MVP Demo Pack v1.
 
 Every reply must say: "No external action was taken."
 
@@ -50,4 +50,4 @@ Every reply must say: "No external action was taken."
 
 179P does not send email, create Gmail drafts, write files, schedule events, persist tasks, mutate memory, or execute actions. It creates local export payloads only.
 
-180P and later remain unauthorized.
+181P and later remain unauthorized.

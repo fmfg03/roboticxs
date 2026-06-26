@@ -285,6 +285,7 @@ def test_130p_help_from_authorized_owner_produces_deterministic_command_list():
     assert "/miss" in receipt.reply_text
     assert "/today" in receipt.reply_text
     assert "/daily_brief" in receipt.reply_text
+    assert "/demo" in receipt.reply_text
     assert "Roboticxs Menu" in receipt.reply_text
     assert "/brief" in receipt.reply_text
     assert "/suggest_brief" in receipt.reply_text
@@ -322,7 +323,7 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "Automatic Memory Center mutation: disabled" in receipt.reply_text
     assert "Scheduler/proactive outbound: disabled" in receipt.reply_text
     assert "Task Inbox is your robot task inbox, not your Gmail inbox yet." in receipt.reply_text
-    assert "Roadmap: 95P-179P closed, Approved Output Export active" in receipt.reply_text
+    assert "Roadmap: 95P-180P closed, Customer MVP Demo Pack active" in receipt.reply_text
 
 
 def test_171p_suggestions_command_returns_owner_requested_local_inbox():
@@ -442,6 +443,30 @@ def test_179p_export_command_returns_local_payload_receipt_without_external_writ
     assert "Local export payload created: false" in receipt.reply_text
     assert "Gmail draft creation: disabled" in receipt.reply_text
     assert "Local file write: disabled" in receipt.reply_text
+    assert "External writes: disabled" in receipt.reply_text
+    assert "No external action was taken." in receipt.reply_text
+
+
+def test_180p_demo_command_returns_customer_mvp_demo_pack_without_external_writes():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/demo"))
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+    )
+
+    assert receipt.authorized is True
+    assert "Customer MVP Demo Pack v1" in receipt.reply_text
+    assert "Stage: 180P" in receipt.reply_text
+    assert "/today" in receipt.reply_text
+    assert "/prep" in receipt.reply_text
+    assert "/suggestion_draft" in receipt.reply_text
+    assert "/draft_approve" in receipt.reply_text
+    assert "/export_text" in receipt.reply_text
+    assert "Telegram API called: false" in receipt.reply_text
     assert "External writes: disabled" in receipt.reply_text
     assert "No external action was taken." in receipt.reply_text
 
@@ -636,6 +661,7 @@ def test_130p_main_uses_injected_client_for_bounded_run(
     assert "Roboticxs Telegram Robot: online" in captured.out
     assert "Available commands: /start, /help, /status" in captured.out
     assert "/miss" in captured.out
+    assert "/demo" in captured.out
     assert "/brief" in captured.out
     assert "/suggest_brief" in captured.out
     assert "/suggestions" in captured.out
@@ -652,7 +678,7 @@ def test_130p_startup_report_is_deterministic():
     assert "Stage: 150P" in report
     assert "Owner gate: enabled" in report
     assert "Product menu: Today, Brief, Prep, Drafts, Tasks, Memory, Documents, Setup Check" in report
-    assert "Available commands: /start, /help, /status, /miss, /today, /daily_brief, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory, /memory_limits, /memory_pending, document upload" in report
+    assert "Available commands: /start, /help, /status, /miss, /today, /daily_brief, /demo, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory, /memory_limits, /memory_pending, document upload" in report
     assert "External connectors: Google Calendar read-only optional" in report
     assert "Calendar writes: disabled" in report
     assert "LLM/model calls: disabled" in report
@@ -661,6 +687,7 @@ def test_130p_startup_report_is_deterministic():
     assert "Memory Center mutation: disabled" in report
     assert "Today command: /today owner-requested read-only summary only" in report
     assert "Cross-Source Daily Brief: /daily_brief owner-requested read-only brief only" in report
+    assert "Customer MVP Demo Pack v1: /demo owner-requested local demo only" in report
     assert "Gmail Thread Drilldown: /gmail_thread <thread_id> owner-requested read-only metadata only" in report
     assert "Meeting Prep Pack v1: /prep includes read-only email/document context when locally available" in report
     assert "Open Loops command: /loops owner-requested read-only unresolved loops only" in report
@@ -1279,4 +1306,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "180P and later remain unauthorized" in roadmap
+    assert "181P and later remain unauthorized" in roadmap

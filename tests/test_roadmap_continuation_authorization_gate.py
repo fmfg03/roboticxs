@@ -310,7 +310,7 @@ def test_roadmap_preserves_77p_gate_and_records_later_authorized_stages():
     assert '"stage_id":"161P","stage_name":"Setup Capability Status Component v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"stage_id":"162P","stage_name":"Calendar-Backed Today / Prep v0","status":"CLOSED_COMMITTED"' in roadmap_text
     assert '"stage_id":"163P","stage_name":"Gmail Read-Only Context Scan v0","status":"CLOSED_COMMITTED"' in roadmap_text
-    assert "180P and later remain unauthorized" in roadmap_text
+    assert "181P and later remain unauthorized" in roadmap_text
     assert '"status":"NEXT_ELIGIBLE"' not in roadmap_text
 
 

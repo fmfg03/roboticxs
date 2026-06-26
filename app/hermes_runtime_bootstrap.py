@@ -9,9 +9,9 @@ import sys
 
 
 HERMES_RUNTIME_BOOTSTRAP_STAGE = "129P"
-ROADMAP_CLOSED_THROUGH = "179P"
-NEXT_STAGE = "180P"
-NEXT_STAGE_LABEL = "180P+ remains unauthorized."
+ROADMAP_CLOSED_THROUGH = "180P"
+NEXT_STAGE = "181P"
+NEXT_STAGE_LABEL = "181P+ remains unauthorized."
 DEFAULT_RUNTIME_MODE = "local-dev"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
@@ -41,6 +41,7 @@ FEATURE_MODULES = (
     ("telegram_demo_loop", "app.telegram_demo_loop", False),
     ("telegram_document_intake_stub", "app.telegram_document_intake_stub", False),
     ("customer_mvp_baseline", "app.customer_mvp_baseline", False),
+    ("customer_mvp_demo_pack_v1", "app.customer_mvp_demo_pack_v1", False),
     ("setup_capability_status_component", "app.setup_capability_status_component", False),
     ("calendar_backed_today_prep", "app.calendar_backed_today_prep", False),
     ("gmail_readonly_context_scan", "app.gmail_readonly_context_scan", False),
@@ -267,7 +268,7 @@ def render_hermes_runtime_bootstrap_report(
             f"Owner: {status.owner_id}",
             f"Owner Display Name: {status.owner_display_name}",
             f"Mode: {status.runtime_mode}",
-            f"Roadmap: 95P-179P CLOSED_COMMITTED",
+            f"Roadmap: 95P-180P CLOSED_COMMITTED",
             f"Roadmap Closed Through: {status.roadmap_closed_through}",
             f"Telegram: {'enabled' if status.telegram_enabled else 'disabled'}",
             f"Connectors: {'enabled' if status.connectors_enabled else 'disabled'}",
@@ -316,6 +317,7 @@ def render_hermes_runtime_bootstrap_report(
                 "Telegram Document Intake Stub: available for draft-only document metadata replies only",
                 "Telegram Product Copy Consolidation: available for shared customer-facing copy only",
                 "Customer MVP Baseline: available for local customer MVP verification only",
+                "Customer MVP Demo Pack v1: available for local end-to-end customer demo only",
                 "Setup Capability Status Component: available for shared customer-facing setup copy only",
                 "Calendar-Backed Today / Prep: available for read-only Calendar product context only",
                 "Gmail Read-Only Context Scan: available for read-only Gmail context signals only",

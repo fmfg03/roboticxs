@@ -154,6 +154,7 @@ SUPPORTED_COMMANDS = (
     "/miss",
     "/today",
     "/daily_brief",
+    "/demo",
     "/gmail_thread",
     "/loops",
     "/inbox",
@@ -186,7 +187,7 @@ SUPPORTED_COMMANDS = (
     "/document",
 )
 PRODUCT_MENU_LINES = (
-    "Today: /today, /miss, /daily_brief",
+    "Today: /today, /miss, /daily_brief, /demo",
     "Brief: /brief, /suggest_brief, /gmail_thread <thread_id>",
     "Prep: /prep <suggestion_id>",
     "Suggestions: /suggestions, /suggestion_dismiss <suggestion_id>, /suggestion_snooze <suggestion_id>, /suggestion_memory <suggestion_id>, /suggestion_draft <suggestion_id>, /suggestion_followup <suggestion_id>",
@@ -573,7 +574,7 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "",
             *render_setup_capability_status_sections(),
             "",
-            "Roadmap: 95P-179P closed, Approved Output Export active",
+            "Roadmap: 95P-180P closed, Customer MVP Demo Pack active",
         ]
     )
 
@@ -800,6 +801,7 @@ def render_command_reply(
     action_draft_queue: ActionDraftQueue | None = None,
     user_confirmation: UserConfirmationReceipt | None = None,
     approved_output_export: ApprovedOutputExportRecord | None = None,
+    customer_mvp_demo_pack: object | None = None,
     cross_source_daily_brief: CrossSourceDailyBriefRecord | None = None,
     gmail_thread_drilldown: GmailThreadDrilldownRecord | None = None,
 ) -> str:
@@ -819,6 +821,12 @@ def render_command_reply(
         if cross_source_daily_brief is None:
             raise TelegramRobotConfigError("rejected_missing_cross_source_daily_brief")
         return render_cross_source_daily_brief(cross_source_daily_brief)
+    if command == "/demo":
+        if customer_mvp_demo_pack is None:
+            raise TelegramRobotConfigError("rejected_missing_customer_mvp_demo_pack")
+        from app.customer_mvp_demo_pack_v1 import render_customer_mvp_demo_pack_v1
+
+        return render_customer_mvp_demo_pack_v1(customer_mvp_demo_pack)
     if command == "/gmail_thread":
         if gmail_thread_drilldown is None:
             raise TelegramRobotConfigError("rejected_missing_gmail_thread_drilldown")
@@ -1027,6 +1035,7 @@ def handle_incoming_command(
     action_draft_queue = None
     user_confirmation = None
     approved_output_export = None
+    customer_mvp_demo_pack = None
     if authorized and incoming_command.command == "/brief" and brief_suggestion_id:
         suggested_meeting_brief = run_suggested_meeting_brief_request(
             owner_id=config.owner_id,
@@ -1067,6 +1076,13 @@ def handle_incoming_command(
                 source_bundle=memory_source_bundle,
             ),
             document_reviews=(),
+        )
+    if authorized and incoming_command.command == "/demo":
+        from app.customer_mvp_demo_pack_v1 import build_customer_mvp_demo_pack_v1
+
+        customer_mvp_demo_pack = build_customer_mvp_demo_pack_v1(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
         )
     if authorized and incoming_command.command == "/gmail_thread":
         gmail_thread_drilldown = run_gmail_thread_drilldown(thread_id=gmail_thread_id or "")
@@ -1238,6 +1254,7 @@ def handle_incoming_command(
             action_draft_queue=action_draft_queue,
             user_confirmation=user_confirmation,
             approved_output_export=approved_output_export,
+            customer_mvp_demo_pack=customer_mvp_demo_pack,
         )
     else:
         reply_text = render_unauthorized_reply()
@@ -1345,7 +1362,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             f"Dev mode: {'enabled' if validated.dev_mode else 'disabled'}",
             f"Dry run: {'enabled' if validated.dry_run else 'disabled'}",
             "Product menu: Today, Brief, Prep, Drafts, Tasks, Memory, Documents, Setup Check",
-            "Available commands: /start, /help, /status, /miss, /today, /daily_brief, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory, /memory_limits, /memory_pending, document upload",
+            "Available commands: /start, /help, /status, /miss, /today, /daily_brief, /demo, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory, /memory_limits, /memory_pending, document upload",
             "External connectors: Google Calendar read-only optional",
             "Calendar writes: disabled",
             "LLM/model calls: disabled",
@@ -1354,6 +1371,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "Memory Center mutation: disabled",
             "Today command: /today owner-requested read-only summary only",
             "Cross-Source Daily Brief: /daily_brief owner-requested read-only brief only",
+            "Customer MVP Demo Pack v1: /demo owner-requested local demo only",
             "Gmail Thread Drilldown: /gmail_thread <thread_id> owner-requested read-only metadata only",
             "Open Loops command: /loops owner-requested read-only unresolved loops only",
             "Personal Admin Inbox: /inbox owner-requested read-only pending items only",

@@ -50,4 +50,4 @@ Every reply must say: "No external action was taken."
 
 178P does not export text, create Gmail drafts, send emails, schedule events, persist tasks, update memory, or alter draft queue state. It records owner confirmation intent only.
 
-180P and later remain unauthorized.
+181P and later remain unauthorized.
