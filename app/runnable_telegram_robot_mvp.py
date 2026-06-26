@@ -73,6 +73,11 @@ from app.inbox_item_decision import (
     build_inbox_item_decision,
     render_inbox_item_decision,
 )
+from app.document_review_pack_v1 import (
+    DocumentReviewPackV1Record,
+    build_document_review_pack_v1_from_intake,
+    render_document_review_pack_v1,
+)
 from app.live_connector_readiness_check import (
     LiveConnectorReadinessReport,
     build_live_connector_readiness_report,
@@ -609,7 +614,7 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "",
             *render_compact_live_connector_readiness_block(readiness),
             "",
-            "Roadmap: 95P-185P closed, Approved Gmail Draft Creation active",
+            "Roadmap: 95P-186P closed, Document Review Pack v1 active",
         ]
     )
 
@@ -831,6 +836,7 @@ def render_command_reply(
     memory_review_inbox: MemoryReviewInbox | None = None,
     memory_approval_decision: MemoryApprovalTelegramReceipt | None = None,
     document_intake: TelegramDocumentIntakeStubRecord | None = None,
+    document_review_pack_v1: DocumentReviewPackV1Record | None = None,
     suggestion_inbox: SuggestionInbox | None = None,
     suggestion_decision: SuggestionDecisionReceipt | None = None,
     action_draft_queue: ActionDraftQueue | None = None,
@@ -966,6 +972,8 @@ def render_command_reply(
     if command == "/memory_pending":
         return render_memory_pending_reply(config, source_bundle=memory_source_bundle)
     if command == "/document":
+        if document_review_pack_v1 is not None:
+            return render_document_review_pack_v1(document_review_pack_v1)
         if document_intake is None:
             raise TelegramRobotConfigError("rejected_missing_document_intake")
         return render_telegram_document_intake_stub(document_intake)
@@ -1021,6 +1029,7 @@ def handle_incoming_command(
     gmail_draft_http_client: GmailDraftHttpClientProtocol | None = None,
     memory_source_bundle: TelegramMemoryCenterSourceBundle | None = None,
     confirmation_receipts: tuple[UserConfirmationReceipt, ...] = (),
+    document_extracted_text_by_file_id: dict[str, str] | None = None,
 ) -> TelegramSendReceipt:
     authorized = is_owner_authorized(
         telegram_user_id=incoming_command.telegram_user_id,
@@ -1086,6 +1095,7 @@ def handle_incoming_command(
     memory_review_inbox = None
     memory_approval_decision = None
     document_intake = None
+    document_review_pack_v1 = None
     suggestion_inbox = None
     suggestion_decision = None
     action_draft_queue = None
@@ -1294,6 +1304,12 @@ def handle_incoming_command(
             robot_id=config.robot_id,
             document=incoming_command.document,
         )
+        extracted_text = (document_extracted_text_by_file_id or {}).get(incoming_command.document.file_id)
+        if extracted_text is not None:
+            document_review_pack_v1 = build_document_review_pack_v1_from_intake(
+                intake_record=document_intake,
+                extracted_text=extracted_text,
+            )
     if authorized and incoming_command.command == "/suggestions":
         suggestion_inbox = build_suggestion_inbox(
             owner_id=config.owner_id,
@@ -1381,6 +1397,7 @@ def handle_incoming_command(
             memory_review_inbox=memory_review_inbox,
             memory_approval_decision=memory_approval_decision,
             document_intake=document_intake,
+            document_review_pack_v1=document_review_pack_v1,
             suggestion_inbox=suggestion_inbox,
             suggestion_decision=suggestion_decision,
             action_draft_queue=action_draft_queue,

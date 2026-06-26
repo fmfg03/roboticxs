@@ -216,6 +216,33 @@ def build_command_update(
     }
 
 
+def build_document_update(
+    *,
+    update_id: int = 9101,
+    chat_id: int = 4004,
+    telegram_user_id: int = 111111111,
+    message_id: int = 124,
+    file_id: str = "telegram-file-186p",
+) -> dict:
+    update = build_command_update(
+        update_id=update_id,
+        chat_id=chat_id,
+        telegram_user_id=telegram_user_id,
+        message_id=message_id,
+        text="",
+    )
+    message = update["message"]
+    message.pop("text", None)
+    message["document"] = {
+        "file_id": file_id,
+        "file_unique_id": "unique-file-186p",
+        "file_name": "vendor-agreement.pdf",
+        "mime_type": "application/pdf",
+        "file_size": 12055,
+    }
+    return update
+
+
 def build_valid_config() -> TelegramRobotConfig:
     return validate_telegram_robot_config(
         load_telegram_robot_config_from_env(
@@ -455,7 +482,7 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "Task Inbox is your robot task inbox, not your Gmail inbox yet." in receipt.reply_text
     assert "Live connector readiness:" in receipt.reply_text
     assert "- Full check: /checkup" in receipt.reply_text
-    assert "Roadmap: 95P-185P closed, Approved Gmail Draft Creation active" in receipt.reply_text
+    assert "Roadmap: 95P-186P closed, Document Review Pack v1 active" in receipt.reply_text
 
 
 def test_181p_checkup_command_returns_live_connector_readiness_without_external_writes():
@@ -650,6 +677,40 @@ def test_185p_export_email_creates_approved_gmail_draft_without_sending(monkeypa
     assert "No email was sent." in receipt.reply_text
     for forbidden in ("gmail-token-telegram-185p", "Authorization", "Bearer"):
         assert forbidden not in receipt.reply_text
+
+
+def test_186p_document_command_renders_v1_when_local_text_is_injected():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    incoming = parse_telegram_incoming_command(build_document_update(file_id="telegram-file-186p"))
+    assert incoming is not None
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+        document_extracted_text_by_file_id={
+            "telegram-file-186p": (
+                "This vendor agreement requires written approval before subcontractor sharing. "
+                "Payment fees must be reviewed before renewal. Confidential information must remain private."
+            )
+        },
+    )
+
+    assert receipt.command == "/document"
+    assert receipt.authorized is True
+    assert "Document Review Pack v1" in receipt.reply_text
+    assert "Stage: 186P" in receipt.reply_text
+    assert "Executive summary:" in receipt.reply_text
+    assert "Risks / unclear points:" in receipt.reply_text
+    assert "Questions to ask:" in receipt.reply_text
+    assert "Draft-only review. Not legal, tax, financial, medical, or professional advice." in receipt.reply_text
+    assert "File downloaded: false" in receipt.reply_text
+    assert "OCR used: false" in receipt.reply_text
+    assert "Model calls: disabled" in receipt.reply_text
+    assert "External writes: disabled" in receipt.reply_text
+    assert "Signature or acceptance: disabled" in receipt.reply_text
+    assert "No external action was taken." in receipt.reply_text
 
 
 def test_180p_demo_command_returns_customer_mvp_demo_pack_without_external_writes():
@@ -1588,4 +1649,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "186P and later remain unauthorized" in roadmap
+    assert "187P and later remain unauthorized" in roadmap

@@ -128,6 +128,6 @@ def test_183p_reference_and_roadmap_close_gmail_binding_only():
     assert "183P - Gmail Context Binding v1" in reference
     assert "183P is read-only Gmail context binding only." in reference
     assert "Gmail draft creation" in reference
-    assert "186P and later remain unauthorized" in reference
+    assert "187P and later remain unauthorized" in reference
     assert '"stage_id":"183P","stage_name":"Gmail Context Binding v1","status":"CLOSED_COMMITTED"' in roadmap
-    assert "186P and later remain unauthorized" in roadmap
+    assert "187P and later remain unauthorized" in roadmap

@@ -219,6 +219,6 @@ def test_178p_reference_and_roadmap_close_confirmation_runtime_only():
 
     assert "178P is User Confirmation Runtime v0 only." in reference
     assert "Approved output export" in reference
-    assert "186P and later remain unauthorized" in reference
+    assert "187P and later remain unauthorized" in reference
     assert '"stage_id":"178P","stage_name":"User Confirmation Runtime v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "186P and later remain unauthorized" in roadmap
+    assert "187P and later remain unauthorized" in roadmap

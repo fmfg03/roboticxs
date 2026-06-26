@@ -24,8 +24,8 @@ from app.hermes_runtime_bootstrap import (
 
 
 RUNTIME_DOCTOR_STAGE = "149P"
-NEXT_STAGE = "186P"
-NEXT_STAGE_LABEL = "186P+ remains unauthorized."
+NEXT_STAGE = "187P"
+NEXT_STAGE_LABEL = "187P+ remains unauthorized."
 DIRECT_GOOGLE_TOKEN_ENV_KEYS = (
     "ROBOTICXS_GOOGLE_CALENDAR_ACCESS_TOKEN",
     "ROBOTICXS_GOOGLE_OAUTH_ACCESS_TOKEN",
