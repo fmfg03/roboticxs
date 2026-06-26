@@ -482,7 +482,7 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "Task Inbox is your robot task inbox, not your Gmail inbox yet." in receipt.reply_text
     assert "Live connector readiness:" in receipt.reply_text
     assert "- Full check: /checkup" in receipt.reply_text
-    assert "Roadmap: 95P-186P closed, Document Review Pack v1 active" in receipt.reply_text
+    assert "Roadmap: 95P-187P closed, Memory Source & Forget Receipts v0 active" in receipt.reply_text
 
 
 def test_181p_checkup_command_returns_live_connector_readiness_without_external_writes():
@@ -945,12 +945,12 @@ def test_130p_startup_report_is_deterministic():
     assert "Stage: 150P" in report
     assert "Owner gate: enabled" in report
     assert "Product menu: Today, Brief, Prep, Drafts, Tasks, Memory, Documents, Setup Check" in report
-    assert "Available commands: /start, /help, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory, /memory_limits, /memory_pending, document upload" in report
+    assert "Available commands: /start, /help, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory, /memory_limits, /memory_pending, document upload" in report
     assert "External connectors: Google Calendar read-only optional" in report
     assert "Calendar writes: disabled" in report
     assert "LLM/model calls: disabled" in report
     assert "Tools: disabled" in report
-    assert "Memory Center commands: /memory, /memory_review, /memory_limits, /memory_pending" in report
+    assert "Memory Center commands: /memory, /memory_review, /memory_limits, /memory_pending, /memory_forget" in report
     assert "Memory Center mutation: disabled" in report
     assert "Today command: /today owner-requested read-only summary only" in report
     assert "Cross-Source Daily Brief: /daily_brief owner-requested read-only brief only" in report
@@ -960,6 +960,7 @@ def test_130p_startup_report_is_deterministic():
     assert "Meeting Prep Pack v1: /prep includes read-only email/document context when locally available" in report
     assert "Open Loops command: /loops owner-requested read-only unresolved loops only" in report
     assert "Memory Review Decisions: /memory_approve, /memory_reject, and /memory_edit create local decision receipts only" in report
+    assert "Memory Source & Forget Receipts: /memory shows provenance and /memory_forget creates local receipts only" in report
     assert "Document Intake: Telegram document metadata receives draft-only local replies only" in report
     assert "Proactive meeting suggestions: /suggest_brief owner-requested replies only" in report
     assert "Suggestion Inbox: /suggestions owner-requested local pending suggestions only" in report
@@ -1503,6 +1504,174 @@ def test_173p_memory_edit_without_text_fails_closed_without_writeback():
     assert "No memory was written." in receipt.reply_text
 
 
+def test_187p_memory_command_appends_source_receipts_without_leaking_sensitive_values():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/memory"))
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+        memory_source_bundle=TelegramMemoryCenterSourceBundle(
+            approved_memory_items=(
+                active_memory(
+                    item_id="mem-secret-187p",
+                    sensitivity="credential_like",
+                    content="api key secret-187p-token",
+                    bounded_summary="api key secret-187p-token",
+                ),
+            ),
+        ),
+    )
+
+    assert receipt.command == "/memory"
+    assert receipt.authorized is True
+    assert "Memory Center" in receipt.reply_text
+    assert "Memory Source Receipts" in receipt.reply_text
+    assert "Stage: 187P" in receipt.reply_text
+    assert "mem-secret-187p | preference: [redacted credential-like memory]" in receipt.reply_text
+    assert "Source: local_fixture" in receipt.reply_text
+    assert "Source stage: unknown" in receipt.reply_text
+    assert "Scopes: telegram, general" in receipt.reply_text
+    assert "Allowed uses: telegram_context" in receipt.reply_text
+    assert "secret-187p-token" not in receipt.reply_text
+    assert "Source evidence deletion: disabled" in receipt.reply_text
+    assert "No source evidence was deleted." in receipt.reply_text
+
+
+def test_187p_memory_forget_returns_local_receipt_without_mutation():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/memory_forget mem-today-telegram"))
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+        memory_source_bundle=TelegramMemoryCenterSourceBundle(
+            approved_memory_items=(active_memory(),),
+        ),
+    )
+
+    assert receipt.command == "/memory_forget"
+    assert receipt.authorized is True
+    assert "Memory Forget Receipt" in receipt.reply_text
+    assert "Stage: 187P" in receipt.reply_text
+    assert "Status: local_forget_receipt_created" in receipt.reply_text
+    assert "Matched visible memory: true" in receipt.reply_text
+    assert "Local forget receipt created: true" in receipt.reply_text
+    assert "Memory Store mutation: disabled" in receipt.reply_text
+    assert "Memory Center mutation: disabled" in receipt.reply_text
+    assert "Source evidence deletion: disabled" in receipt.reply_text
+
+
+def test_187p_memory_forget_missing_or_wrong_id_fails_closed():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    missing = parse_telegram_incoming_command(build_command_update(text="/memory_forget"))
+    wrong = parse_telegram_incoming_command(build_command_update(text="/memory_forget missing-memory"))
+
+    missing_receipt = handle_incoming_command(
+        incoming_command=missing,
+        client=client,
+        config=config,
+        memory_source_bundle=TelegramMemoryCenterSourceBundle(
+            approved_memory_items=(active_memory(),),
+        ),
+    )
+    wrong_receipt = handle_incoming_command(
+        incoming_command=wrong,
+        client=client,
+        config=config,
+        memory_source_bundle=TelegramMemoryCenterSourceBundle(
+            approved_memory_items=(active_memory(),),
+        ),
+    )
+
+    assert "Status: blocked_missing_memory_id" in missing_receipt.reply_text
+    assert "Local forget receipt created: false" in missing_receipt.reply_text
+    assert "Status: blocked_memory_not_found" in wrong_receipt.reply_text
+    assert "Local forget receipt created: false" in wrong_receipt.reply_text
+
+
+def test_187p_memory_edit_for_visible_approved_memory_returns_local_edit_receipt():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    incoming = parse_telegram_incoming_command(
+        build_command_update(text="/memory_edit mem-today-telegram Use concise daily briefings.")
+    )
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+        memory_source_bundle=TelegramMemoryCenterSourceBundle(
+            approved_memory_items=(active_memory(),),
+        ),
+    )
+
+    assert receipt.command == "/memory_edit"
+    assert receipt.authorized is True
+    assert "Memory Edit Receipt" in receipt.reply_text
+    assert "Stage: 187P" in receipt.reply_text
+    assert "Status: local_edit_receipt_created" in receipt.reply_text
+    assert "Matched visible memory: true" in receipt.reply_text
+    assert "Local edit receipt created: true" in receipt.reply_text
+    assert "Proposed replacement: Use concise daily briefings." in receipt.reply_text
+    assert "Memory Store mutation: disabled" in receipt.reply_text
+    assert "Memory Center mutation: disabled" in receipt.reply_text
+
+
+def test_187p_memory_edit_redacts_credential_like_replacement_text_in_telegram():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    incoming = parse_telegram_incoming_command(
+        build_command_update(text="/memory_edit mem-today-telegram Use api key secret-token-187p.")
+    )
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+        memory_source_bundle=TelegramMemoryCenterSourceBundle(
+            approved_memory_items=(active_memory(),),
+        ),
+    )
+
+    assert receipt.command == "/memory_edit"
+    assert "Memory Edit Receipt" in receipt.reply_text
+    assert "Proposed replacement: [redacted credential-like edit]" in receipt.reply_text
+    assert "secret-token-187p" not in receipt.reply_text
+    assert "api key" not in receipt.reply_text
+
+
+def test_187p_memory_edit_preserves_pending_proposal_edit_when_id_is_not_approved_memory():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    incoming = parse_telegram_incoming_command(
+        build_command_update(text="/memory_edit proposal-loop-telegram Use shorter loop reviews.")
+    )
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+        memory_source_bundle=TelegramMemoryCenterSourceBundle(
+            approved_memory_items=(active_memory(),),
+            pending_memory_proposals=(PendingProposalFixture(),),
+        ),
+    )
+
+    assert receipt.command == "/memory_edit"
+    assert receipt.authorized is True
+    assert "Memory Approval Decision" in receipt.reply_text
+    assert "Stage: 173P" in receipt.reply_text
+    assert "Memory Edit Receipt" not in receipt.reply_text
+    assert "Status: edit_pending_local_receipt" in receipt.reply_text
+    assert "No memory was written." in receipt.reply_text
+
+
 def test_173p_unauthorized_memory_reject_does_not_create_decision():
     config = build_valid_config()
     client = FakeTelegramClient()
@@ -1649,4 +1818,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "187P and later remain unauthorized" in roadmap
+    assert "188P and later remain unauthorized" in roadmap

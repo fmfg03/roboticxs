@@ -31,4 +31,4 @@ Receipts must not print access tokens, refresh tokens, auth headers, bearer stri
 
 ## Roadmap frontier
 
-Local implementation evidence is claimed through 186P only. 187P and later remain unauthorized.
+Local implementation evidence is claimed through 187P only. 188P and later remain unauthorized.

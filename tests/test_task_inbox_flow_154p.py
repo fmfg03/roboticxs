@@ -118,4 +118,4 @@ def test_154p_reference_and_roadmap_close_task_inbox_without_authority_expansion
     assert "persist inbox state" in reference
     assert "The customer-facing name is `Task Inbox`." in reference
     assert '"stage_id":"154P","stage_name":"Task Inbox Flow v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "187P and later remain unauthorized" in roadmap
+    assert "188P and later remain unauthorized" in roadmap

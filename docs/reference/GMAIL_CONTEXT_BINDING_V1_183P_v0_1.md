@@ -48,4 +48,4 @@ Source trace must not include access tokens, refresh tokens, client secrets, Aut
 - external writes;
 - deployment, push, merge, or PR creation.
 
-187P and later remain unauthorized.
+188P and later remain unauthorized.

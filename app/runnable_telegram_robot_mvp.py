@@ -109,6 +109,17 @@ from app.memory_approval_telegram_flow import (
     render_memory_approval_telegram_receipt,
     render_memory_review_inbox,
 )
+from app.memory_source_forget_receipts import (
+    MemoryEditReceipt,
+    MemoryForgetReceipt,
+    build_memory_edit_receipt,
+    build_memory_forget_receipt,
+    build_memory_source_receipts,
+    memory_id_matches_visible_approved_memory,
+    render_memory_edit_receipt,
+    render_memory_forget_receipt,
+    render_memory_source_receipts,
+)
 from app.open_loops_command import (
     OpenLoopsCommandRecord,
     render_open_loops_command,
@@ -218,6 +229,7 @@ SUPPORTED_COMMANDS = (
     "/memory_approve",
     "/memory_reject",
     "/memory_edit",
+    "/memory_forget",
     "/memory",
     "/memory_limits",
     "/memory_pending",
@@ -230,7 +242,7 @@ PRODUCT_MENU_LINES = (
     "Suggestions: /suggestions, /suggestion_dismiss <suggestion_id>, /suggestion_snooze <suggestion_id>, /suggestion_memory <suggestion_id>, /suggestion_draft <suggestion_id>, /suggestion_followup <suggestion_id>",
     "Drafts: /drafts, /draft_approve <draft_id>, /draft_reject <draft_id>, /draft_edit <draft_id> <text>, /draft_expire <draft_id>, /export_text <confirmation_id>, /export_email <confirmation_id>, /export_file <confirmation_id>",
     "Tasks: /inbox, /inbox_done <item_id>, /inbox_dismiss <item_id>",
-    "Memory: /memory, /memory_review, /memory_pending, /memory_limits, /memory_approve <candidate_id>, /memory_reject <candidate_id>, /memory_edit <candidate_id> <text>",
+    "Memory: /memory, /memory_review, /memory_pending, /memory_limits, /memory_approve <candidate_id>, /memory_reject <candidate_id>, /memory_edit <candidate_or_memory_id> <text>, /memory_forget <memory_id>",
     "Documents: send a file for draft-only intake",
     "Setup Check: /status, /checkup, /setup",
 )
@@ -614,7 +626,7 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "",
             *render_compact_live_connector_readiness_block(readiness),
             "",
-            "Roadmap: 95P-186P closed, Document Review Pack v1 active",
+            "Roadmap: 95P-187P closed, Memory Source & Forget Receipts v0 active",
         ]
     )
 
@@ -835,6 +847,8 @@ def render_command_reply(
     brief_memory_decision: BriefMemoryApprovalDecisionRecord | None = None,
     memory_review_inbox: MemoryReviewInbox | None = None,
     memory_approval_decision: MemoryApprovalTelegramReceipt | None = None,
+    memory_edit_receipt: MemoryEditReceipt | None = None,
+    memory_forget_receipt: MemoryForgetReceipt | None = None,
     document_intake: TelegramDocumentIntakeStubRecord | None = None,
     document_review_pack_v1: DocumentReviewPackV1Record | None = None,
     suggestion_inbox: SuggestionInbox | None = None,
@@ -962,9 +976,15 @@ def render_command_reply(
             raise TelegramRobotConfigError("rejected_missing_memory_approval_decision")
         return render_memory_approval_telegram_receipt(memory_approval_decision)
     if command == "/memory_edit":
+        if memory_edit_receipt is not None:
+            return render_memory_edit_receipt(memory_edit_receipt)
         if memory_approval_decision is None:
             raise TelegramRobotConfigError("rejected_missing_memory_approval_decision")
         return render_memory_approval_telegram_receipt(memory_approval_decision)
+    if command == "/memory_forget":
+        if memory_forget_receipt is None:
+            raise TelegramRobotConfigError("rejected_missing_memory_forget_receipt")
+        return render_memory_forget_receipt(memory_forget_receipt)
     if command == "/memory":
         return render_memory_command_reply(config, source_bundle=memory_source_bundle)
     if command == "/memory_limits":
@@ -990,7 +1010,18 @@ def render_memory_command_reply(
         robot_id=config.robot_id,
         source_bundle=source_bundle,
     )
-    return render_memory_center_command_reply(snapshot)
+    source_receipts = build_memory_source_receipts(
+        owner_id=config.owner_id,
+        robot_id=config.robot_id,
+        source_bundle=source_bundle,
+    )
+    return "\n".join(
+        [
+            render_memory_center_command_reply(snapshot),
+            "",
+            render_memory_source_receipts(source_receipts),
+        ]
+    )
 
 
 def render_memory_limits_reply(
@@ -1059,6 +1090,10 @@ def handle_incoming_command(
         incoming_command.raw_text,
         command="/memory_edit",
     )
+    memory_forget_memory_id = extract_telegram_command_argument(
+        incoming_command.raw_text,
+        command="/memory_forget",
+    )
     inbox_done_item_id = extract_telegram_command_argument(
         incoming_command.raw_text,
         command="/inbox_done",
@@ -1094,6 +1129,8 @@ def handle_incoming_command(
     brief_memory_decision = None
     memory_review_inbox = None
     memory_approval_decision = None
+    memory_edit_receipt = None
+    memory_forget_receipt = None
     document_intake = None
     document_review_pack_v1 = None
     suggestion_inbox = None
@@ -1288,13 +1325,34 @@ def handle_incoming_command(
         )
     if authorized and incoming_command.command == "/memory_edit":
         edit_candidate_id, edit_text = _split_memory_edit_argument(memory_edit_argument or "")
-        memory_approval_decision = build_memory_approval_telegram_receipt(
+        if memory_id_matches_visible_approved_memory(
             owner_id=config.owner_id,
             robot_id=config.robot_id,
-            candidate_id=edit_candidate_id,
-            choice="edit",
-            inbox=memory_review_inbox,
-            edited_memory_text=edit_text,
+            memory_id=edit_candidate_id,
+            source_bundle=memory_source_bundle,
+        ):
+            memory_edit_receipt = build_memory_edit_receipt(
+                owner_id=config.owner_id,
+                robot_id=config.robot_id,
+                memory_id=edit_candidate_id,
+                proposed_text=edit_text,
+                source_bundle=memory_source_bundle,
+            )
+        else:
+            memory_approval_decision = build_memory_approval_telegram_receipt(
+                owner_id=config.owner_id,
+                robot_id=config.robot_id,
+                candidate_id=edit_candidate_id,
+                choice="edit",
+                inbox=memory_review_inbox,
+                edited_memory_text=edit_text,
+            )
+    if authorized and incoming_command.command == "/memory_forget":
+        memory_forget_receipt = build_memory_forget_receipt(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            memory_id=memory_forget_memory_id or "",
+            source_bundle=memory_source_bundle,
         )
     if authorized and incoming_command.command == "/document":
         if incoming_command.document is None:
@@ -1396,6 +1454,8 @@ def handle_incoming_command(
             brief_memory_decision=brief_memory_decision,
             memory_review_inbox=memory_review_inbox,
             memory_approval_decision=memory_approval_decision,
+            memory_edit_receipt=memory_edit_receipt,
+            memory_forget_receipt=memory_forget_receipt,
             document_intake=document_intake,
             document_review_pack_v1=document_review_pack_v1,
             suggestion_inbox=suggestion_inbox,
@@ -1516,12 +1576,12 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             f"Dev mode: {'enabled' if validated.dev_mode else 'disabled'}",
             f"Dry run: {'enabled' if validated.dry_run else 'disabled'}",
             "Product menu: Today, Brief, Prep, Drafts, Tasks, Memory, Documents, Setup Check",
-            "Available commands: /start, /help, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory, /memory_limits, /memory_pending, document upload",
+            "Available commands: /start, /help, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory, /memory_limits, /memory_pending, document upload",
             "External connectors: Google Calendar read-only optional",
             "Calendar writes: disabled",
             "LLM/model calls: disabled",
             "Tools: disabled",
-            "Memory Center commands: /memory, /memory_review, /memory_limits, /memory_pending",
+            "Memory Center commands: /memory, /memory_review, /memory_limits, /memory_pending, /memory_forget",
             "Memory Center mutation: disabled",
             "Today command: /today owner-requested read-only summary only",
             "Cross-Source Daily Brief: /daily_brief owner-requested read-only brief only",
@@ -1535,6 +1595,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "Meeting Prep Pack v1: /prep includes read-only email/document context when locally available",
             "Brief Memory Proposals: shown in /prep as pending owner review only",
             "Memory Review Decisions: /memory_approve, /memory_reject, and /memory_edit create local decision receipts only",
+            "Memory Source & Forget Receipts: /memory shows provenance and /memory_forget creates local receipts only",
             "Document Intake: Telegram document metadata receives draft-only local replies only",
             "Proactive meeting suggestions: /suggest_brief owner-requested replies only",
             "Suggestion Inbox: /suggestions owner-requested local pending suggestions only",
