@@ -14,6 +14,12 @@ from app.approved_output_export import (
     build_approved_output_export,
     render_approved_output_export,
 )
+from app.approved_gmail_draft_creation import (
+    ApprovedGmailDraftCreationRecord,
+    GmailDraftHttpClientProtocol,
+    build_approved_gmail_draft_creation,
+    render_approved_gmail_draft_creation,
+)
 from app.action_draft_queue import (
     ActionDraftQueue,
     build_action_draft_queue,
@@ -603,7 +609,7 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             "",
             *render_compact_live_connector_readiness_block(readiness),
             "",
-            "Roadmap: 95P-184P closed, Source Trace Receipts active",
+            "Roadmap: 95P-185P closed, Approved Gmail Draft Creation active",
         ]
     )
 
@@ -830,6 +836,7 @@ def render_command_reply(
     action_draft_queue: ActionDraftQueue | None = None,
     user_confirmation: UserConfirmationReceipt | None = None,
     approved_output_export: ApprovedOutputExportRecord | None = None,
+    approved_gmail_draft_creation: ApprovedGmailDraftCreationRecord | None = None,
     customer_mvp_demo_pack: object | None = None,
     live_connector_readiness: LiveConnectorReadinessReport | None = None,
     calendar_source_trace: CalendarContextSourceTrace | None = None,
@@ -930,6 +937,12 @@ def render_command_reply(
         if user_confirmation is None:
             raise TelegramRobotConfigError("rejected_missing_user_confirmation")
         return render_user_confirmation_receipt(user_confirmation)
+    if command == "/export_email":
+        if approved_gmail_draft_creation is not None:
+            return render_approved_gmail_draft_creation(approved_gmail_draft_creation)
+        if approved_output_export is None:
+            raise TelegramRobotConfigError("rejected_missing_approved_output_export")
+        return render_approved_output_export(approved_output_export)
     if command in {"/export_text", "/export_email", "/export_file"}:
         if approved_output_export is None:
             raise TelegramRobotConfigError("rejected_missing_approved_output_export")
@@ -1005,7 +1018,9 @@ def handle_incoming_command(
     config: TelegramRobotConfig,
     calendar_http_client: GoogleCalendarHttpClientProtocol | None = None,
     gmail_http_client: GmailReadonlyHttpClientProtocol | None = None,
+    gmail_draft_http_client: GmailDraftHttpClientProtocol | None = None,
     memory_source_bundle: TelegramMemoryCenterSourceBundle | None = None,
+    confirmation_receipts: tuple[UserConfirmationReceipt, ...] = (),
 ) -> TelegramSendReceipt:
     authorized = is_owner_authorized(
         telegram_user_id=incoming_command.telegram_user_id,
@@ -1076,6 +1091,7 @@ def handle_incoming_command(
     action_draft_queue = None
     user_confirmation = None
     approved_output_export = None
+    approved_gmail_draft_creation = None
     customer_mvp_demo_pack = None
     live_connector_readiness = None
     calendar_source_trace = None
@@ -1328,13 +1344,21 @@ def handle_incoming_command(
             queue=action_draft_queue,
             edited_text=edit_text,
         )
-    if authorized and incoming_command.command in {"/export_text", "/export_email", "/export_file"}:
+    if authorized and incoming_command.command == "/export_email":
+        approved_gmail_draft_creation = build_approved_gmail_draft_creation(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            confirmation_id=approved_output_export_argument or "",
+            confirmations=confirmation_receipts,
+            http_client=gmail_draft_http_client,
+        )
+    if authorized and incoming_command.command in {"/export_text", "/export_file"}:
         approved_output_export = build_approved_output_export(
             owner_id=config.owner_id,
             robot_id=config.robot_id,
             confirmation_id=approved_output_export_argument or "",
             export_format=_approved_output_export_format_from_command(incoming_command.command),
-            confirmations=(),
+            confirmations=confirmation_receipts,
         )
     if authorized:
         reply_text = render_command_reply(
@@ -1362,6 +1386,7 @@ def handle_incoming_command(
             action_draft_queue=action_draft_queue,
             user_confirmation=user_confirmation,
             approved_output_export=approved_output_export,
+            approved_gmail_draft_creation=approved_gmail_draft_creation,
             customer_mvp_demo_pack=customer_mvp_demo_pack,
             live_connector_readiness=live_connector_readiness,
             calendar_source_trace=calendar_source_trace,

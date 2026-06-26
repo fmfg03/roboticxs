@@ -6,6 +6,8 @@ import re
 
 import pytest
 
+from app.action_draft_queue import build_action_draft_queue
+from app.proactive_suggestion_loop import ProactiveSuggestionSignal, build_proactive_suggestion_loop_records
 from app.runnable_telegram_robot_mvp import (
     DEFAULT_ROBOT_ID,
     TelegramIncomingCommand,
@@ -27,8 +29,11 @@ from app.runnable_telegram_robot_mvp import (
     run_polling_once,
     validate_telegram_robot_config,
 )
+from app.suggestion_decision_flow import build_suggestion_decision_receipt
+from app.suggestion_inbox import build_suggestion_inbox
 from app.telegram_memory_center_commands import TelegramMemoryCenterSourceBundle
 from app.memory_center_projection import MemoryCenterItem
+from app.user_confirmation_runtime import build_user_confirmation_receipt
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -169,6 +174,29 @@ class FailingGmailReadonlyHttpClient:
         raise OSError("gmail unavailable")
 
 
+class FakeGmailDraftHttpClient:
+    def __init__(self) -> None:
+        self.calls: list[dict[str, object]] = []
+
+    def post_json(
+        self,
+        url: str,
+        *,
+        headers: dict[str, str],
+        body: dict,
+        timeout_seconds: int,
+    ) -> dict:
+        self.calls.append(
+            {
+                "url": url,
+                "headers": headers,
+                "body": body,
+                "timeout_seconds": timeout_seconds,
+            }
+        )
+        return {"id": "draft-telegram-185p", "message": {"id": "msg-telegram-185p"}}
+
+
 def build_command_update(
     *,
     update_id: int = 9001,
@@ -230,6 +258,40 @@ class PendingProposalFixture:
     review_reason: str = "Explicitly stated in a local planning thread."
     source_stage: str = "142P"
     status: str = "pending_user_review"
+
+
+def approved_confirmation_fixture():
+    suggestions = build_proactive_suggestion_loop_records(
+        owner_id="local-owner",
+        robot_id="roboticxs-dev",
+        signals=(
+            ProactiveSuggestionSignal(
+                signal_id="signal-telegram-185p",
+                owner_id="local-owner",
+                robot_id="roboticxs-dev",
+                trigger_type="email_thread_no_followup",
+                title="Draft Telegram Gmail export",
+                summary="thread needs follow-up",
+                source_refs=("gmail:thread-telegram-185p",),
+            ),
+        ),
+    )
+    inbox = build_suggestion_inbox(owner_id="local-owner", robot_id="roboticxs-dev", suggestions=suggestions)
+    decision = build_suggestion_decision_receipt(
+        owner_id="local-owner",
+        robot_id="roboticxs-dev",
+        suggestion_id=inbox.items[0].suggestion_id,
+        choice="create_draft",
+        inbox=inbox,
+    )
+    queue = build_action_draft_queue(owner_id="local-owner", robot_id="roboticxs-dev", decisions=(decision,))
+    return build_user_confirmation_receipt(
+        owner_id="local-owner",
+        robot_id="roboticxs-dev",
+        draft_id=queue.drafts[0].draft_id,
+        choice="approve",
+        queue=queue,
+    )
 
 
 def test_130p_config_loads_from_environment_variables():
@@ -393,7 +455,7 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "Task Inbox is your robot task inbox, not your Gmail inbox yet." in receipt.reply_text
     assert "Live connector readiness:" in receipt.reply_text
     assert "- Full check: /checkup" in receipt.reply_text
-    assert "Roadmap: 95P-184P closed, Source Trace Receipts active" in receipt.reply_text
+    assert "Roadmap: 95P-185P closed, Approved Gmail Draft Creation active" in receipt.reply_text
 
 
 def test_181p_checkup_command_returns_live_connector_readiness_without_external_writes():
@@ -557,6 +619,37 @@ def test_179p_export_command_returns_local_payload_receipt_without_external_writ
     assert "Local file write: disabled" in receipt.reply_text
     assert "External writes: disabled" in receipt.reply_text
     assert "No external action was taken." in receipt.reply_text
+
+
+def test_185p_export_email_creates_approved_gmail_draft_without_sending(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("ROBOTICXS_GOOGLE_GMAIL_ACCESS_TOKEN", "gmail-token-telegram-185p")
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    gmail_draft_client = FakeGmailDraftHttpClient()
+    confirmation = approved_confirmation_fixture()
+    incoming = parse_telegram_incoming_command(build_command_update(text=f"/export_email {confirmation.confirmation_id}"))
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+        gmail_draft_http_client=gmail_draft_client,
+        confirmation_receipts=(confirmation,),
+    )
+
+    assert receipt.authorized is True
+    assert len(gmail_draft_client.calls) == 1
+    assert "Approved Gmail Draft Creation" in receipt.reply_text
+    assert "Stage: 185P" in receipt.reply_text
+    assert "Status: gmail_draft_created" in receipt.reply_text
+    assert "Gmail draft id: draft-telegram-185p" in receipt.reply_text
+    assert "Gmail draft created: true" in receipt.reply_text
+    assert "Gmail send: disabled" in receipt.reply_text
+    assert "Gmail modify/archive/label: disabled" in receipt.reply_text
+    assert "Gmail delete: disabled" in receipt.reply_text
+    assert "No email was sent." in receipt.reply_text
+    for forbidden in ("gmail-token-telegram-185p", "Authorization", "Bearer"):
+        assert forbidden not in receipt.reply_text
 
 
 def test_180p_demo_command_returns_customer_mvp_demo_pack_without_external_writes():
@@ -1495,4 +1588,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "185P and later remain unauthorized" in roadmap
+    assert "186P and later remain unauthorized" in roadmap

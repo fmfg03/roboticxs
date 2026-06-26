@@ -167,7 +167,7 @@ def test_167p_reference_and_roadmap_close_gate_without_execution_authority():
     assert "ALLOW, DRAFT_ONLY, ASK_CONFIRMATION, ESCALATE, BLOCK" in reference
     assert "does not authorize execution" in reference
     assert '"stage_id":"167P","stage_name":"Action Boundary Confirmation Gate v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "185P and later remain unauthorized" in roadmap
+    assert "186P and later remain unauthorized" in roadmap
 
 
 def test_167p_exports_exact_decision_set():

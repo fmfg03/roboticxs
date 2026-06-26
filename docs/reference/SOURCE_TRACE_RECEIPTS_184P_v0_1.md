@@ -49,4 +49,4 @@ Receipts must not print:
 
 ## Roadmap frontier
 
-Local implementation evidence is claimed through 184P only. 185P and later remain unauthorized.
+Local implementation evidence is claimed through 185P only. 186P and later remain unauthorized.
