@@ -15,4 +15,4 @@ Each reply must say: "No memory was written."
 
 173P does not authorize Memory Store writes, Memory Center mutation, ProposedMemory writes, source evidence deletion, model-assisted editing, callbacks, scheduler work, connector activation, worker dispatch, external writes, deployment, push, merge, or PR creation.
 
-174P and later remain unauthorized.
+175P and later remain unauthorized.

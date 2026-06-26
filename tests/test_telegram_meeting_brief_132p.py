@@ -151,7 +151,8 @@ def test_132p_runtime_module_keeps_non_telegram_surfaces_disabled():
     text = MODULE_PATH.read_text()
 
     for forbidden in [
-        "gmail",
+        "googleapiclient",
+        "imaplib",
         "drive",
         "slack",
         "crm",

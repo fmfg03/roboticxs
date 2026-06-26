@@ -18,4 +18,4 @@ Every decision includes the selected provider/model label, estimated input/outpu
 
 169P does not authorize provider calls, raw provider switching, connector activation, model provider credentials, BYOK setup, billing reconciliation, model catalog expansion beyond local stubs, external writes, deployment, push, merge, or PR creation.
 
-174P and later remain unauthorized.
+175P and later remain unauthorized.

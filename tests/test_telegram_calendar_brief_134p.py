@@ -47,7 +47,7 @@ def test_134p_status_exposes_calendar_readonly_surface_without_write_authority()
     assert "Calendar writes: disabled" in reply
     assert "Model calls: disabled" in reply
     assert "Automatic Memory Center mutation: disabled" in reply
-    assert "Roadmap: 95P-173P closed, Memory Approval Telegram Flow active" in reply
+    assert "Roadmap: 95P-174P closed, Cross-Source Daily Brief active" in reply
 
 
 def test_134p_authorized_brief_uses_readonly_calendar_snapshot(monkeypatch):
@@ -182,7 +182,8 @@ def test_134p_runtime_module_keeps_forbidden_surfaces_outside_calendar_readonly(
     text = MODULE_PATH.read_text()
 
     for forbidden in [
-        "gmail",
+        "googleapiclient",
+        "imaplib",
         "drive",
         "slack",
         "crm",
