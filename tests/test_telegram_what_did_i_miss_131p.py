@@ -53,7 +53,7 @@ def test_131p_status_marks_miss_enabled_brief_disabled_and_runtime_active():
 
     assert "Today and missed-item summaries" in reply
     assert "Meeting briefs and prep packs" in reply
-    assert "Roadmap: 95P-182P closed, Calendar Context Binding active" in reply
+    assert "Roadmap: 95P-183P closed, Gmail Context Binding active" in reply
 
 
 def test_131p_authorized_miss_produces_deterministic_local_read_only_reply():

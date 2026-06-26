@@ -103,6 +103,72 @@ class FakeCalendarHttpClient:
         return self.payload
 
 
+class FakeGmailReadonlyHttpClient:
+    def __init__(self) -> None:
+        self.calls: list[dict[str, object]] = []
+
+    def get_json(
+        self,
+        url: str,
+        *,
+        headers: dict[str, str],
+        params: dict[str, str],
+        timeout_seconds: int,
+    ) -> dict:
+        self.calls.append(
+            {
+                "url": url,
+                "headers": headers,
+                "params": params,
+                "timeout_seconds": timeout_seconds,
+            }
+        )
+        if url.endswith("/messages"):
+            return {"messages": [{"id": "msg-183p", "threadId": "thr-183p"}]}
+        return {
+            "id": "msg-183p",
+            "threadId": "thr-183p",
+            "labelIds": ["INBOX"],
+            "snippet": "Please review the proposal before tomorrow's meeting and follow up.",
+            "payload": {
+                "headers": [
+                    {"name": "Subject", "value": "Client proposal prep"},
+                    {"name": "From", "value": "client@example.com"},
+                    {"name": "Date", "value": "Thu, 25 Jun 2026 10:00:00 -0600"},
+                ],
+                "parts": [
+                    {
+                        "filename": "proposal.pdf",
+                        "body": {"attachmentId": "att-183p"},
+                    }
+                ],
+            },
+        }
+
+
+class FailingGmailReadonlyHttpClient:
+    def __init__(self) -> None:
+        self.calls: list[dict[str, object]] = []
+
+    def get_json(
+        self,
+        url: str,
+        *,
+        headers: dict[str, str],
+        params: dict[str, str],
+        timeout_seconds: int,
+    ) -> dict:
+        self.calls.append(
+            {
+                "url": url,
+                "headers": headers,
+                "params": params,
+                "timeout_seconds": timeout_seconds,
+            }
+        )
+        raise OSError("gmail unavailable")
+
+
 def build_command_update(
     *,
     update_id: int = 9001,
@@ -327,7 +393,7 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "Task Inbox is your robot task inbox, not your Gmail inbox yet." in receipt.reply_text
     assert "Live connector readiness:" in receipt.reply_text
     assert "- Full check: /checkup" in receipt.reply_text
-    assert "Roadmap: 95P-182P closed, Calendar Context Binding active" in receipt.reply_text
+    assert "Roadmap: 95P-183P closed, Gmail Context Binding active" in receipt.reply_text
 
 
 def test_181p_checkup_command_returns_live_connector_readiness_without_external_writes():
@@ -889,6 +955,7 @@ def test_174p_daily_brief_command_returns_cross_source_read_only_summary(monkeyp
     config = build_valid_config()
     client = FakeTelegramClient()
     calendar_client = FakeCalendarHttpClient()
+    gmail_client = FakeGmailReadonlyHttpClient()
     incoming = parse_telegram_incoming_command(build_command_update(text="/daily_brief"))
 
     receipt = handle_incoming_command(
@@ -896,6 +963,7 @@ def test_174p_daily_brief_command_returns_cross_source_read_only_summary(monkeyp
         client=client,
         config=config,
         calendar_http_client=calendar_client,
+        gmail_http_client=gmail_client,
         memory_source_bundle=TelegramMemoryCenterSourceBundle(
             approved_memory_items=(active_memory(),),
         ),
@@ -904,13 +972,17 @@ def test_174p_daily_brief_command_returns_cross_source_read_only_summary(monkeyp
     assert receipt.command == "/daily_brief"
     assert receipt.authorized is True
     assert len(calendar_client.calls) == 1
+    assert len(gmail_client.calls) == 2
     assert "Daily Brief" in receipt.reply_text
     assert "Stage: 174P" in receipt.reply_text
     assert "Client demo prep meeting" in receipt.reply_text
     assert "Source trace:" in receipt.reply_text
     assert "- Calendar: connected" in receipt.reply_text
     assert "evt-client-demo | Client demo prep meeting" in receipt.reply_text
-    assert "Gmail: unavailable (missing_access_token)." in receipt.reply_text
+    assert "be relevant for prep" in receipt.reply_text
+    assert "Gmail source trace:" in receipt.reply_text
+    assert "- Gmail: connected" in receipt.reply_text
+    assert "thr-183p | msg-183p | Client proposal prep" in receipt.reply_text
     assert "Francisco prefers compact daily briefings." in receipt.reply_text
     assert "Calendar writes: disabled" in receipt.reply_text
     assert "Gmail send/modify: disabled" in receipt.reply_text
@@ -922,6 +994,34 @@ def test_174p_daily_brief_command_returns_cross_source_read_only_summary(monkeyp
     assert "Scheduler/proactive sends: disabled" in receipt.reply_text
     assert "External writes: disabled" in receipt.reply_text
     assert "No external action was taken." in receipt.reply_text
+
+
+def test_183p_daily_brief_keeps_calendar_context_when_gmail_fails_closed(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("ROBOTICXS_GOOGLE_CALENDAR_ACCESS_TOKEN", "token-183p")
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    calendar_client = FakeCalendarHttpClient()
+    gmail_client = FailingGmailReadonlyHttpClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/daily_brief"))
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+        calendar_http_client=calendar_client,
+        gmail_http_client=gmail_client,
+    )
+
+    assert receipt.authorized is True
+    assert len(calendar_client.calls) == 1
+    assert len(gmail_client.calls) == 1
+    assert "Client demo prep meeting" in receipt.reply_text
+    assert "Gmail: unavailable (gmail_read_failed_closed)." in receipt.reply_text
+    assert "Gmail source trace:" in receipt.reply_text
+    assert "- Gmail: blocked" in receipt.reply_text
+    assert "- Reason: gmail_read_failed_closed" in receipt.reply_text
+    assert "- Next: run /checkup" in receipt.reply_text
+    assert "- Writes: disabled" in receipt.reply_text
 
 
 def test_174p_unauthorized_daily_brief_does_not_read_calendar_or_memory(monkeypatch: pytest.MonkeyPatch):
@@ -1099,6 +1199,7 @@ def test_143p_prep_command_returns_owner_requested_read_only_meeting_prep_pack(m
 
     client = FakeTelegramClient()
     calendar_client = FakeCalendarHttpClient()
+    gmail_client = FakeGmailReadonlyHttpClient()
     incoming = parse_telegram_incoming_command(
         build_command_update(text=f"/prep {suggestion_match.group(1)}")
     )
@@ -1108,6 +1209,7 @@ def test_143p_prep_command_returns_owner_requested_read_only_meeting_prep_pack(m
         client=client,
         config=config,
         calendar_http_client=calendar_client,
+        gmail_http_client=gmail_client,
         memory_source_bundle=TelegramMemoryCenterSourceBundle(
             approved_memory_items=(active_memory(),),
         ),
@@ -1116,12 +1218,16 @@ def test_143p_prep_command_returns_owner_requested_read_only_meeting_prep_pack(m
     assert receipt.command == "/prep"
     assert receipt.authorized is True
     assert len(calendar_client.calls) == 1
+    assert len(gmail_client.calls) == 2
     assert "Meeting Prep Pack" in receipt.reply_text
     assert "Stage: 175P" in receipt.reply_text
     assert "Meeting context:" in receipt.reply_text
     assert "Recent email context:" in receipt.reply_text
     assert "Documents / risks:" in receipt.reply_text
-    assert "Gmail: unavailable (missing_access_token)." in receipt.reply_text
+    assert "be relevant for prep" in receipt.reply_text
+    assert "Gmail source trace:" in receipt.reply_text
+    assert "- Gmail: connected" in receipt.reply_text
+    assert "thr-183p | msg-183p | Client proposal prep" in receipt.reply_text
     assert "Next steps:" in receipt.reply_text
     assert "Client demo prep meeting" in receipt.reply_text
     assert "Source trace:" in receipt.reply_text
@@ -1389,4 +1495,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "183P and later remain unauthorized" in roadmap
+    assert "184P and later remain unauthorized" in roadmap
