@@ -39,6 +39,7 @@ ACTION_CLASS_BY_COMMAND = {
     "/pilot_audit": "READ",
     "/live_smoke": "READ",
     "/founder_loop": "READ",
+    "/feedback": "CLASSIFY",
     "/gmail_thread": "READ",
     "/loops": "READ",
     "/inbox": "READ",
@@ -87,6 +88,7 @@ COMMAND_SKILL_MAP = {
     "/pilot_audit": "basic",
     "/live_smoke": "basic",
     "/founder_loop": "basic",
+    "/feedback": "basic",
     "/gmail_thread": "daily_brief",
     "/loops": "daily_brief",
     "/inbox": "basic",
@@ -122,6 +124,7 @@ COMMAND_SKILL_MAP = {
 }
 COMMANDS_REQUIRING_TARGET = {
     "/gmail_thread",
+    "/feedback",
     "/prep",
     "/inbox_done",
     "/inbox_dismiss",

@@ -217,4 +217,4 @@ def test_168p_reference_and_roadmap_close_usage_meter_without_billing_authority(
     assert "not live billing or provider reconciliation" in reference
     assert "does not authorize provider calls" in reference
     assert '"stage_id":"168P","stage_name":"Token Usage + Cost Meter v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "203P and later remain unauthorized" in roadmap
+    assert "204P and later remain unauthorized" in roadmap

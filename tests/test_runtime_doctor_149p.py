@@ -206,9 +206,9 @@ def test_149p_json_output_is_structured_and_secret_free(tmp_path: Path):
     payload = json.loads(report.rendered_text)
 
     assert payload["stage"] == "149P"
-    assert payload["roadmap_closed_through"] == "202P"
+    assert payload["roadmap_closed_through"] == "203P"
     assert payload["next_stage_authorized"] is False
-    assert payload["next_stage"] == "203P"
+    assert payload["next_stage"] == "204P"
     assert "json-client-secret" not in report.rendered_text
     assert "json-access-secret" not in report.rendered_text
     assert "json-refresh-secret" not in report.rendered_text

@@ -84,7 +84,7 @@ def test_129p_builds_runtime_online_status_for_valid_local_config():
     assert status.runtime_mode == "local-dev"
     assert status.robot_id == DEFAULT_ROBOT_ID
     assert status.owner_id == DEFAULT_OWNER_ID
-    assert status.roadmap_closed_through == "202P"
+    assert status.roadmap_closed_through == "203P"
     assert status.next_stage_authorized is False
     assert status.next_stage == NEXT_STAGE
     assert status.telegram_enabled is False
@@ -162,7 +162,7 @@ def test_129p_text_report_contains_required_runtime_lines():
     assert f"Robot: {DEFAULT_ROBOT_ID}" in report.rendered_text
     assert f"Owner: {DEFAULT_OWNER_ID}" in report.rendered_text
     assert "Mode: local-dev" in report.rendered_text
-    assert "Roadmap: 95P-202P CLOSED_COMMITTED" in report.rendered_text
+    assert "Roadmap: 95P-203P CLOSED_COMMITTED" in report.rendered_text
     assert "Telegram: disabled" in report.rendered_text
     assert "Connectors: disabled" in report.rendered_text
     assert "LLM/model calls: disabled" in report.rendered_text
@@ -228,14 +228,15 @@ def test_129p_text_report_contains_required_runtime_lines():
     assert "Factory Loop Handoff Harness: available for local non-authority loop evidence only" in report.rendered_text
     assert "Runtime Doctor: available for local read-only readiness diagnostics only" in report.rendered_text
     assert "Telegram Product Shell: available for customer-facing menu and setup status only" in report.rendered_text
-    assert "Next authorized stage: 203P+ remains unauthorized." in report.rendered_text
+    assert "Founder Feedback Capture: available for local non-persistent feedback receipts only" in report.rendered_text
+    assert "Next authorized stage: 204P+ remains unauthorized." in report.rendered_text
 
 
 def test_129p_json_report_is_renderable():
     report = run_hermes_runtime_bootstrap(output_format="json")
 
     assert '"runtime_online": true' in report.rendered_text
-    assert '"roadmap_closed_through": "202P"' in report.rendered_text
+    assert '"roadmap_closed_through": "203P"' in report.rendered_text
 
 
 def test_129p_main_prints_report_and_returns_zero(capsys: pytest.CaptureFixture[str]):
@@ -306,4 +307,4 @@ def test_129p_roadmap_registers_runtime_bootstrap_stage_and_135p_closed_with_136
     assert '"stage_id":"153P","stage_name":"Setup & Capability Status v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"154P","stage_name":"Task Inbox Flow v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"155P","stage_name":"Memory Review Flow v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "203P and later remain unauthorized" in roadmap
+    assert "204P and later remain unauthorized" in roadmap
