@@ -76,7 +76,7 @@ def test_193p_reference_and_roadmap_close_ranking_without_priority_engine():
     assert "193P ranks Calendar, Gmail, Memory, and Document context" in reference
     assert "no proactive priority engine" in reference
     assert '"stage_id":"193P","stage_name":"Smart Context Ranking v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "199P and later remain unauthorized" in roadmap
+    assert "200P and later remain unauthorized" in roadmap
 
 
 def calendar_result() -> CalendarReadResult:

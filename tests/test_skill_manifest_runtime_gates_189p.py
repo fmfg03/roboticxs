@@ -37,6 +37,7 @@ def test_189p_maps_main_telegram_commands_to_skill_manifests():
         "/start": "basic",
         "/help": "basic",
         "/pilot": "basic",
+        "/pilot_pack": "basic",
         "/status": "setup",
         "/checkup": "setup",
         "/setup": "setup",
