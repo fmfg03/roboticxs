@@ -87,4 +87,4 @@ def test_153p_reference_and_roadmap_close_status_without_authority_expansion():
     assert "activate connectors" in reference
     assert "Task Inbox must be described as the robot task inbox, not Gmail." in reference
     assert '"stage_id":"153P","stage_name":"Setup & Capability Status v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "207P and later remain unauthorized" in roadmap
+    assert "208P and later remain unauthorized" in roadmap

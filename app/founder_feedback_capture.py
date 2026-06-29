@@ -14,6 +14,12 @@ SUPPORTED_FEEDBACK_TAGS = (
     "bad_draft",
     "too_verbose",
     "not_useful",
+    "missing_context",
+    "wrong_context",
+    "weak_agenda",
+    "bad_risk",
+    "bad_next_step",
+    "not_actionable",
 )
 
 

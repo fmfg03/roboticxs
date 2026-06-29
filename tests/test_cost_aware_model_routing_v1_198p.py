@@ -121,4 +121,4 @@ def test_198p_reference_and_roadmap_close_cost_aware_routing_without_provider_ca
     assert "does not authorize provider calls" in reference
     assert "Premium mode requires explicit confirmation" in reference
     assert '"stage_id":"198P","stage_name":"Cost-Aware Model Routing v1","status":"CLOSED_COMMITTED"' in roadmap
-    assert "207P and later remain unauthorized" in roadmap
+    assert "208P and later remain unauthorized" in roadmap
