@@ -224,4 +224,4 @@ def test_185p_reference_and_roadmap_close_gmail_draft_creation_only():
     assert "185P is approved Gmail draft creation only." in reference
     assert "189P and later remain unauthorized" in reference
     assert '"stage_id":"185P","stage_name":"Approved Gmail Draft Creation v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "194P and later remain unauthorized" in roadmap
+    assert "195P and later remain unauthorized" in roadmap

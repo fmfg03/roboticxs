@@ -4,6 +4,7 @@ import argparse
 from dataclasses import asdict, dataclass
 import json
 
+from app.proactive_priority_engine import build_proactive_priority_decision, render_proactive_priority_decision
 from app.proactive_suggestion_loop import ProactiveSuggestionLoopRecord
 
 
@@ -137,6 +138,7 @@ def render_suggestion_inbox(inbox: SuggestionInbox) -> str:
                     f"  summary: {item.summary}",
                     f"  suggested next step: {item.suggested_next_step}",
                     f"  sources: {_render_source_refs(item.source_refs)}",
+                    *render_proactive_priority_decision(build_proactive_priority_decision(item)),
                 ]
             )
     lines.extend(
