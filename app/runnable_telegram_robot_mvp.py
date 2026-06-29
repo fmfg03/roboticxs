@@ -119,6 +119,13 @@ from app.friendly_pilot_invite_consent import (
     render_pilot_consent,
     render_pilot_invite,
 )
+from app.pilot_user_provisioning import (
+    PilotUserProvisioningRecord,
+    build_pilot_user_provisioning_record,
+    parse_pilot_provision_argument,
+    render_pilot_allowlist,
+    render_pilot_user_provisioning,
+)
 from app.feedback_ledger_tags import (
     FeedbackLedger,
     FeedbackLedgerEntry,
@@ -354,6 +361,8 @@ SUPPORTED_COMMANDS = (
     "/pilot_health",
     "/pilot_invite",
     "/pilot_consent",
+    "/pilot_provision",
+    "/pilot_allowlist",
     "/founder_loop",
     "/feedback",
     "/feedback_ledger",
@@ -403,7 +412,7 @@ SUPPORTED_COMMANDS = (
     "/document",
 )
 PRODUCT_MENU_LINES = (
-    "Today: /today, /miss, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /pilot_metrics, /friendly_onboarding, /friendly_pilot, /pilot_users, /pilot_user <id>, /pilot_health, /pilot_invite <alias>, /pilot_consent <alias>, /founder_loop",
+    "Today: /today, /miss, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /pilot_metrics, /friendly_onboarding, /friendly_pilot, /pilot_users, /pilot_user <id>, /pilot_health, /pilot_invite <alias>, /pilot_consent <alias>, /pilot_provision <telegram_id> <alias>, /pilot_allowlist, /founder_loop",
     "Feedback: /feedback <useful|wrong|noisy|stale|missing_source|bad_draft|too_verbose> <item_id> [comment]",
     "Feedback Ledger: /feedback_ledger",
     "Daily Loop Outcome: /founder_outcome <loop_id> <outcome> [note]",
@@ -1134,6 +1143,8 @@ def render_command_reply(
     founder_to_friendly_pilot_baseline: FounderToFriendlyPilotBaseline | None = None,
     friendly_pilot_operator_console: FriendlyPilotOperatorConsole | None = None,
     friendly_pilot_invite_consent: FriendlyPilotInviteConsent | None = None,
+    pilot_user_provisioning: PilotUserProvisioningRecord | None = None,
+    pilot_user_allowlist: tuple[PilotUserProvisioningRecord, ...] = (),
     founder_daily_use_loop: FounderDailyUseLoop | None = None,
     founder_feedback_capture: FounderFeedbackCaptureReceipt | None = None,
     feedback_ledger: FeedbackLedger | None = None,
@@ -1237,6 +1248,12 @@ def render_command_reply(
         if friendly_pilot_invite_consent is None:
             raise TelegramRobotConfigError("rejected_missing_friendly_pilot_invite_consent")
         return render_pilot_consent(friendly_pilot_invite_consent)
+    if command == "/pilot_provision":
+        if pilot_user_provisioning is None:
+            raise TelegramRobotConfigError("rejected_missing_pilot_user_provisioning")
+        return render_pilot_user_provisioning(pilot_user_provisioning)
+    if command == "/pilot_allowlist":
+        return render_pilot_allowlist(pilot_user_allowlist)
     if command == "/founder_loop":
         if founder_daily_use_loop is None:
             raise TelegramRobotConfigError("rejected_missing_founder_daily_use_loop")
@@ -1498,6 +1515,10 @@ def handle_incoming_command(
         incoming_command.raw_text,
         command=incoming_command.command if incoming_command.command in {"/pilot_invite", "/pilot_consent"} else "/pilot_invite",
     )
+    pilot_provision_argument = extract_telegram_command_argument(
+        incoming_command.raw_text,
+        command="/pilot_provision",
+    )
     memory_approve_candidate_id = extract_telegram_command_argument(
         incoming_command.raw_text,
         command="/memory_approve",
@@ -1592,6 +1613,8 @@ def handle_incoming_command(
     founder_to_friendly_pilot_baseline = None
     friendly_pilot_operator_console = None
     friendly_pilot_invite_consent = None
+    pilot_user_provisioning = None
+    pilot_user_allowlist: tuple[PilotUserProvisioningRecord, ...] = ()
     founder_daily_use_loop = None
     founder_feedback_capture = None
     feedback_ledger = None
@@ -1755,6 +1778,20 @@ def handle_incoming_command(
             robot_id=config.robot_id,
             pilot_alias=pilot_consent_alias or "Friendly pilot",
         )
+    if authorized and incoming_command.command in {"/pilot_provision", "/pilot_allowlist"}:
+        allowed_telegram_user_id, pilot_alias = parse_pilot_provision_argument(
+            pilot_provision_argument,
+            fallback_telegram_user_id=incoming_command.telegram_user_id,
+        )
+        pilot_user_provisioning = build_pilot_user_provisioning_record(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            allowed_telegram_user_id=allowed_telegram_user_id,
+            user_alias=pilot_alias,
+            role="owner_founder" if allowed_telegram_user_id == incoming_command.telegram_user_id else "friendly_user",
+            pilot_status="active_local" if allowed_telegram_user_id == incoming_command.telegram_user_id else "pending_consent",
+        )
+        pilot_user_allowlist = (pilot_user_provisioning,)
     if authorized and incoming_command.command == "/founder_loop":
         founder_daily_use_loop = build_founder_daily_use_loop(
             owner_id=config.owner_id,
@@ -2105,6 +2142,8 @@ def handle_incoming_command(
             founder_to_friendly_pilot_baseline=founder_to_friendly_pilot_baseline,
             friendly_pilot_operator_console=friendly_pilot_operator_console,
             friendly_pilot_invite_consent=friendly_pilot_invite_consent,
+            pilot_user_provisioning=pilot_user_provisioning,
+            pilot_user_allowlist=pilot_user_allowlist,
             founder_daily_use_loop=founder_daily_use_loop,
             founder_feedback_capture=founder_feedback_capture,
             feedback_ledger=feedback_ledger,
@@ -2255,7 +2294,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             f"Dev mode: {'enabled' if validated.dev_mode else 'disabled'}",
             f"Dry run: {'enabled' if validated.dry_run else 'disabled'}",
             "Product menu: Today, Prep, Pilot, Suggestions, Approvals, Drafts, Memory, Documents, Usage, Status",
-            "Available commands: /start, /help, /menu, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /pilot_metrics, /friendly_onboarding, /friendly_pilot, /pilot_users, /pilot_user, /pilot_health, /pilot_invite, /pilot_consent, /founder_loop, /feedback, /feedback_ledger, /founder_outcome, /suggestion_quality, /prep_quality, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /approvals, /approve, /reject, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_revise, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory_wrong, /memory_stale, /memory_duplicate, /memory_merge, /memory_never_use, /memory, /memory_limits, /memory_pending, document upload",
+            "Available commands: /start, /help, /menu, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /pilot_metrics, /friendly_onboarding, /friendly_pilot, /pilot_users, /pilot_user, /pilot_health, /pilot_invite, /pilot_consent, /pilot_provision, /pilot_allowlist, /founder_loop, /feedback, /feedback_ledger, /founder_outcome, /suggestion_quality, /prep_quality, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /approvals, /approve, /reject, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_revise, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory_wrong, /memory_stale, /memory_duplicate, /memory_merge, /memory_never_use, /memory, /memory_limits, /memory_pending, document upload",
             "External connectors: Google Calendar read-only optional",
             "Calendar writes: disabled",
             "LLM/model calls: disabled",
@@ -2274,6 +2313,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "Founder-to-Friendly Pilot Baseline: /friendly_pilot shows the controlled pilot baseline only",
             "Friendly Pilot Operator Console: /pilot_users, /pilot_user, and /pilot_health show local pilot status only",
             "Friendly Pilot Invite & Consent: /pilot_invite and /pilot_consent show local consent text without sending invites",
+            "Pilot User Provisioning: /pilot_provision and /pilot_allowlist show strict local allowlist receipts only",
             "Founder Daily Use Loop: /founder_loop owner-requested morning operating card only",
             "Founder Feedback Capture: /feedback creates local non-persistent feedback receipts only",
             "Feedback Ledger & Tags: /feedback_ledger shows local structured feedback entries only",

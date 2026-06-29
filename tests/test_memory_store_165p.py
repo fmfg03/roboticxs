@@ -202,4 +202,4 @@ def test_165p_reference_and_roadmap_close_memory_store_without_external_authorit
     assert "does not authorize Memory Center mutation" in reference
     assert "Calendar writes" in reference
     assert '"stage_id":"165P","stage_name":"Memory Store v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "215P and later remain unauthorized" in roadmap
+    assert "216P and later remain unauthorized" in roadmap

@@ -1260,7 +1260,7 @@ def test_130p_startup_report_is_deterministic():
     assert "Stage: 150P" in report
     assert "Owner gate: enabled" in report
     assert "Product menu: Today, Prep, Pilot, Suggestions, Approvals, Drafts, Memory, Documents, Usage, Status" in report
-    assert "Available commands: /start, /help, /menu, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /pilot_metrics, /friendly_onboarding, /friendly_pilot, /pilot_users, /pilot_user, /pilot_health, /pilot_invite, /pilot_consent, /founder_loop, /feedback, /feedback_ledger, /founder_outcome, /suggestion_quality, /prep_quality, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /approvals, /approve, /reject, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_revise, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory_wrong, /memory_stale, /memory_duplicate, /memory_merge, /memory_never_use, /memory, /memory_limits, /memory_pending, document upload" in report
+    assert "Available commands: /start, /help, /menu, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /pilot_metrics, /friendly_onboarding, /friendly_pilot, /pilot_users, /pilot_user, /pilot_health, /pilot_invite, /pilot_consent, /pilot_provision, /pilot_allowlist, /founder_loop, /feedback, /feedback_ledger, /founder_outcome, /suggestion_quality, /prep_quality, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /approvals, /approve, /reject, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_revise, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory_wrong, /memory_stale, /memory_duplicate, /memory_merge, /memory_never_use, /memory, /memory_limits, /memory_pending, document upload" in report
     assert "External connectors: Google Calendar read-only optional" in report
     assert "Calendar writes: disabled" in report
     assert "LLM/model calls: disabled" in report
@@ -1297,6 +1297,7 @@ def test_130p_startup_report_is_deterministic():
     assert "Founder-to-Friendly Pilot Baseline: /friendly_pilot shows the controlled pilot baseline only" in report
     assert "Friendly Pilot Operator Console: /pilot_users, /pilot_user, and /pilot_health show local pilot status only" in report
     assert "Friendly Pilot Invite & Consent: /pilot_invite and /pilot_consent show local consent text without sending invites" in report
+    assert "Pilot User Provisioning: /pilot_provision and /pilot_allowlist show strict local allowlist receipts only" in report
     assert "Founder Daily Use Loop: /founder_loop owner-requested morning operating card only" in report
     assert "Founder Feedback Capture: /feedback creates local non-persistent feedback receipts only" in report
     assert "Feedback Ledger & Tags: /feedback_ledger shows local structured feedback entries only" in report
@@ -2353,4 +2354,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "215P and later remain unauthorized" in roadmap
+    assert "216P and later remain unauthorized" in roadmap
