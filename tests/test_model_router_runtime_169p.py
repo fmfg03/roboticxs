@@ -106,4 +106,4 @@ def test_169p_reference_and_roadmap_close_router_without_provider_calls():
     assert "Economy, Balanced, and Premium" in reference
     assert "does not authorize provider calls" in reference
     assert '"stage_id":"169P","stage_name":"Model Router Runtime v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "200P and later remain unauthorized" in roadmap
+    assert "201P and later remain unauthorized" in roadmap

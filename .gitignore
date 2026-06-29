@@ -4,6 +4,7 @@
 .pytest_cache/
 __pycache__/
 roboticxs_artifacts/workspace_archives/
+roboticxs_artifacts/loop_handoffs/
 .secrets/
 *.secret.json
 *token*.json
