@@ -5,6 +5,7 @@ from dataclasses import asdict, dataclass
 import json
 from uuid import NAMESPACE_URL, uuid5
 
+from app.draft_quality_engine import build_draft_quality_review, render_draft_quality_review
 from app.suggestion_decision_flow import (
     DECISION_STATUS_RECORDED,
     SUGGESTION_DECISION_FLOW_STAGE,
@@ -176,6 +177,7 @@ def render_action_draft_queue(queue: ActionDraftQueue) -> str:
                     f"  Title: {draft.title}",
                     f"  Source suggestion: {draft.source_suggestion_id}",
                     f"  Preview: {draft.body_preview}",
+                    *render_draft_quality_review(build_draft_quality_review(draft)),
                 ]
             )
     else:

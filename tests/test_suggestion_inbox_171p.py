@@ -149,4 +149,4 @@ def test_171p_reference_and_roadmap_close_suggestion_inbox_only():
     assert "No action has been taken" in reference
     assert "does not authorize suggestion decisions" in reference
     assert '"stage_id":"171P","stage_name":"Suggestion Inbox v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "195P and later remain unauthorized" in roadmap
+    assert "196P and later remain unauthorized" in roadmap
