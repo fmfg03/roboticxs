@@ -9,6 +9,7 @@ import pytest
 
 from app.action_draft_queue import build_action_draft_queue
 from app.calendar_context_scan import build_calendar_context_scan_record
+from app.fast_path_cache import build_fast_path_cache_entry
 from app.google_calendar_readonly_connector import CalendarReadResult
 from app.proactive_meeting_suggestion import build_proactive_meeting_suggestion_scan
 from app.proactive_suggestion_loop import ProactiveSuggestionSignal, build_proactive_suggestion_loop_records
@@ -1400,6 +1401,44 @@ def test_141p_today_command_returns_owner_requested_read_only_summary(monkeypatc
     assert "No external action was taken." in receipt.reply_text
 
 
+def test_192p_today_command_can_use_fast_path_cache_without_connector_read(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("ROBOTICXS_GOOGLE_CALENDAR_ACCESS_TOKEN", "token-192p")
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    calendar_client = FakeCalendarHttpClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/today"))
+    cache_entry = build_fast_path_cache_entry(
+        owner_id=config.owner_id,
+        robot_id=config.robot_id,
+        command="/today",
+        cached_reply="Today cached customer summary",
+        source_trace="calendar:evt-client-demo memory:mem-today-telegram",
+        cached_at_epoch_seconds=1_000,
+        ttl_seconds=120,
+    )
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+        calendar_http_client=calendar_client,
+        fast_path_cache_entries=(cache_entry,),
+        fast_path_now_epoch_seconds=1_030,
+    )
+
+    assert receipt.command == "/today"
+    assert receipt.authorized is True
+    assert calendar_client.calls == []
+    assert "Fast Path Cache" in receipt.reply_text
+    assert "Stage: 192P" in receipt.reply_text
+    assert "Status: hit" in receipt.reply_text
+    assert "Freshness: fresh (30s old, ttl 120s)" in receipt.reply_text
+    assert "Source trace: calendar:evt-client-demo memory:mem-today-telegram" in receipt.reply_text
+    assert "Today cached customer summary" in receipt.reply_text
+    assert "Connector reads: not performed for this reply" in receipt.reply_text
+    assert "External writes: disabled" in receipt.reply_text
+
+
 def test_182p_today_calendar_unavailable_source_trace_points_to_checkup(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.delenv("ROBOTICXS_GOOGLE_CALENDAR_ACCESS_TOKEN", raising=False)
     config = build_valid_config()
@@ -2290,4 +2329,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "192P and later remain unauthorized" in roadmap
+    assert "193P and later remain unauthorized" in roadmap

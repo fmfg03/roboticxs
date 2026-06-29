@@ -83,6 +83,11 @@ from app.document_review_pack_v1 import (
     build_document_review_pack_v1_from_intake,
     render_document_review_pack_v1,
 )
+from app.fast_path_cache import (
+    FastPathCacheEntry,
+    find_fast_path_cache_entry,
+    render_fast_path_cached_reply,
+)
 from app.live_connector_readiness_check import (
     LiveConnectorReadinessReport,
     build_live_connector_readiness_report,
@@ -998,7 +1003,14 @@ def render_command_reply(
     cross_source_daily_brief: CrossSourceDailyBriefRecord | None = None,
     gmail_thread_drilldown: GmailThreadDrilldownRecord | None = None,
     usage_ledger_entries: tuple[UsageCostLedgerEntry, ...] = (),
+    fast_path_cache_entry: FastPathCacheEntry | None = None,
+    fast_path_now_epoch_seconds: int | None = None,
 ) -> str:
+    if fast_path_cache_entry is not None:
+        return render_fast_path_cached_reply(
+            fast_path_cache_entry,
+            now_epoch_seconds=fast_path_now_epoch_seconds or int(time.time()),
+        )
     if command == "/start":
         return render_start_command_reply(config)
     if command == "/help":
@@ -1225,6 +1237,8 @@ def handle_incoming_command(
     document_extracted_text_by_file_id: dict[str, str] | None = None,
     usage_ledger_entries: tuple[UsageCostLedgerEntry, ...] = (),
     approval_items: tuple[UserApprovedOutputItem, ...] = (),
+    fast_path_cache_entries: tuple[FastPathCacheEntry, ...] = (),
+    fast_path_now_epoch_seconds: int | None = None,
 ) -> TelegramSendReceipt:
     authorized = is_owner_authorized(
         telegram_user_id=incoming_command.telegram_user_id,
@@ -1316,6 +1330,18 @@ def handle_incoming_command(
     gmail_source_trace = None
     source_trace_receipt = None
     memory_snapshot: TelegramMemoryCenterSnapshot | None = None
+    cache_now = fast_path_now_epoch_seconds or int(time.time())
+    fast_path_cache_entry = (
+        find_fast_path_cache_entry(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            command=incoming_command.command,
+            entries=fast_path_cache_entries,
+            now_epoch_seconds=cache_now,
+        )
+        if authorized
+        else None
+    )
     if authorized and incoming_command.command == "/brief" and brief_suggestion_id:
         suggested_meeting_brief = run_suggested_meeting_brief_request(
             owner_id=config.owner_id,
@@ -1333,7 +1359,7 @@ def handle_incoming_command(
             robot_id=config.robot_id,
             calendar_http_client=calendar_http_client,
         )
-    if authorized and incoming_command.command == "/today":
+    if authorized and incoming_command.command == "/today" and fast_path_cache_entry is None:
         calendar_result = run_google_calendar_readonly_connector(
             http_client=calendar_http_client,
         )
@@ -1668,6 +1694,8 @@ def handle_incoming_command(
             gmail_source_trace=gmail_source_trace,
             source_trace_receipt=source_trace_receipt,
             usage_ledger_entries=usage_ledger_entries,
+            fast_path_cache_entry=fast_path_cache_entry,
+            fast_path_now_epoch_seconds=cache_now,
         )
     else:
         reply_text = render_unauthorized_reply()
