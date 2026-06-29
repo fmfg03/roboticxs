@@ -95,6 +95,12 @@ from app.founder_feedback_capture import (
     render_feedback_usage,
     render_founder_feedback_capture_receipt,
 )
+from app.feedback_ledger_tags import (
+    FeedbackLedger,
+    FeedbackLedgerEntry,
+    build_feedback_ledger,
+    render_feedback_ledger,
+)
 from app.inbox_item_decision import (
     InboxItemDecisionRecord,
     build_inbox_item_decision,
@@ -280,6 +286,7 @@ SUPPORTED_COMMANDS = (
     "/live_smoke",
     "/founder_loop",
     "/feedback",
+    "/feedback_ledger",
     "/gmail_thread",
     "/loops",
     "/inbox",
@@ -319,6 +326,7 @@ SUPPORTED_COMMANDS = (
 PRODUCT_MENU_LINES = (
     "Today: /today, /miss, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /founder_loop",
     "Feedback: /feedback <useful|wrong|noisy|stale|missing_source|bad_draft|too_verbose> <item_id> [comment]",
+    "Feedback Ledger: /feedback_ledger",
     "Brief: /brief, /suggest_brief, /gmail_thread <thread_id>",
     "Prep: /prep, /prep <suggestion_id>",
     "Suggestions: /suggestions, /suggestion_dismiss <suggestion_id>, /suggestion_snooze <suggestion_id>, /suggestion_memory <suggestion_id>, /suggestion_draft <suggestion_id>, /suggestion_followup <suggestion_id>",
@@ -1040,6 +1048,7 @@ def render_command_reply(
     live_smoke_script: LiveSmokeScript | None = None,
     founder_daily_use_loop: FounderDailyUseLoop | None = None,
     founder_feedback_capture: FounderFeedbackCaptureReceipt | None = None,
+    feedback_ledger: FeedbackLedger | None = None,
     live_connector_readiness: LiveConnectorReadinessReport | None = None,
     calendar_source_trace: CalendarContextSourceTrace | None = None,
     gmail_source_trace: GmailContextSourceTrace | None = None,
@@ -1112,6 +1121,10 @@ def render_command_reply(
         if founder_feedback_capture is None:
             return render_feedback_usage()
         return render_founder_feedback_capture_receipt(founder_feedback_capture)
+    if command == "/feedback_ledger":
+        if feedback_ledger is None:
+            raise TelegramRobotConfigError("rejected_missing_feedback_ledger")
+        return render_feedback_ledger(feedback_ledger)
     if command == "/gmail_thread":
         if gmail_thread_drilldown is None:
             raise TelegramRobotConfigError("rejected_missing_gmail_thread_drilldown")
@@ -1310,6 +1323,7 @@ def handle_incoming_command(
     confirmation_receipts: tuple[UserConfirmationReceipt, ...] = (),
     document_extracted_text_by_file_id: dict[str, str] | None = None,
     usage_ledger_entries: tuple[UsageCostLedgerEntry, ...] = (),
+    feedback_ledger_entries: tuple[FeedbackLedgerEntry, ...] = (),
     approval_items: tuple[UserApprovedOutputItem, ...] = (),
     fast_path_cache_entries: tuple[FastPathCacheEntry, ...] = (),
     fast_path_now_epoch_seconds: int | None = None,
@@ -1408,6 +1422,7 @@ def handle_incoming_command(
     live_smoke_script = None
     founder_daily_use_loop = None
     founder_feedback_capture = None
+    feedback_ledger = None
     live_connector_readiness = None
     calendar_source_trace = None
     gmail_source_trace = None
@@ -1550,6 +1565,12 @@ def handle_incoming_command(
             )
         except ValueError:
             founder_feedback_capture = None
+    if authorized and incoming_command.command == "/feedback_ledger":
+        feedback_ledger = build_feedback_ledger(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            entries=feedback_ledger_entries,
+        )
     if authorized and incoming_command.command in {"/checkup", "/setup"}:
         live_connector_readiness = build_live_connector_readiness_report(
             owner_id=config.owner_id,
@@ -1826,6 +1847,7 @@ def handle_incoming_command(
             live_smoke_script=live_smoke_script,
             founder_daily_use_loop=founder_daily_use_loop,
             founder_feedback_capture=founder_feedback_capture,
+            feedback_ledger=feedback_ledger,
             live_connector_readiness=live_connector_readiness,
             calendar_source_trace=calendar_source_trace,
             gmail_source_trace=gmail_source_trace,
@@ -1969,7 +1991,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             f"Dev mode: {'enabled' if validated.dev_mode else 'disabled'}",
             f"Dry run: {'enabled' if validated.dry_run else 'disabled'}",
             "Product menu: Today, Prep, Pilot, Suggestions, Approvals, Drafts, Memory, Documents, Usage, Status",
-            "Available commands: /start, /help, /menu, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /founder_loop, /feedback, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /approvals, /approve, /reject, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory, /memory_limits, /memory_pending, document upload",
+            "Available commands: /start, /help, /menu, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /founder_loop, /feedback, /feedback_ledger, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /approvals, /approve, /reject, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory, /memory_limits, /memory_pending, document upload",
             "External connectors: Google Calendar read-only optional",
             "Calendar writes: disabled",
             "LLM/model calls: disabled",
@@ -1985,6 +2007,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "Live Smoke Script: /live_smoke owner-requested manual smoke guide only",
             "Founder Daily Use Loop: /founder_loop owner-requested morning operating card only",
             "Founder Feedback Capture: /feedback creates local non-persistent feedback receipts only",
+            "Feedback Ledger & Tags: /feedback_ledger shows local structured feedback entries only",
             "Premium Telegram UX Shell: grouped customer-facing control shell only",
             "Live Connector Readiness Check: /checkup owner-requested read-only readiness only",
             "Gmail Thread Drilldown: /gmail_thread <thread_id> owner-requested read-only metadata only",

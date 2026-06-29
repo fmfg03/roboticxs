@@ -212,4 +212,4 @@ def test_203p_reference_and_roadmap_close_feedback_capture_without_writes():
     assert "does not persist feedback" in reference
     assert "does not authorize Gmail send" in reference
     assert '"stage_id":"203P","stage_name":"Founder Feedback Capture v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "204P and later remain unauthorized" in roadmap
+    assert "205P and later remain unauthorized" in roadmap

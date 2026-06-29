@@ -204,4 +204,4 @@ def test_187p_reference_and_roadmap_close_memory_source_forget_receipts():
     assert "does not authorize Memory Center mutation" in reference
     assert "Source evidence deletion: disabled" in reference
     assert '"stage_id":"187P","stage_name":"Memory Source & Forget Receipts v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "204P and later remain unauthorized" in roadmap
+    assert "205P and later remain unauthorized" in roadmap

@@ -116,4 +116,4 @@ def test_201p_reference_and_roadmap_close_live_smoke_script_without_writes():
     assert "does not authorize automated live smoke execution" in reference
     assert "Gmail send/archive/delete/label/modify" in reference
     assert '"stage_id":"201P","stage_name":"Live Smoke Script v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "204P and later remain unauthorized" in roadmap
+    assert "205P and later remain unauthorized" in roadmap

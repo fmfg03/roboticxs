@@ -87,4 +87,4 @@ def test_147p_roadmap_records_inbox_decision_and_later_closed_stages():
     assert "149P later added local read-only runtime doctor diagnostics only" in roadmap
     assert "150P later added customer-facing Telegram product shell copy only" in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "204P and later remain unauthorized" in roadmap
+    assert "205P and later remain unauthorized" in roadmap
