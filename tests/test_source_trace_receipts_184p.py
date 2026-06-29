@@ -196,4 +196,4 @@ def test_184p_reference_and_roadmap_close_source_trace_receipts_only():
     assert "184P is source trace receipt rendering only." in reference
     assert "189P and later remain unauthorized" in reference
     assert '"stage_id":"184P","stage_name":"Source Trace Receipts v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "211P and later remain unauthorized" in roadmap
+    assert "212P and later remain unauthorized" in roadmap

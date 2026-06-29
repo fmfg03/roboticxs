@@ -132,4 +132,4 @@ def test_200p_reference_and_roadmap_close_audit_gate_without_writes():
     assert "Generated local loop handoffs" in reference
     assert "does not authorize Gmail send" in reference
     assert '"stage_id":"200P","stage_name":"Customer Pilot Audit Gate v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "211P and later remain unauthorized" in roadmap
+    assert "212P and later remain unauthorized" in roadmap
