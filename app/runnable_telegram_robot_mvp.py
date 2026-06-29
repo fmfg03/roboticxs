@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import json
 import os
 import time
-from typing import Protocol
+from typing import Any, Protocol
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
@@ -141,6 +141,13 @@ from app.proactive_meeting_suggestion import (
     render_proactive_meeting_suggestion_scan,
     run_proactive_meeting_suggestion_scan,
 )
+from app.premium_telegram_ux_shell import (
+    build_premium_telegram_help_sections,
+    build_premium_telegram_home_sections,
+    build_premium_telegram_status_sections,
+    render_premium_shell_boundaries,
+    render_telegram_ux_sections,
+)
 from app.suggested_meeting_brief_request import (
     SuggestedMeetingBriefRequestRecord,
     render_suggested_meeting_brief_request,
@@ -196,6 +203,15 @@ from app.user_confirmation_runtime import (
     build_user_confirmation_receipt,
     render_user_confirmation_receipt,
 )
+from app.user_approved_output_queue import (
+    UserApprovedOutputDecisionReceipt,
+    UserApprovedOutputItem,
+    UserApprovedOutputQueue,
+    build_user_approved_output_decision_receipt,
+    build_user_approved_output_queue,
+    render_user_approved_output_decision_receipt,
+    render_user_approved_output_queue,
+)
 from app.usage_cost_ledger import (
     UsageCostLedgerEntry,
     render_usage_cost_ledger_summary,
@@ -212,6 +228,7 @@ DEFAULT_DRY_RUN = False
 SUPPORTED_COMMANDS = (
     "/start",
     "/help",
+    "/menu",
     "/status",
     "/checkup",
     "/setup",
@@ -234,6 +251,9 @@ SUPPORTED_COMMANDS = (
     "/suggestion_memory",
     "/suggestion_draft",
     "/suggestion_followup",
+    "/approvals",
+    "/approve",
+    "/reject",
     "/drafts",
     "/draft_approve",
     "/draft_reject",
@@ -256,8 +276,9 @@ SUPPORTED_COMMANDS = (
 PRODUCT_MENU_LINES = (
     "Today: /today, /miss, /daily_brief, /demo, /pilot",
     "Brief: /brief, /suggest_brief, /gmail_thread <thread_id>",
-    "Prep: /prep <suggestion_id>",
+    "Prep: /prep, /prep <suggestion_id>",
     "Suggestions: /suggestions, /suggestion_dismiss <suggestion_id>, /suggestion_snooze <suggestion_id>, /suggestion_memory <suggestion_id>, /suggestion_draft <suggestion_id>, /suggestion_followup <suggestion_id>",
+    "Approvals: /approvals, /approve <approval_id>, /reject <approval_id>",
     "Drafts: /drafts, /draft_approve <draft_id>, /draft_reject <draft_id>, /draft_edit <draft_id> <text>, /draft_expire <draft_id>, /export_text <confirmation_id>, /export_email <confirmation_id>, /export_file <confirmation_id>",
     "Usage: /usage",
     "Tasks: /inbox, /inbox_done <item_id>, /inbox_dismiss <item_id>",
@@ -330,6 +351,7 @@ class TelegramClientProtocol(Protocol):
         chat_id: int,
         text: str,
         reply_to_message_id: int | None = None,
+        reply_markup: dict[str, Any] | None = None,
     ) -> dict:
         ...
 
@@ -357,6 +379,7 @@ class TelegramBotApiClient:
         chat_id: int,
         text: str,
         reply_to_message_id: int | None = None,
+        reply_markup: dict[str, Any] | None = None,
     ) -> dict:
         payload: dict[str, int | str] = {
             "chat_id": chat_id,
@@ -364,6 +387,8 @@ class TelegramBotApiClient:
         }
         if reply_to_message_id is not None:
             payload["reply_to_message_id"] = reply_to_message_id
+        if reply_markup is not None:
+            payload["reply_markup"] = json.dumps(reply_markup, sort_keys=True)
         return self._post("sendMessage", payload)
 
     def _post(self, method: str, payload: dict[str, int | str]) -> dict:
@@ -580,12 +605,11 @@ def render_start_command_reply(config: TelegramRobotConfig) -> str:
         [
             "Roboticxs",
             "",
-            "Welcome. Your private robot is online.",
+            "Premium control shell",
             f"Robot: {config.robot_id}",
             "Access: owner-gated",
             "",
-            "What I can do now:",
-            *PRODUCT_MENU_LINES,
+            *render_telegram_ux_sections(build_premium_telegram_home_sections()),
             "",
             "What needs setup:",
             "- Calendar reads need read-only Google setup.",
@@ -599,7 +623,9 @@ def render_start_command_reply(config: TelegramRobotConfig) -> str:
             "",
             "Choose first useful action:",
             "- /today for your daily view",
-            "- /prep <suggestion_id> for meeting prep",
+            "- /prep for the next available meeting prep",
+            "- /prep <suggestion_id> for a specific meeting prep",
+            "- /pilot for the controlled customer pilot flow",
             "- /status for setup and capability status",
             "",
             NO_ACTION_TAKEN_LINE,
@@ -610,9 +636,9 @@ def render_start_command_reply(config: TelegramRobotConfig) -> str:
 def render_help_command_reply() -> str:
     return "\n".join(
         [
-            "Roboticxs Menu",
+            "Roboticxs Command Center",
             "",
-            *PRODUCT_MENU_LINES,
+            *render_telegram_ux_sections(build_premium_telegram_help_sections()),
             "",
             "Skill gates:",
             *render_skill_runtime_manifest_summary(),
@@ -631,6 +657,60 @@ def render_help_command_reply() -> str:
     )
 
 
+def render_menu_command_reply() -> str:
+    return "\n".join(
+        [
+            "Roboticxs Menu",
+            "",
+            "Daily",
+            "- /today - daily context",
+            "- /prep - next meeting prep",
+            "",
+            "Work",
+            "- /suggestions - pending suggestions",
+            "- /approvals - outputs waiting for approval",
+            "- /drafts - approval queue",
+            "- /inbox - task inbox",
+            "",
+            "Memory",
+            "- /memory - approved memory",
+            "- /memory_review - pending memory decisions",
+            "",
+            "Documents",
+            "- Send a document for draft-only intake",
+            "",
+            "Usage & setup",
+            "- /usage - estimated usage",
+            "- /status - setup and capabilities",
+            "",
+            "Boundaries",
+            "- No sends.",
+            "- No Calendar writes.",
+            "- No Gmail writes.",
+            "- Drafts and memory changes require approval.",
+            "",
+            "Use /help for the full command reference.",
+            NO_ACTION_TAKEN_LINE,
+        ]
+    )
+
+
+def build_menu_reply_markup() -> dict[str, object]:
+    return {
+        "keyboard": [
+            [{"text": "/today"}, {"text": "/prep"}],
+            [{"text": "/suggestions"}, {"text": "/approvals"}],
+            [{"text": "/drafts"}, {"text": "/inbox"}],
+            [{"text": "/memory"}, {"text": "Send a document"}],
+            [{"text": "/usage"}, {"text": "/status"}],
+        ],
+        "resize_keyboard": True,
+        "one_time_keyboard": False,
+        "is_persistent": True,
+        "input_field_placeholder": "Choose a Roboticxs action",
+    }
+
+
 def render_status_command_reply(config: TelegramRobotConfig) -> str:
     live_telegram_state = "disabled" if config.dry_run else "enabled"
     dev_mode_state = "enabled" if config.dev_mode else "disabled"
@@ -644,13 +724,22 @@ def render_status_command_reply(config: TelegramRobotConfig) -> str:
             f"Telegram replies: {live_telegram_state}",
             f"Dev/sandbox mode: {dev_mode_state}",
             "",
+            *render_telegram_ux_sections(
+                build_premium_telegram_status_sections(
+                    telegram_replies=live_telegram_state,
+                    dev_mode=dev_mode_state,
+                )
+            ),
+            "",
             *render_setup_capability_status_sections(),
             "",
             *render_compact_live_connector_readiness_block(readiness),
             "",
+            *render_premium_shell_boundaries(),
+            "",
             *render_skill_runtime_boundary_lines(),
             "",
-            "Roadmap: 95P-190P closed, Controlled Live Pilot Baseline v0 active",
+            "Roadmap: 95P-191P closed, Premium Telegram UX Shell v0 active",
         ]
     )
 
@@ -855,6 +944,21 @@ def render_requested_suggested_brief_reply(record: SuggestedMeetingBriefRequestR
     )
 
 
+def resolve_prep_suggestion_id(
+    *,
+    requested_suggestion_id: str | None,
+    suggestion_scan: ProactiveMeetingSuggestionScanRecord,
+) -> str:
+    normalized = (requested_suggestion_id or "").strip()
+    if normalized:
+        return normalized
+    if suggestion_scan.status == "blocked_calendar_unavailable":
+        return "calendar-unavailable"
+    if suggestion_scan.suggestions:
+        return suggestion_scan.suggestions[0].suggestion_id
+    return ""
+
+
 def render_command_reply(
     command: str,
     config: TelegramRobotConfig,
@@ -879,6 +983,8 @@ def render_command_reply(
     document_review_pack_v1: DocumentReviewPackV1Record | None = None,
     suggestion_inbox: SuggestionInbox | None = None,
     suggestion_decision: SuggestionDecisionReceipt | None = None,
+    user_approved_output_queue: UserApprovedOutputQueue | None = None,
+    user_approved_output_decision: UserApprovedOutputDecisionReceipt | None = None,
     action_draft_queue: ActionDraftQueue | None = None,
     user_confirmation: UserConfirmationReceipt | None = None,
     approved_output_export: ApprovedOutputExportRecord | None = None,
@@ -897,6 +1003,8 @@ def render_command_reply(
         return render_start_command_reply(config)
     if command == "/help":
         return render_help_command_reply()
+    if command == "/menu":
+        return render_menu_command_reply()
     if command == "/status":
         return render_status_command_reply(config)
     if command in {"/checkup", "/setup"}:
@@ -981,6 +1089,14 @@ def render_command_reply(
         if suggestion_decision is None:
             raise TelegramRobotConfigError("rejected_missing_suggestion_decision")
         return render_suggestion_decision_receipt(suggestion_decision)
+    if command == "/approvals":
+        if user_approved_output_queue is None:
+            raise TelegramRobotConfigError("rejected_missing_user_approved_output_queue")
+        return render_user_approved_output_queue(user_approved_output_queue)
+    if command in {"/approve", "/reject"}:
+        if user_approved_output_decision is None:
+            raise TelegramRobotConfigError("rejected_missing_user_approved_output_decision")
+        return render_user_approved_output_decision_receipt(user_approved_output_decision)
     if command == "/drafts":
         if action_draft_queue is None:
             raise TelegramRobotConfigError("rejected_missing_action_draft_queue")
@@ -1108,6 +1224,7 @@ def handle_incoming_command(
     confirmation_receipts: tuple[UserConfirmationReceipt, ...] = (),
     document_extracted_text_by_file_id: dict[str, str] | None = None,
     usage_ledger_entries: tuple[UsageCostLedgerEntry, ...] = (),
+    approval_items: tuple[UserApprovedOutputItem, ...] = (),
 ) -> TelegramSendReceipt:
     authorized = is_owner_authorized(
         telegram_user_id=incoming_command.telegram_user_id,
@@ -1153,6 +1270,10 @@ def handle_incoming_command(
         incoming_command.raw_text,
         command=incoming_command.command,
     )
+    approval_decision_argument = extract_telegram_command_argument(
+        incoming_command.raw_text,
+        command=incoming_command.command,
+    )
     user_confirmation_argument = extract_telegram_command_argument(
         incoming_command.raw_text,
         command=incoming_command.command,
@@ -1182,6 +1303,8 @@ def handle_incoming_command(
     document_review_pack_v1 = None
     suggestion_inbox = None
     suggestion_decision = None
+    user_approved_output_queue = None
+    user_approved_output_decision = None
     action_draft_queue = None
     user_confirmation = None
     approved_output_export = None
@@ -1335,7 +1458,10 @@ def handle_incoming_command(
         meeting_prep_pack = build_meeting_prep_pack(
             owner_id=config.owner_id,
             robot_id=config.robot_id,
-            suggestion_id=prep_suggestion_id or "",
+            suggestion_id=resolve_prep_suggestion_id(
+                requested_suggestion_id=prep_suggestion_id,
+                suggestion_scan=suggestion_scan,
+            ),
             suggestion_scan=suggestion_scan,
             memory_snapshot=memory_snapshot,
         )
@@ -1448,6 +1574,20 @@ def handle_incoming_command(
             choice=_suggestion_decision_choice_from_command(incoming_command.command),
             inbox=suggestion_inbox,
         )
+    if authorized and incoming_command.command in {"/approvals", "/approve", "/reject"}:
+        user_approved_output_queue = build_user_approved_output_queue(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            items=approval_items,
+        )
+    if authorized and incoming_command.command in {"/approve", "/reject"}:
+        user_approved_output_decision = build_user_approved_output_decision_receipt(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            approval_id=approval_decision_argument or "",
+            decision="approve" if incoming_command.command == "/approve" else "reject",
+            queue=user_approved_output_queue,
+        )
     if authorized and incoming_command.command == "/drafts":
         action_draft_queue = build_action_draft_queue(
             owner_id=config.owner_id,
@@ -1515,6 +1655,8 @@ def handle_incoming_command(
             document_review_pack_v1=document_review_pack_v1,
             suggestion_inbox=suggestion_inbox,
             suggestion_decision=suggestion_decision,
+            user_approved_output_queue=user_approved_output_queue,
+            user_approved_output_decision=user_approved_output_decision,
             action_draft_queue=action_draft_queue,
             user_confirmation=user_confirmation,
             approved_output_export=approved_output_export,
@@ -1529,10 +1671,17 @@ def handle_incoming_command(
         )
     else:
         reply_text = render_unauthorized_reply()
-    receipt = client.send_message(
-        incoming_command.chat_id,
-        reply_text,
+    reply_markup = (
+        build_menu_reply_markup()
+        if authorized and incoming_command.command == "/menu"
+        else None
+    )
+    receipt = _send_telegram_reply(
+        client=client,
+        chat_id=incoming_command.chat_id,
+        text=reply_text,
         reply_to_message_id=incoming_command.message_id,
+        reply_markup=reply_markup,
     )
     return TelegramSendReceipt(
         chat_id=incoming_command.chat_id,
@@ -1543,6 +1692,27 @@ def handle_incoming_command(
         message_id=incoming_command.message_id,
         api_receipt=receipt,
     )
+
+
+def _send_telegram_reply(
+    *,
+    client: TelegramClientProtocol,
+    chat_id: int,
+    text: str,
+    reply_to_message_id: int | None,
+    reply_markup: dict[str, Any] | None = None,
+) -> dict:
+    if reply_markup is None:
+        return client.send_message(chat_id, text, reply_to_message_id=reply_to_message_id)
+    try:
+        return client.send_message(
+            chat_id,
+            text,
+            reply_to_message_id=reply_to_message_id,
+            reply_markup=reply_markup,
+        )
+    except TypeError:
+        return client.send_message(chat_id, text, reply_to_message_id=reply_to_message_id)
 
 
 def run_polling_once(
@@ -1632,8 +1802,8 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             f"Owner gate: enabled ({len(validated.owner_ids)} allowed Telegram user id(s))",
             f"Dev mode: {'enabled' if validated.dev_mode else 'disabled'}",
             f"Dry run: {'enabled' if validated.dry_run else 'disabled'}",
-            "Product menu: Today, Brief, Prep, Drafts, Usage, Tasks, Memory, Documents, Setup Check",
-            "Available commands: /start, /help, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory, /memory_limits, /memory_pending, document upload",
+            "Product menu: Today, Prep, Pilot, Suggestions, Approvals, Drafts, Memory, Documents, Usage, Status",
+            "Available commands: /start, /help, /menu, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /approvals, /approve, /reject, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory, /memory_limits, /memory_pending, document upload",
             "External connectors: Google Calendar read-only optional",
             "Calendar writes: disabled",
             "LLM/model calls: disabled",
@@ -1644,12 +1814,13 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "Cross-Source Daily Brief: /daily_brief owner-requested read-only brief only",
             "Customer MVP Demo Pack v1: /demo owner-requested local demo only",
             "Controlled Live Pilot Baseline: /pilot owner-requested controlled pilot receipt only",
+            "Premium Telegram UX Shell: grouped customer-facing control shell only",
             "Live Connector Readiness Check: /checkup owner-requested read-only readiness only",
             "Gmail Thread Drilldown: /gmail_thread <thread_id> owner-requested read-only metadata only",
             "Open Loops command: /loops owner-requested read-only unresolved loops only",
             "Personal Admin Inbox: /inbox owner-requested read-only pending items only",
             "Inbox Item Decisions: /inbox_done and /inbox_dismiss create local decision receipts only",
-            "Meeting Prep Pack: /prep <suggestion_id> owner-requested read-only prep only",
+            "Meeting Prep Pack: /prep or /prep <suggestion_id> owner-requested read-only prep only",
             "Meeting Prep Pack v1: /prep includes read-only email/document context when locally available",
             "Brief Memory Proposals: shown in /prep as pending owner review only",
             "Memory Review Decisions: /memory_approve, /memory_reject, and /memory_edit create local decision receipts only",
@@ -1658,6 +1829,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "Proactive meeting suggestions: /suggest_brief owner-requested replies only",
             "Suggestion Inbox: /suggestions owner-requested local pending suggestions only",
             "Suggestion Decisions: /suggestion_* owner-requested local receipts only",
+            "User-Approved Output Queue: /approvals, /approve, and /reject create local receipts only",
             "Action Draft Queue: /drafts owner-requested local approval candidates only",
             "User Confirmation Runtime: /draft_* creates local confirmation receipts only",
             "Approved Output Export: /export_* creates local export payloads only",

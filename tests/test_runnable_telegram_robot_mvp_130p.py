@@ -1,18 +1,24 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 from pathlib import Path
 import re
 
 import pytest
 
 from app.action_draft_queue import build_action_draft_queue
+from app.calendar_context_scan import build_calendar_context_scan_record
+from app.google_calendar_readonly_connector import CalendarReadResult
+from app.proactive_meeting_suggestion import build_proactive_meeting_suggestion_scan
 from app.proactive_suggestion_loop import ProactiveSuggestionSignal, build_proactive_suggestion_loop_records
 from app.runnable_telegram_robot_mvp import (
     DEFAULT_ROBOT_ID,
+    TelegramBotApiClient,
     TelegramIncomingCommand,
     TelegramRobotConfig,
     TelegramRobotConfigError,
+    build_menu_reply_markup,
     build_telegram_robot_startup_report,
     handle_incoming_command,
     load_telegram_robot_config_from_env,
@@ -20,11 +26,13 @@ from app.runnable_telegram_robot_mvp import (
     parse_telegram_incoming_command,
     render_brief_command_reply,
     render_help_command_reply,
+    render_menu_command_reply,
     render_miss_command_reply,
     render_start_command_reply,
     render_status_command_reply,
     render_unauthorized_reply,
     render_unknown_command_reply,
+    resolve_prep_suggestion_id,
     run_polling_loop,
     run_polling_once,
     validate_telegram_robot_config,
@@ -35,6 +43,7 @@ from app.telegram_memory_center_commands import TelegramMemoryCenterSourceBundle
 from app.memory_center_projection import MemoryCenterItem
 from app.usage_cost_ledger import build_usage_cost_ledger_entry
 from app.user_confirmation_runtime import build_user_confirmation_receipt
+from app.user_approved_output_queue import build_user_approved_output_item
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -46,7 +55,7 @@ class FakeTelegramClient:
     def __init__(self, updates_batches: list[list[dict]] | None = None) -> None:
         self._updates_batches = list(updates_batches or [])
         self.get_updates_calls: list[dict[str, int | None]] = []
-        self.sent_messages: list[dict[str, int | str | None]] = []
+        self.sent_messages: list[dict[str, object]] = []
 
     def get_updates(self, offset: int | None, timeout: int, limit: int) -> list[dict]:
         self.get_updates_calls.append(
@@ -56,6 +65,25 @@ class FakeTelegramClient:
             return self._updates_batches.pop(0)
         return []
 
+    def send_message(
+        self,
+        chat_id: int,
+        text: str,
+        reply_to_message_id: int | None = None,
+        reply_markup: dict[str, object] | None = None,
+    ) -> dict:
+        payload = {
+            "chat_id": chat_id,
+            "text": text,
+            "reply_to_message_id": reply_to_message_id,
+        }
+        if reply_markup is not None:
+            payload["reply_markup"] = reply_markup
+        self.sent_messages.append(payload)
+        return {"ok": True, "result": payload}
+
+
+class LegacyTelegramClient(FakeTelegramClient):
     def send_message(
         self,
         chat_id: int,
@@ -417,11 +445,12 @@ def test_130p_start_from_authorized_owner_produces_deterministic_online_response
 
     assert receipt.authorized is True
     assert receipt.reply_text == render_start_command_reply(config)
-    assert "Welcome. Your private robot is online." in receipt.reply_text
+    assert "Premium control shell" in receipt.reply_text
     assert "Access: owner-gated" in receipt.reply_text
-    assert "Today: /today, /miss" in receipt.reply_text
-    assert "Suggestions: /suggestions" in receipt.reply_text
-    assert "Tasks: /inbox, /inbox_done <item_id>, /inbox_dismiss <item_id>" in receipt.reply_text
+    assert "Command Center" in receipt.reply_text
+    assert "Work Queue" in receipt.reply_text
+    assert "Action: /today or /daily_brief" in receipt.reply_text
+    assert "Action: /suggestions" in receipt.reply_text
     assert "I do not take external actions without approval." in receipt.reply_text
 
 
@@ -444,10 +473,15 @@ def test_130p_help_from_authorized_owner_produces_deterministic_command_list():
     assert "/today" in receipt.reply_text
     assert "/daily_brief" in receipt.reply_text
     assert "/demo" in receipt.reply_text
-    assert "Roboticxs Menu" in receipt.reply_text
+    assert "Roboticxs Command Center" in receipt.reply_text
+    assert "Daily Flow" in receipt.reply_text
+    assert "Review Flow" in receipt.reply_text
     assert "/brief" in receipt.reply_text
     assert "/suggest_brief" in receipt.reply_text
     assert "/suggestions" in receipt.reply_text
+    assert "/approvals" in receipt.reply_text
+    assert "/approve <id>" in receipt.reply_text
+    assert "/reject <id>" in receipt.reply_text
     assert "/drafts" in receipt.reply_text
     assert "/draft_approve" in receipt.reply_text
     assert "/export_text" in receipt.reply_text
@@ -457,6 +491,254 @@ def test_130p_help_from_authorized_owner_produces_deterministic_command_list():
     assert "Skill gates:" in receipt.reply_text
     assert "- Gmail Drafts:" in receipt.reply_text
     assert "/brief is not enabled yet." not in receipt.reply_text
+
+
+
+
+def test_rqf_019r_menu_alias_matches_help_shell_without_new_authority():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/menu"))
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+    )
+
+    assert receipt.authorized is True
+    assert receipt.command == "/menu"
+    assert receipt.reply_text == render_menu_command_reply()
+    assert "Roboticxs Menu" in receipt.reply_text
+    assert "No external action was taken." in receipt.reply_text
+
+
+def test_rqf_025r_menu_sends_enriched_keyboard_without_new_authority():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/menu"))
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+    )
+
+    assert receipt.authorized is True
+    assert receipt.reply_text == render_menu_command_reply()
+    assert receipt.api_receipt["result"]["reply_markup"] == build_menu_reply_markup()
+    assert client.sent_messages[0]["reply_markup"] == build_menu_reply_markup()
+    assert "/today" in receipt.reply_text
+    assert "/prep" in receipt.reply_text
+    assert "/suggestions" in receipt.reply_text
+    assert "/approvals" in receipt.reply_text
+    assert "/drafts" in receipt.reply_text
+    assert "/memory" in receipt.reply_text
+    assert "/usage" in receipt.reply_text
+    assert "/status" in receipt.reply_text
+    assert "/memory_approve" not in receipt.reply_text
+    assert "No sends." in receipt.reply_text
+    assert "No Calendar writes." in receipt.reply_text
+    assert "No Gmail writes." in receipt.reply_text
+    assert "Drafts and memory changes require approval." in receipt.reply_text
+    assert "callback_data" not in str(receipt.api_receipt)
+    assert "Calendar writes: enabled" not in receipt.reply_text
+    assert "Gmail writes: enabled" not in receipt.reply_text
+
+
+def test_rqf_025r_menu_falls_back_for_legacy_clients_without_reply_markup():
+    config = build_valid_config()
+    client = LegacyTelegramClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/menu"))
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+    )
+
+    assert receipt.authorized is True
+    assert receipt.reply_text == render_menu_command_reply()
+    assert "reply_markup" not in receipt.api_receipt["result"]
+    assert "Roboticxs Menu" in receipt.reply_text
+
+
+def test_rqf_025r_bot_api_client_serializes_menu_reply_markup_without_callbacks(monkeypatch: pytest.MonkeyPatch):
+    calls: list[tuple[str, dict[str, object]]] = []
+    api_client = TelegramBotApiClient(bot_token="token-rqf-025r")
+
+    def fake_post(method: str, payload: dict[str, object]) -> dict:
+        calls.append((method, payload))
+        return {"ok": True, "result": payload}
+
+    monkeypatch.setattr(api_client, "_post", fake_post)
+
+    receipt = api_client.send_message(
+        4004,
+        render_menu_command_reply(),
+        reply_to_message_id=123,
+        reply_markup=build_menu_reply_markup(),
+    )
+
+    assert calls[0][0] == "sendMessage"
+    payload = calls[0][1]
+    assert payload["chat_id"] == 4004
+    assert payload["reply_to_message_id"] == 123
+    markup = json.loads(payload["reply_markup"])
+    assert markup["keyboard"][0][0]["text"] == "/today"
+    assert markup["keyboard"][0][1]["text"] == "/prep"
+    assert markup["keyboard"][1][1]["text"] == "/approvals"
+    assert "callback_data" not in payload["reply_markup"]
+    assert receipt["result"] == payload
+
+
+def test_rqf_027r_approvals_command_returns_empty_state_without_external_actions():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    gmail_draft_client = FakeGmailDraftHttpClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/approvals"))
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+        gmail_draft_http_client=gmail_draft_client,
+    )
+
+    assert receipt.authorized is True
+    assert receipt.command == "/approvals"
+    assert "Approvals" in receipt.reply_text
+    assert "Status: empty" in receipt.reply_text
+    assert "No pending approvals." in receipt.reply_text
+    assert "Approve means record local approval; it does not execute." in receipt.reply_text
+    assert "Email send: disabled" in receipt.reply_text
+    assert "Gmail draft creation: disabled" in receipt.reply_text
+    assert "Calendar writes: disabled" in receipt.reply_text
+    assert "External API writes: disabled" in receipt.reply_text
+    assert "No external action was taken." in receipt.reply_text
+    assert gmail_draft_client.calls == []
+
+
+def test_rqf_027r_approvals_command_lists_pending_items():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/approvals"))
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+        approval_items=(
+            build_user_approved_output_item(
+                owner_id=config.owner_id,
+                robot_id=config.robot_id,
+                output_type="email_reply",
+                title="Follow up with client",
+                body_preview="Thanks for the meeting. Here are the next steps.",
+                approval_id="approval-027r",
+            ),
+        ),
+    )
+
+    assert "Pending approvals: 1" in receipt.reply_text
+    assert "approval-027r | email_reply | pending_user_approval" in receipt.reply_text
+    assert "Follow up with client" in receipt.reply_text
+
+
+def test_rqf_027r_approve_records_local_receipt_without_external_writes():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    calendar_client = FakeCalendarHttpClient()
+    gmail_client = FakeGmailReadonlyHttpClient()
+    gmail_draft_client = FakeGmailDraftHttpClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/approve approval-027r"))
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+        calendar_http_client=calendar_client,
+        gmail_http_client=gmail_client,
+        gmail_draft_http_client=gmail_draft_client,
+        approval_items=(
+            build_user_approved_output_item(
+                owner_id=config.owner_id,
+                robot_id=config.robot_id,
+                output_type="email_reply",
+                title="Follow up with client",
+                body_preview="Thanks for the meeting. Here are the next steps.",
+                approval_id="approval-027r",
+            ),
+        ),
+    )
+
+    assert receipt.command == "/approve"
+    assert "Approval Receipt" in receipt.reply_text
+    assert "Status: approved_local_receipt" in receipt.reply_text
+    assert "Approved locally." in receipt.reply_text
+    assert "No email sent." in receipt.reply_text
+    assert "No Gmail draft created." in receipt.reply_text
+    assert "No calendar event created." in receipt.reply_text
+    assert "No external action performed." in receipt.reply_text
+    assert "Receipt recorded." in receipt.reply_text
+    assert calendar_client.calls == []
+    assert gmail_client.calls == []
+    assert gmail_draft_client.calls == []
+
+
+def test_rqf_027r_reject_records_local_receipt_without_external_writes():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/reject approval-027r"))
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+        approval_items=(
+            build_user_approved_output_item(
+                owner_id=config.owner_id,
+                robot_id=config.robot_id,
+                output_type="email_reply",
+                title="Follow up with client",
+                body_preview="Thanks for the meeting. Here are the next steps.",
+                approval_id="approval-027r",
+            ),
+        ),
+    )
+
+    assert receipt.command == "/reject"
+    assert "Status: rejected_local_receipt" in receipt.reply_text
+    assert "Decision recorded locally." in receipt.reply_text
+    assert "No email sent." in receipt.reply_text
+    assert "No external action performed." in receipt.reply_text
+
+
+def test_rqf_027r_invalid_approval_id_fails_closed_in_telegram():
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/approve missing-approval"))
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+        approval_items=(
+            build_user_approved_output_item(
+                owner_id=config.owner_id,
+                robot_id=config.robot_id,
+                output_type="email_reply",
+                title="Follow up with client",
+                body_preview="Thanks for the meeting. Here are the next steps.",
+                approval_id="approval-027r",
+            ),
+        ),
+    )
+
+    assert "Status: blocked_approval_not_found" in receipt.reply_text
+    assert "No approval decision was applied." in receipt.reply_text
+    assert "No email sent." in receipt.reply_text
+    assert "No external action performed." in receipt.reply_text
 
 
 def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status():
@@ -485,7 +767,8 @@ def test_130p_status_from_authorized_owner_produces_deterministic_runtime_status
     assert "Task Inbox is your robot task inbox, not your Gmail inbox yet." in receipt.reply_text
     assert "Live connector readiness:" in receipt.reply_text
     assert "- Full check: /checkup" in receipt.reply_text
-    assert "Roadmap: 95P-190P closed, Controlled Live Pilot Baseline v0 active" in receipt.reply_text
+    assert "Roadmap: 95P-191P closed, Premium Telegram UX Shell v0 active" in receipt.reply_text
+    assert "Premium Telegram UX Shell: active" in receipt.reply_text
     assert "Skill Manifest Runtime Gates: active" in receipt.reply_text
 
 
@@ -956,7 +1239,7 @@ def test_130p_main_uses_injected_client_for_bounded_run(
 
     assert exit_code == 0
     assert "Roboticxs Telegram Robot: online" in captured.out
-    assert "Available commands: /start, /help, /status" in captured.out
+    assert "Available commands: /start, /help, /menu, /status" in captured.out
     assert "/checkup" in captured.out
     assert "/miss" in captured.out
     assert "/demo" in captured.out
@@ -975,8 +1258,8 @@ def test_130p_startup_report_is_deterministic():
 
     assert "Stage: 150P" in report
     assert "Owner gate: enabled" in report
-    assert "Product menu: Today, Brief, Prep, Drafts, Usage, Tasks, Memory, Documents, Setup Check" in report
-    assert "Available commands: /start, /help, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory, /memory_limits, /memory_pending, document upload" in report
+    assert "Product menu: Today, Prep, Pilot, Suggestions, Approvals, Drafts, Memory, Documents, Usage, Status" in report
+    assert "Available commands: /start, /help, /menu, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /approvals, /approve, /reject, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory, /memory_limits, /memory_pending, document upload" in report
     assert "External connectors: Google Calendar read-only optional" in report
     assert "Calendar writes: disabled" in report
     assert "LLM/model calls: disabled" in report
@@ -988,6 +1271,7 @@ def test_130p_startup_report_is_deterministic():
     assert "Customer MVP Demo Pack v1: /demo owner-requested local demo only" in report
     assert "Live Connector Readiness Check: /checkup owner-requested read-only readiness only" in report
     assert "Gmail Thread Drilldown: /gmail_thread <thread_id> owner-requested read-only metadata only" in report
+    assert "Meeting Prep Pack: /prep or /prep <suggestion_id> owner-requested read-only prep only" in report
     assert "Meeting Prep Pack v1: /prep includes read-only email/document context when locally available" in report
     assert "Open Loops command: /loops owner-requested read-only unresolved loops only" in report
     assert "Memory Review Decisions: /memory_approve, /memory_reject, and /memory_edit create local decision receipts only" in report
@@ -995,6 +1279,7 @@ def test_130p_startup_report_is_deterministic():
     assert "Document Intake: Telegram document metadata receives draft-only local replies only" in report
     assert "Proactive meeting suggestions: /suggest_brief owner-requested replies only" in report
     assert "Suggestion Inbox: /suggestions owner-requested local pending suggestions only" in report
+    assert "User-Approved Output Queue: /approvals, /approve, and /reject create local receipts only" in report
     assert "Suggestion Decisions: /suggestion_* owner-requested local receipts only" in report
     assert "Action Draft Queue: /drafts owner-requested local approval candidates only" in report
     assert "User Confirmation Runtime: /draft_* creates local confirmation receipts only" in report
@@ -1438,6 +1723,76 @@ def test_143p_prep_command_returns_owner_requested_read_only_meeting_prep_pack(m
     assert "Tools/workers: disabled" in receipt.reply_text
     assert "External writes: disabled" in receipt.reply_text
     assert "No external action was taken." in receipt.reply_text
+
+
+def test_rqf_023r_prep_without_suggestion_id_uses_next_read_only_meeting(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("ROBOTICXS_GOOGLE_CALENDAR_ACCESS_TOKEN", "token-rqf-023r")
+    config = build_valid_config()
+    client = FakeTelegramClient()
+    calendar_client = FakeCalendarHttpClient()
+    gmail_client = FakeGmailReadonlyHttpClient()
+    incoming = parse_telegram_incoming_command(build_command_update(text="/prep"))
+
+    receipt = handle_incoming_command(
+        incoming_command=incoming,
+        client=client,
+        config=config,
+        calendar_http_client=calendar_client,
+        gmail_http_client=gmail_client,
+        memory_source_bundle=TelegramMemoryCenterSourceBundle(
+            approved_memory_items=(active_memory(),),
+        ),
+    )
+
+    assert receipt.command == "/prep"
+    assert receipt.authorized is True
+    assert len(calendar_client.calls) == 1
+    assert len(gmail_client.calls) == 2
+    assert "Meeting Prep Pack" in receipt.reply_text
+    assert "Stage: 175P" in receipt.reply_text
+    assert "Status: completed_with_context" in receipt.reply_text
+    assert "Client demo prep meeting" in receipt.reply_text
+    assert "Review the objective for Client demo prep meeting." in receipt.reply_text
+    assert "Source Trace Receipt" in receipt.reply_text
+    assert "- Calendar: used" in receipt.reply_text
+    assert "- Gmail: used" in receipt.reply_text
+    assert "Next steps:" in receipt.reply_text
+    assert "Calendar writes: disabled" in receipt.reply_text
+    assert "Gmail send: disabled" in receipt.reply_text
+    assert "Draft creation: disabled" in receipt.reply_text
+    assert "External writes: disabled" in receipt.reply_text
+    assert "No external action was taken." in receipt.reply_text
+
+
+def test_rqf_023r_prep_resolver_fails_closed_when_calendar_is_unavailable():
+    scan = build_proactive_meeting_suggestion_scan(
+        owner_id="local-owner",
+        robot_id="roboticxs-dev",
+        context_scan=build_calendar_context_scan_record(
+            owner_id="local-owner",
+            robot_id="roboticxs-dev",
+            calendar_result=CalendarReadResult(
+                ok=False,
+                calendar_id="primary",
+                window_start="2026-06-24T10:00:00-06:00",
+                window_end="2026-07-01T10:00:00-06:00",
+                events=(),
+                read_only=True,
+                external_writes=False,
+                memory_mutation=False,
+                error_code="missing_access_token",
+                error_message="missing_access_token",
+            ),
+        ),
+    )
+
+    assert (
+        resolve_prep_suggestion_id(
+            requested_suggestion_id=None,
+            suggestion_scan=scan,
+        )
+        == "calendar-unavailable"
+    )
 
 
 def test_143p_unauthorized_prep_does_not_read_calendar_or_memory(monkeypatch: pytest.MonkeyPatch):
@@ -1935,4 +2290,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "191P and later remain unauthorized" in roadmap
+    assert "192P and later remain unauthorized" in roadmap

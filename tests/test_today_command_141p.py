@@ -251,6 +251,28 @@ def test_141p_render_names_today_sections_and_disabled_authority():
     assert "No external action was taken." in rendered
 
 
+def test_rqf_022r_today_renders_context_source_status_without_new_authority():
+    record = build_today_command_record(
+        owner_id="local-owner",
+        robot_id="roboticxs-dev",
+        suggestion_scan=suggestion_scan(event()),
+        memory_snapshot=memory_snapshot(active_memory()),
+    )
+
+    rendered = render_today_command(record)
+
+    assert "Context sources:" in rendered
+    assert "- Calendar context: completed" in rendered
+    assert "- Gmail context: unavailable_not_scanned" in rendered
+    assert "- Memory context: visible" in rendered
+    assert "- Open suggestions: 1" in rendered
+    assert "- Next recommended action: Use /brief" in rendered
+    assert "Gmail writes: enabled" not in rendered
+    assert "Calendar writes: disabled" in rendered
+    assert "External writes: disabled" in rendered
+    assert "No external action was taken." in rendered
+
+
 def test_141p_rejects_authority_expansion():
     record = build_today_command_record(
         owner_id="local-owner",

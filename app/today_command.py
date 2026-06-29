@@ -160,6 +160,9 @@ def render_today_command(record: TodayCommandRecord) -> str:
             f"Suggestion status: {record.suggestion_status}",
             "Read-only: true",
             "",
+            "Context sources:",
+            *(_format_context_source_line(line) for line in _context_source_lines(record)),
+            "",
             "Meetings:",
             *(f"- {line}" for line in record.calendar_lines),
             "",
@@ -196,6 +199,24 @@ def render_today_command(record: TodayCommandRecord) -> str:
             "No external action was taken.",
         ]
     )
+
+
+def _context_source_lines(record: TodayCommandRecord) -> tuple[str, ...]:
+    return (
+        f"Calendar context: {record.calendar_status}",
+        "Gmail context: unavailable_not_scanned",
+        f"Memory context: {record.memory_status}",
+        f"Open suggestions: {_open_suggestion_count(record)}",
+        f"Next recommended action: {record.suggested_next_action}",
+    )
+
+
+def _format_context_source_line(line: str) -> str:
+    return f"- {line}"
+
+
+def _open_suggestion_count(record: TodayCommandRecord) -> int:
+    return len([line for line in record.suggestion_lines if line.startswith("Run /brief ")])
 
 
 def _calendar_lines_from_suggestion_scan(record: ProactiveMeetingSuggestionScanRecord) -> tuple[str, ...]:

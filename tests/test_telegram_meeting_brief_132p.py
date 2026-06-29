@@ -48,9 +48,9 @@ def test_132p_help_start_and_status_expose_brief_command():
 
     assert "/brief" in help_reply
     assert "/brief is not enabled yet." not in help_reply
-    assert "What I can do now:" in start_reply
-    assert "Brief: /brief, /suggest_brief" in start_reply
-    assert "Brief: /brief, /suggest_brief" in help_reply
+    assert "Command Center" in start_reply
+    assert "Action: /today or /daily_brief" in start_reply
+    assert "Action: /prep <suggestion_id>, /brief, /suggest_brief" in help_reply
     assert "Active now:" in status_reply
     assert "- Meeting briefs and prep packs" in status_reply
 

@@ -67,17 +67,16 @@ def incoming(command: str, *, user_id: int = 111111111) -> TelegramIncomingComma
 def test_150p_start_shell_explains_product_in_30_seconds_without_secret_leaks():
     reply = render_start_command_reply(valid_config())
 
-    assert "Welcome. Your private robot is online." in reply
-    assert "What I can do now:" in reply
+    assert "Premium control shell" in reply
+    assert "Command Center" in reply
+    assert "Work Queue" in reply
     assert "What needs setup:" in reply
     assert "Approval boundaries:" in reply
     assert "Choose first useful action:" in reply
-    assert "Today: /today, /miss" in reply
-    assert "Brief: /brief, /suggest_brief" in reply
-    assert "Prep: /prep <suggestion_id>" in reply
-    assert "Tasks: /inbox, /inbox_done <item_id>, /inbox_dismiss <item_id>" in reply
-    assert "Memory: /memory, /memory_review, /memory_pending, /memory_limits" in reply
-    assert "Setup Check: /status" in reply
+    assert "Action: /today or /daily_brief" in reply
+    assert "Action: /prep <suggestion_id>" in reply
+    assert "Action: /memory" in reply
+    assert "Action: /status or /checkup" in reply
     assert "secret-bot-token-150p" not in reply
     assert "Doctor" not in reply
 
@@ -85,13 +84,14 @@ def test_150p_start_shell_explains_product_in_30_seconds_without_secret_leaks():
 def test_150p_help_groups_commands_by_customer_job():
     reply = render_help_command_reply()
 
-    assert "Roboticxs Menu" in reply
-    assert "Today:" in reply
-    assert "Brief:" in reply
-    assert "Prep:" in reply
-    assert "Tasks:" in reply
-    assert "Memory:" in reply
-    assert "Setup Check:" in reply
+    assert "Roboticxs Command Center" in reply
+    assert "Daily Flow" in reply
+    assert "Review Flow" in reply
+    assert "Control Flow" in reply
+    assert "Today" in reply
+    assert "Prep" in reply
+    assert "Memory" in reply
+    assert "Status" in reply
     assert "Tasks is your robot task inbox, not your Gmail inbox yet." in reply
     assert "Doctor" not in reply
 
@@ -141,7 +141,7 @@ def test_150p_product_shell_remains_owner_gated():
 
     assert receipt.authorized is False
     assert receipt.reply_text == "This Roboticxs bot is private. No action was taken."
-    assert "Roboticxs Menu" not in receipt.reply_text
+    assert "Roboticxs Command Center" not in receipt.reply_text
     assert "secret-bot-token-150p" not in receipt.reply_text
 
 
@@ -150,4 +150,4 @@ def test_150p_roadmap_records_product_shell_and_blocks_151p_plus():
 
     assert '"stage_id":"150P","stage_name":"Telegram Product Shell v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P behavior beyond customer-facing Meeting Prep Pack product flow" in roadmap
-    assert "191P and later remain unauthorized" in roadmap
+    assert "192P and later remain unauthorized" in roadmap

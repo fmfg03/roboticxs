@@ -39,7 +39,7 @@ def test_157p_demo_loop_builds_customer_product_transcript_without_external_writ
     ]
     assert all(step.authorized for step in transcript.steps)
     assert all(not step.external_write_allowed for step in transcript.steps)
-    assert "Welcome. Your private robot is online." in transcript.steps[0].reply_text
+    assert "Premium control shell" in transcript.steps[0].reply_text
     assert "Setup Check" in transcript.steps[1].reply_text
     assert "Today" in transcript.steps[2].reply_text
     assert "Meeting Prep Pack" in transcript.steps[3].reply_text
@@ -82,4 +82,4 @@ def test_157p_reference_and_roadmap_close_demo_loop_without_authority_expansion(
     assert "does not send Telegram messages" in reference
     assert "mutate Memory Center" in reference
     assert '"stage_id":"157P","stage_name":"Telegram Demo Loop v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "191P and later remain unauthorized" in roadmap
+    assert "192P and later remain unauthorized" in roadmap

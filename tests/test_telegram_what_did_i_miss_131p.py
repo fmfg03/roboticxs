@@ -41,8 +41,8 @@ def build_valid_config() -> TelegramRobotConfig:
 def test_131p_help_lists_miss_and_keeps_brief_disabled():
     reply = render_help_command_reply()
 
-    assert "Roboticxs Menu" in reply
-    assert "Setup Check: /status" in reply
+    assert "Roboticxs Command Center" in reply
+    assert "Action: /status, /checkup, /setup" in reply
     assert "/miss" in reply
     assert "/brief" in reply
     assert "/brief is not enabled yet." not in reply
@@ -53,7 +53,7 @@ def test_131p_status_marks_miss_enabled_brief_disabled_and_runtime_active():
 
     assert "Today and missed-item summaries" in reply
     assert "Meeting briefs and prep packs" in reply
-    assert "Roadmap: 95P-190P closed, Controlled Live Pilot Baseline v0 active" in reply
+    assert "Roadmap: 95P-191P closed, Premium Telegram UX Shell v0 active" in reply
 
 
 def test_131p_authorized_miss_produces_deterministic_local_read_only_reply():
