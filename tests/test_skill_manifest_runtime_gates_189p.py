@@ -43,6 +43,7 @@ def test_189p_maps_main_telegram_commands_to_skill_manifests():
         "/founder_loop": "basic",
         "/feedback": "basic",
         "/feedback_ledger": "basic",
+        "/founder_outcome": "basic",
         "/status": "setup",
         "/checkup": "setup",
         "/setup": "setup",

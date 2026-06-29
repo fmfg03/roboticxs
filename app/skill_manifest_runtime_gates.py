@@ -41,6 +41,7 @@ ACTION_CLASS_BY_COMMAND = {
     "/founder_loop": "READ",
     "/feedback": "CLASSIFY",
     "/feedback_ledger": "READ",
+    "/founder_outcome": "CLASSIFY",
     "/gmail_thread": "READ",
     "/loops": "READ",
     "/inbox": "READ",
@@ -91,6 +92,7 @@ COMMAND_SKILL_MAP = {
     "/founder_loop": "basic",
     "/feedback": "basic",
     "/feedback_ledger": "basic",
+    "/founder_outcome": "basic",
     "/gmail_thread": "daily_brief",
     "/loops": "daily_brief",
     "/inbox": "basic",
@@ -127,6 +129,7 @@ COMMAND_SKILL_MAP = {
 COMMANDS_REQUIRING_TARGET = {
     "/gmail_thread",
     "/feedback",
+    "/founder_outcome",
     "/prep",
     "/inbox_done",
     "/inbox_dismiss",

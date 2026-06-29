@@ -101,6 +101,13 @@ from app.feedback_ledger_tags import (
     build_feedback_ledger,
     render_feedback_ledger,
 )
+from app.daily_loop_outcome_tracker import (
+    DailyLoopOutcomeRecord,
+    build_daily_loop_outcome_record,
+    parse_daily_loop_outcome_argument,
+    render_daily_loop_outcome_record,
+    render_daily_loop_outcome_usage,
+)
 from app.inbox_item_decision import (
     InboxItemDecisionRecord,
     build_inbox_item_decision,
@@ -287,6 +294,7 @@ SUPPORTED_COMMANDS = (
     "/founder_loop",
     "/feedback",
     "/feedback_ledger",
+    "/founder_outcome",
     "/gmail_thread",
     "/loops",
     "/inbox",
@@ -327,6 +335,7 @@ PRODUCT_MENU_LINES = (
     "Today: /today, /miss, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /founder_loop",
     "Feedback: /feedback <useful|wrong|noisy|stale|missing_source|bad_draft|too_verbose> <item_id> [comment]",
     "Feedback Ledger: /feedback_ledger",
+    "Daily Loop Outcome: /founder_outcome <loop_id> <outcome> [note]",
     "Brief: /brief, /suggest_brief, /gmail_thread <thread_id>",
     "Prep: /prep, /prep <suggestion_id>",
     "Suggestions: /suggestions, /suggestion_dismiss <suggestion_id>, /suggestion_snooze <suggestion_id>, /suggestion_memory <suggestion_id>, /suggestion_draft <suggestion_id>, /suggestion_followup <suggestion_id>",
@@ -1049,6 +1058,7 @@ def render_command_reply(
     founder_daily_use_loop: FounderDailyUseLoop | None = None,
     founder_feedback_capture: FounderFeedbackCaptureReceipt | None = None,
     feedback_ledger: FeedbackLedger | None = None,
+    daily_loop_outcome: DailyLoopOutcomeRecord | None = None,
     live_connector_readiness: LiveConnectorReadinessReport | None = None,
     calendar_source_trace: CalendarContextSourceTrace | None = None,
     gmail_source_trace: GmailContextSourceTrace | None = None,
@@ -1125,6 +1135,10 @@ def render_command_reply(
         if feedback_ledger is None:
             raise TelegramRobotConfigError("rejected_missing_feedback_ledger")
         return render_feedback_ledger(feedback_ledger)
+    if command == "/founder_outcome":
+        if daily_loop_outcome is None:
+            return render_daily_loop_outcome_usage()
+        return render_daily_loop_outcome_record(daily_loop_outcome)
     if command == "/gmail_thread":
         if gmail_thread_drilldown is None:
             raise TelegramRobotConfigError("rejected_missing_gmail_thread_drilldown")
@@ -1388,6 +1402,10 @@ def handle_incoming_command(
         incoming_command.raw_text,
         command="/feedback",
     )
+    daily_loop_outcome_argument = extract_telegram_command_argument(
+        incoming_command.raw_text,
+        command="/founder_outcome",
+    )
     suggested_meeting_brief = None
     calendar_result = None
     proactive_meeting_suggestion = None
@@ -1423,6 +1441,7 @@ def handle_incoming_command(
     founder_daily_use_loop = None
     founder_feedback_capture = None
     feedback_ledger = None
+    daily_loop_outcome = None
     live_connector_readiness = None
     calendar_source_trace = None
     gmail_source_trace = None
@@ -1571,6 +1590,18 @@ def handle_incoming_command(
             robot_id=config.robot_id,
             entries=feedback_ledger_entries,
         )
+    if authorized and incoming_command.command == "/founder_outcome":
+        loop_id, outcome, outcome_note = parse_daily_loop_outcome_argument(daily_loop_outcome_argument)
+        try:
+            daily_loop_outcome = build_daily_loop_outcome_record(
+                owner_id=config.owner_id,
+                robot_id=config.robot_id,
+                loop_id=loop_id,
+                outcome=outcome,
+                note=outcome_note,
+            )
+        except ValueError:
+            daily_loop_outcome = None
     if authorized and incoming_command.command in {"/checkup", "/setup"}:
         live_connector_readiness = build_live_connector_readiness_report(
             owner_id=config.owner_id,
@@ -1848,6 +1879,7 @@ def handle_incoming_command(
             founder_daily_use_loop=founder_daily_use_loop,
             founder_feedback_capture=founder_feedback_capture,
             feedback_ledger=feedback_ledger,
+            daily_loop_outcome=daily_loop_outcome,
             live_connector_readiness=live_connector_readiness,
             calendar_source_trace=calendar_source_trace,
             gmail_source_trace=gmail_source_trace,
@@ -1991,7 +2023,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             f"Dev mode: {'enabled' if validated.dev_mode else 'disabled'}",
             f"Dry run: {'enabled' if validated.dry_run else 'disabled'}",
             "Product menu: Today, Prep, Pilot, Suggestions, Approvals, Drafts, Memory, Documents, Usage, Status",
-            "Available commands: /start, /help, /menu, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /founder_loop, /feedback, /feedback_ledger, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /approvals, /approve, /reject, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory, /memory_limits, /memory_pending, document upload",
+            "Available commands: /start, /help, /menu, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /founder_loop, /feedback, /feedback_ledger, /founder_outcome, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /approvals, /approve, /reject, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory, /memory_limits, /memory_pending, document upload",
             "External connectors: Google Calendar read-only optional",
             "Calendar writes: disabled",
             "LLM/model calls: disabled",
@@ -2008,6 +2040,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "Founder Daily Use Loop: /founder_loop owner-requested morning operating card only",
             "Founder Feedback Capture: /feedback creates local non-persistent feedback receipts only",
             "Feedback Ledger & Tags: /feedback_ledger shows local structured feedback entries only",
+            "Daily Loop Outcome Tracker: /founder_outcome creates local outcome receipts only",
             "Premium Telegram UX Shell: grouped customer-facing control shell only",
             "Live Connector Readiness Check: /checkup owner-requested read-only readiness only",
             "Gmail Thread Drilldown: /gmail_thread <thread_id> owner-requested read-only metadata only",
