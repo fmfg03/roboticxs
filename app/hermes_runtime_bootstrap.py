@@ -9,9 +9,9 @@ import sys
 
 
 HERMES_RUNTIME_BOOTSTRAP_STAGE = "129P"
-ROADMAP_CLOSED_THROUGH = "201P"
-NEXT_STAGE = "202P"
-NEXT_STAGE_LABEL = "202P+ remains unauthorized."
+ROADMAP_CLOSED_THROUGH = "202P"
+NEXT_STAGE = "203P"
+NEXT_STAGE_LABEL = "203P+ remains unauthorized."
 DEFAULT_RUNTIME_MODE = "local-dev"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
@@ -62,6 +62,7 @@ FEATURE_MODULES = (
     ("customer_pilot_readiness_pack", "app.customer_pilot_readiness_pack", False),
     ("customer_pilot_audit_gate", "app.customer_pilot_audit_gate", False),
     ("live_smoke_script", "app.live_smoke_script", False),
+    ("founder_daily_use_loop", "app.founder_daily_use_loop", False),
     ("setup_capability_status_component", "app.setup_capability_status_component", False),
     ("calendar_backed_today_prep", "app.calendar_backed_today_prep", False),
     ("gmail_readonly_context_scan", "app.gmail_readonly_context_scan", False),
@@ -289,7 +290,7 @@ def render_hermes_runtime_bootstrap_report(
             f"Owner: {status.owner_id}",
             f"Owner Display Name: {status.owner_display_name}",
             f"Mode: {status.runtime_mode}",
-            f"Roadmap: 95P-201P CLOSED_COMMITTED",
+            f"Roadmap: 95P-202P CLOSED_COMMITTED",
             f"Roadmap Closed Through: {status.roadmap_closed_through}",
             f"Telegram: {'enabled' if status.telegram_enabled else 'disabled'}",
             f"Connectors: {'enabled' if status.connectors_enabled else 'disabled'}",
@@ -359,6 +360,7 @@ def render_hermes_runtime_bootstrap_report(
                 "Customer Pilot Readiness Pack: available for local pilot setup packages only",
                 "Customer Pilot Audit Gate: available for local pilot audit reports only",
                 "Live Smoke Script: available for local manual smoke guides only",
+                "Founder Daily Use Loop: available for local morning operating cards only",
                 "Setup Capability Status Component: available for shared customer-facing setup copy only",
                 "Calendar-Backed Today / Prep: available for read-only Calendar product context only",
                 "Gmail Read-Only Context Scan: available for read-only Gmail context signals only",

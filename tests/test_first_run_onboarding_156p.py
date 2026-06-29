@@ -20,7 +20,8 @@ def test_156p_start_is_first_run_onboarding_not_a_tutorial_or_secret_leak():
     assert "Approval boundaries:" in reply
     assert "Choose first useful action:" in reply
     assert "- /today for your daily view" in reply
-    assert "- /prep <suggestion_id> for meeting prep" in reply
+    assert "- /prep for the next available meeting prep" in reply
+    assert "- /prep <suggestion_id> for a specific meeting prep" in reply
     assert "- /pilot for the controlled customer pilot flow" in reply
     assert "- /status for setup and capability status" in reply
     assert "Calendar reads need read-only Google setup." in reply
@@ -38,4 +39,4 @@ def test_156p_reference_and_roadmap_close_first_run_without_authority_expansion(
     assert "does not add new commands" in reference
     assert "connector activation" in reference
     assert '"stage_id":"156P","stage_name":"First-Run Onboarding v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "202P and later remain unauthorized" in roadmap
+    assert "203P and later remain unauthorized" in roadmap

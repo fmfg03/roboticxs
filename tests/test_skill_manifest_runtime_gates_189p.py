@@ -40,6 +40,7 @@ def test_189p_maps_main_telegram_commands_to_skill_manifests():
         "/pilot_pack": "basic",
         "/pilot_audit": "basic",
         "/live_smoke": "basic",
+        "/founder_loop": "basic",
         "/status": "setup",
         "/checkup": "setup",
         "/setup": "setup",
