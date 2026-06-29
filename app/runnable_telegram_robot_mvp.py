@@ -119,6 +119,7 @@ from app.memory_approval_telegram_flow import (
     render_memory_approval_telegram_receipt,
     render_memory_review_inbox,
 )
+from app.memory_intelligence import build_memory_intelligence_report, render_memory_intelligence_report
 from app.memory_source_forget_receipts import (
     MemoryEditReceipt,
     MemoryForgetReceipt,
@@ -1201,11 +1202,14 @@ def render_memory_command_reply(
         robot_id=config.robot_id,
         source_bundle=source_bundle,
     )
+    intelligence = build_memory_intelligence_report(snapshot)
     return "\n".join(
         [
             render_memory_center_command_reply(snapshot),
             "",
             render_memory_source_receipts(source_receipts),
+            "",
+            render_memory_intelligence_report(intelligence),
         ]
     )
 

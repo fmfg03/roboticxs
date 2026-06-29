@@ -183,4 +183,4 @@ def test_179p_reference_and_roadmap_close_approved_output_export_only():
     assert "Local file writes" in reference
     assert "189P and later remain unauthorized" in reference
     assert '"stage_id":"179P","stage_name":"Approved Output Export v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "196P and later remain unauthorized" in roadmap
+    assert "197P and later remain unauthorized" in roadmap

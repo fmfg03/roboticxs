@@ -195,4 +195,4 @@ def test_181p_reference_and_roadmap_close_readiness_only():
     assert "OAuth token refresh" in reference
     assert "189P and later remain unauthorized" in reference
     assert '"stage_id":"181P","stage_name":"Live Connector Readiness Check v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "196P and later remain unauthorized" in roadmap
+    assert "197P and later remain unauthorized" in roadmap

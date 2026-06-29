@@ -1963,6 +1963,9 @@ def test_187p_memory_command_appends_source_receipts_without_leaking_sensitive_v
     assert "Memory Center" in receipt.reply_text
     assert "Memory Source Receipts" in receipt.reply_text
     assert "Stage: 187P" in receipt.reply_text
+    assert "Memory Intelligence" in receipt.reply_text
+    assert "Stage: 196P" in receipt.reply_text
+    assert "used_memory:" in receipt.reply_text
     assert "mem-secret-187p | preference: [redacted credential-like memory]" in receipt.reply_text
     assert "Source: local_fixture" in receipt.reply_text
     assert "Source stage: unknown" in receipt.reply_text
@@ -2334,4 +2337,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "196P and later remain unauthorized" in roadmap
+    assert "197P and later remain unauthorized" in roadmap

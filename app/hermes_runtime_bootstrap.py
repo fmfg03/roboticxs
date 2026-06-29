@@ -9,9 +9,9 @@ import sys
 
 
 HERMES_RUNTIME_BOOTSTRAP_STAGE = "129P"
-ROADMAP_CLOSED_THROUGH = "195P"
-NEXT_STAGE = "196P"
-NEXT_STAGE_LABEL = "196P+ remains unauthorized."
+ROADMAP_CLOSED_THROUGH = "196P"
+NEXT_STAGE = "197P"
+NEXT_STAGE_LABEL = "197P+ remains unauthorized."
 DEFAULT_RUNTIME_MODE = "local-dev"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
@@ -56,6 +56,7 @@ FEATURE_MODULES = (
     ("smart_context_ranking", "app.smart_context_ranking", False),
     ("proactive_priority_engine", "app.proactive_priority_engine", False),
     ("draft_quality_engine", "app.draft_quality_engine", False),
+    ("memory_intelligence", "app.memory_intelligence", False),
     ("setup_capability_status_component", "app.setup_capability_status_component", False),
     ("calendar_backed_today_prep", "app.calendar_backed_today_prep", False),
     ("gmail_readonly_context_scan", "app.gmail_readonly_context_scan", False),
@@ -283,7 +284,7 @@ def render_hermes_runtime_bootstrap_report(
             f"Owner: {status.owner_id}",
             f"Owner Display Name: {status.owner_display_name}",
             f"Mode: {status.runtime_mode}",
-            f"Roadmap: 95P-195P CLOSED_COMMITTED",
+            f"Roadmap: 95P-196P CLOSED_COMMITTED",
             f"Roadmap Closed Through: {status.roadmap_closed_through}",
             f"Telegram: {'enabled' if status.telegram_enabled else 'disabled'}",
             f"Connectors: {'enabled' if status.connectors_enabled else 'disabled'}",
@@ -347,6 +348,7 @@ def render_hermes_runtime_bootstrap_report(
                 "Smart Context Ranking: available for read-only ranked context sections only",
                 "Proactive Priority Engine: available for local suggestion priority labels only",
                 "Draft Quality Engine: available for local draft review metadata only",
+                "Memory Intelligence: available for local read-only memory findings only",
                 "Setup Capability Status Component: available for shared customer-facing setup copy only",
                 "Calendar-Backed Today / Prep: available for read-only Calendar product context only",
                 "Gmail Read-Only Context Scan: available for read-only Gmail context signals only",
