@@ -131,4 +131,4 @@ def test_206p_reference_and_roadmap_close_suggestion_quality_without_writes():
     assert "206P uses local feedback ledger entries" in reference
     assert "does not add proactive sends" in reference
     assert '"stage_id":"206P","stage_name":"Suggestion Quality Tuning v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "212P and later remain unauthorized" in roadmap
+    assert "213P and later remain unauthorized" in roadmap

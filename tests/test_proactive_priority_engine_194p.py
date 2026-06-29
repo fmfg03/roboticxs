@@ -66,7 +66,7 @@ def test_194p_reference_and_roadmap_close_priority_without_drafts():
     assert "194P classifies suggestion inbox items" in reference
     assert "no draft quality engine" in reference
     assert '"stage_id":"194P","stage_name":"Proactive Priority Engine v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "212P and later remain unauthorized" in roadmap
+    assert "213P and later remain unauthorized" in roadmap
 
 
 def suggestion(trigger_type: str, summary: str):

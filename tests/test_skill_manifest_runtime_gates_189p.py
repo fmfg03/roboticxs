@@ -42,6 +42,7 @@ def test_189p_maps_main_telegram_commands_to_skill_manifests():
         "/live_smoke": "basic",
         "/pilot_metrics": "basic",
         "/friendly_onboarding": "basic",
+        "/friendly_pilot": "basic",
         "/founder_loop": "basic",
         "/feedback": "basic",
         "/feedback_ledger": "basic",
