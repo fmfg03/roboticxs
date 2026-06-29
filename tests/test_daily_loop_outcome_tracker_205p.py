@@ -136,4 +136,4 @@ def test_205p_reference_and_roadmap_close_outcome_tracker_without_writes():
     assert "205P records whether a founder loop produced a useful outcome" in reference
     assert "does not add pilot metrics" in reference
     assert '"stage_id":"205P","stage_name":"Daily Loop Outcome Tracker v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "210P and later remain unauthorized" in roadmap
+    assert "211P and later remain unauthorized" in roadmap

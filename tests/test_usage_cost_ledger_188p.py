@@ -239,4 +239,4 @@ def test_188p_reference_and_roadmap_close_usage_cost_ledger_without_billing_auth
     assert "not live billing or provider reconciliation" in reference
     assert "does not authorize provider calls" in reference
     assert '"stage_id":"188P","stage_name":"Usage & Cost Ledger v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "210P and later remain unauthorized" in roadmap
+    assert "211P and later remain unauthorized" in roadmap

@@ -207,6 +207,11 @@ from app.personal_admin_inbox import (
     render_personal_admin_inbox,
     run_personal_admin_inbox,
 )
+from app.pilot_metrics_snapshot import (
+    PilotMetricsSnapshot,
+    build_pilot_metrics_snapshot,
+    render_pilot_metrics_snapshot,
+)
 from app.proactive_meeting_suggestion import (
     ProactiveMeetingSuggestionScanRecord,
     build_proactive_meeting_suggestion_scan,
@@ -317,6 +322,7 @@ SUPPORTED_COMMANDS = (
     "/pilot_pack",
     "/pilot_audit",
     "/live_smoke",
+    "/pilot_metrics",
     "/founder_loop",
     "/feedback",
     "/feedback_ledger",
@@ -366,7 +372,7 @@ SUPPORTED_COMMANDS = (
     "/document",
 )
 PRODUCT_MENU_LINES = (
-    "Today: /today, /miss, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /founder_loop",
+    "Today: /today, /miss, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /pilot_metrics, /founder_loop",
     "Feedback: /feedback <useful|wrong|noisy|stale|missing_source|bad_draft|too_verbose> <item_id> [comment]",
     "Feedback Ledger: /feedback_ledger",
     "Daily Loop Outcome: /founder_outcome <loop_id> <outcome> [note]",
@@ -1092,6 +1098,7 @@ def render_command_reply(
     customer_pilot_readiness_pack: CustomerPilotReadinessPack | None = None,
     customer_pilot_audit_gate: CustomerPilotAuditGateReport | None = None,
     live_smoke_script: LiveSmokeScript | None = None,
+    pilot_metrics_snapshot: PilotMetricsSnapshot | None = None,
     founder_daily_use_loop: FounderDailyUseLoop | None = None,
     founder_feedback_capture: FounderFeedbackCaptureReceipt | None = None,
     feedback_ledger: FeedbackLedger | None = None,
@@ -1163,6 +1170,10 @@ def render_command_reply(
         if live_smoke_script is None:
             raise TelegramRobotConfigError("rejected_missing_live_smoke_script")
         return render_live_smoke_script(live_smoke_script)
+    if command == "/pilot_metrics":
+        if pilot_metrics_snapshot is None:
+            raise TelegramRobotConfigError("rejected_missing_pilot_metrics_snapshot")
+        return render_pilot_metrics_snapshot(pilot_metrics_snapshot)
     if command == "/founder_loop":
         if founder_daily_use_loop is None:
             raise TelegramRobotConfigError("rejected_missing_founder_daily_use_loop")
@@ -1504,6 +1515,7 @@ def handle_incoming_command(
     customer_pilot_readiness_pack = None
     customer_pilot_audit_gate = None
     live_smoke_script = None
+    pilot_metrics_snapshot = None
     founder_daily_use_loop = None
     founder_feedback_capture = None
     feedback_ledger = None
@@ -1635,6 +1647,14 @@ def handle_incoming_command(
         live_smoke_script = build_live_smoke_script(
             owner_id=config.owner_id,
             robot_id=config.robot_id,
+        )
+    if authorized and incoming_command.command == "/pilot_metrics":
+        pilot_metrics_snapshot = build_pilot_metrics_snapshot(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            feedback_entries=feedback_ledger_entries,
+            outcome_records=daily_loop_outcome_records,
+            usage_entries=usage_ledger_entries,
         )
     if authorized and incoming_command.command == "/founder_loop":
         founder_daily_use_loop = build_founder_daily_use_loop(
@@ -1981,6 +2001,7 @@ def handle_incoming_command(
             customer_pilot_readiness_pack=customer_pilot_readiness_pack,
             customer_pilot_audit_gate=customer_pilot_audit_gate,
             live_smoke_script=live_smoke_script,
+            pilot_metrics_snapshot=pilot_metrics_snapshot,
             founder_daily_use_loop=founder_daily_use_loop,
             founder_feedback_capture=founder_feedback_capture,
             feedback_ledger=feedback_ledger,
@@ -2131,7 +2152,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             f"Dev mode: {'enabled' if validated.dev_mode else 'disabled'}",
             f"Dry run: {'enabled' if validated.dry_run else 'disabled'}",
             "Product menu: Today, Prep, Pilot, Suggestions, Approvals, Drafts, Memory, Documents, Usage, Status",
-            "Available commands: /start, /help, /menu, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /founder_loop, /feedback, /feedback_ledger, /founder_outcome, /suggestion_quality, /prep_quality, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /approvals, /approve, /reject, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_revise, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory_wrong, /memory_stale, /memory_duplicate, /memory_merge, /memory_never_use, /memory, /memory_limits, /memory_pending, document upload",
+            "Available commands: /start, /help, /menu, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /pilot_metrics, /founder_loop, /feedback, /feedback_ledger, /founder_outcome, /suggestion_quality, /prep_quality, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /approvals, /approve, /reject, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_revise, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory_wrong, /memory_stale, /memory_duplicate, /memory_merge, /memory_never_use, /memory, /memory_limits, /memory_pending, document upload",
             "External connectors: Google Calendar read-only optional",
             "Calendar writes: disabled",
             "LLM/model calls: disabled",
@@ -2145,6 +2166,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "Customer Pilot Readiness Pack: /pilot_pack owner-requested pilot setup pack only",
             "Customer Pilot Audit Gate: /pilot_audit owner-requested pilot audit report only",
             "Live Smoke Script: /live_smoke owner-requested manual smoke guide only",
+            "Pilot Metrics Snapshot: /pilot_metrics shows local pilot metrics only",
             "Founder Daily Use Loop: /founder_loop owner-requested morning operating card only",
             "Founder Feedback Capture: /feedback creates local non-persistent feedback receipts only",
             "Feedback Ledger & Tags: /feedback_ledger shows local structured feedback entries only",

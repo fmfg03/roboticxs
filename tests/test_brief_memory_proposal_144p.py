@@ -115,4 +115,4 @@ def test_144p_roadmap_records_brief_memory_proposal_and_blocks_145p_plus():
     roadmap = ROADMAP_PATH.read_text()
 
     assert '"stage_id":"144P","stage_name":"Brief-Derived Memory Proposal v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "210P and later remain unauthorized" in roadmap
+    assert "211P and later remain unauthorized" in roadmap
