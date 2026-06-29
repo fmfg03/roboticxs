@@ -163,6 +163,11 @@ from app.setup_capability_status_component import (
     render_compact_setup_capability_block,
     render_setup_capability_status_sections,
 )
+from app.smart_context_ranking import (
+    SmartContextRankingRecord,
+    build_smart_context_ranking,
+    render_smart_context_ranking,
+)
 from app.skill_manifest_runtime_gates import (
     classify_command_for_skill_gate,
     render_skill_runtime_boundary_lines,
@@ -1000,6 +1005,7 @@ def render_command_reply(
     calendar_source_trace: CalendarContextSourceTrace | None = None,
     gmail_source_trace: GmailContextSourceTrace | None = None,
     source_trace_receipt: SourceTraceReceipt | None = None,
+    smart_context_ranking: SmartContextRankingRecord | None = None,
     cross_source_daily_brief: CrossSourceDailyBriefRecord | None = None,
     gmail_thread_drilldown: GmailThreadDrilldownRecord | None = None,
     usage_ledger_entries: tuple[UsageCostLedgerEntry, ...] = (),
@@ -1034,6 +1040,8 @@ def render_command_reply(
         if cross_source_daily_brief is None:
             raise TelegramRobotConfigError("rejected_missing_cross_source_daily_brief")
         reply = render_cross_source_daily_brief(cross_source_daily_brief)
+        if smart_context_ranking is not None:
+            reply = "\n\n".join([reply, render_smart_context_ranking(smart_context_ranking)])
         return append_source_trace_receipt(reply, source_trace_receipt) if source_trace_receipt else reply
     if command == "/demo":
         if customer_mvp_demo_pack is None:
@@ -1070,6 +1078,8 @@ def render_command_reply(
             else render_meeting_prep_pack(meeting_prep_pack)
         )
         if brief_memory_proposal is None:
+            if smart_context_ranking is not None:
+                reply = "\n\n".join([reply, render_smart_context_ranking(smart_context_ranking)])
             return append_source_trace_receipt(reply, source_trace_receipt) if source_trace_receipt else reply
         reply = "\n".join(
             [
@@ -1078,6 +1088,8 @@ def render_command_reply(
                 *render_brief_memory_candidate_section(brief_memory_proposal),
             ]
         )
+        if smart_context_ranking is not None:
+            reply = "\n\n".join([reply, render_smart_context_ranking(smart_context_ranking)])
         return append_source_trace_receipt(reply, source_trace_receipt) if source_trace_receipt else reply
     if command == "/brief":
         if suggested_meeting_brief is not None:
@@ -1329,6 +1341,7 @@ def handle_incoming_command(
     calendar_source_trace = None
     gmail_source_trace = None
     source_trace_receipt = None
+    smart_context_ranking = None
     memory_snapshot: TelegramMemoryCenterSnapshot | None = None
     cache_now = fast_path_now_epoch_seconds or int(time.time())
     fast_path_cache_entry = (
@@ -1409,6 +1422,14 @@ def handle_incoming_command(
             robot_id=config.robot_id,
             calendar_trace=calendar_source_trace,
             gmail_trace=gmail_source_trace,
+            memory_snapshot=memory_snapshot,
+            document_reviews=(),
+        )
+        smart_context_ranking = build_smart_context_ranking(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            calendar_result=calendar_result,
+            gmail_scan=gmail_scan,
             memory_snapshot=memory_snapshot,
             document_reviews=(),
         )
@@ -1502,6 +1523,14 @@ def handle_incoming_command(
             robot_id=config.robot_id,
             calendar_trace=calendar_source_trace,
             gmail_trace=gmail_source_trace,
+            memory_snapshot=memory_snapshot,
+            document_reviews=(),
+        )
+        smart_context_ranking = build_smart_context_ranking(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            calendar_result=calendar_result,
+            gmail_scan=gmail_scan,
             memory_snapshot=memory_snapshot,
             document_reviews=(),
         )
@@ -1693,6 +1722,7 @@ def handle_incoming_command(
             calendar_source_trace=calendar_source_trace,
             gmail_source_trace=gmail_source_trace,
             source_trace_receipt=source_trace_receipt,
+            smart_context_ranking=smart_context_ranking,
             usage_ledger_entries=usage_ledger_entries,
             fast_path_cache_entry=fast_path_cache_entry,
             fast_path_now_epoch_seconds=cache_now,

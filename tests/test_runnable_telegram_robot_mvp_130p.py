@@ -1488,6 +1488,11 @@ def test_174p_daily_brief_command_returns_cross_source_read_only_summary(monkeyp
     assert len(gmail_client.calls) == 2
     assert "Daily Brief" in receipt.reply_text
     assert "Stage: 174P" in receipt.reply_text
+    assert "Prioritized context" in receipt.reply_text
+    assert "Stage: 193P" in receipt.reply_text
+    assert "Ranking: deterministic local score" in receipt.reply_text
+    assert "Why:" in receipt.reply_text
+    assert "Source:" in receipt.reply_text
     assert "Client demo prep meeting" in receipt.reply_text
     assert "Source Trace Receipt" in receipt.reply_text
     assert "Stage: 184P" in receipt.reply_text
@@ -2329,4 +2334,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "193P and later remain unauthorized" in roadmap
+    assert "194P and later remain unauthorized" in roadmap

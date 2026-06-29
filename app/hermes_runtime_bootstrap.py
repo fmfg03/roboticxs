@@ -9,9 +9,9 @@ import sys
 
 
 HERMES_RUNTIME_BOOTSTRAP_STAGE = "129P"
-ROADMAP_CLOSED_THROUGH = "192P"
-NEXT_STAGE = "193P"
-NEXT_STAGE_LABEL = "193P+ remains unauthorized."
+ROADMAP_CLOSED_THROUGH = "193P"
+NEXT_STAGE = "194P"
+NEXT_STAGE_LABEL = "194P+ remains unauthorized."
 DEFAULT_RUNTIME_MODE = "local-dev"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
@@ -53,6 +53,7 @@ FEATURE_MODULES = (
     ("controlled_live_pilot_baseline", "app.controlled_live_pilot_baseline", False),
     ("premium_telegram_ux_shell", "app.premium_telegram_ux_shell", False),
     ("fast_path_cache", "app.fast_path_cache", False),
+    ("smart_context_ranking", "app.smart_context_ranking", False),
     ("setup_capability_status_component", "app.setup_capability_status_component", False),
     ("calendar_backed_today_prep", "app.calendar_backed_today_prep", False),
     ("gmail_readonly_context_scan", "app.gmail_readonly_context_scan", False),
@@ -280,7 +281,7 @@ def render_hermes_runtime_bootstrap_report(
             f"Owner: {status.owner_id}",
             f"Owner Display Name: {status.owner_display_name}",
             f"Mode: {status.runtime_mode}",
-            f"Roadmap: 95P-192P CLOSED_COMMITTED",
+            f"Roadmap: 95P-193P CLOSED_COMMITTED",
             f"Roadmap Closed Through: {status.roadmap_closed_through}",
             f"Telegram: {'enabled' if status.telegram_enabled else 'disabled'}",
             f"Connectors: {'enabled' if status.connectors_enabled else 'disabled'}",
@@ -341,6 +342,7 @@ def render_hermes_runtime_bootstrap_report(
                 "Controlled Live Pilot Baseline: available for owner-requested controlled pilot receipts only",
                 "Premium Telegram UX Shell: available for grouped customer-facing Telegram command surfaces only",
                 "Fast Path Cache: available for local TTL cache hits on quick commands only",
+                "Smart Context Ranking: available for read-only ranked context sections only",
                 "Setup Capability Status Component: available for shared customer-facing setup copy only",
                 "Calendar-Backed Today / Prep: available for read-only Calendar product context only",
                 "Gmail Read-Only Context Scan: available for read-only Gmail context signals only",
