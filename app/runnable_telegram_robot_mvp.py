@@ -105,6 +105,14 @@ from app.friendly_user_onboarding_pack import (
     build_friendly_user_onboarding_pack,
     render_friendly_user_onboarding_pack,
 )
+from app.friendly_pilot_operator_console import (
+    FriendlyPilotOperatorConsole,
+    FriendlyPilotUserStatus,
+    build_friendly_pilot_operator_console,
+    render_pilot_health,
+    render_pilot_user,
+    render_pilot_users,
+)
 from app.feedback_ledger_tags import (
     FeedbackLedger,
     FeedbackLedgerEntry,
@@ -335,6 +343,9 @@ SUPPORTED_COMMANDS = (
     "/pilot_metrics",
     "/friendly_onboarding",
     "/friendly_pilot",
+    "/pilot_users",
+    "/pilot_user",
+    "/pilot_health",
     "/founder_loop",
     "/feedback",
     "/feedback_ledger",
@@ -384,7 +395,7 @@ SUPPORTED_COMMANDS = (
     "/document",
 )
 PRODUCT_MENU_LINES = (
-    "Today: /today, /miss, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /pilot_metrics, /friendly_onboarding, /friendly_pilot, /founder_loop",
+    "Today: /today, /miss, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /pilot_metrics, /friendly_onboarding, /friendly_pilot, /pilot_users, /pilot_user <id>, /pilot_health, /founder_loop",
     "Feedback: /feedback <useful|wrong|noisy|stale|missing_source|bad_draft|too_verbose> <item_id> [comment]",
     "Feedback Ledger: /feedback_ledger",
     "Daily Loop Outcome: /founder_outcome <loop_id> <outcome> [note]",
@@ -1113,6 +1124,7 @@ def render_command_reply(
     pilot_metrics_snapshot: PilotMetricsSnapshot | None = None,
     friendly_user_onboarding_pack: FriendlyUserOnboardingPack | None = None,
     founder_to_friendly_pilot_baseline: FounderToFriendlyPilotBaseline | None = None,
+    friendly_pilot_operator_console: FriendlyPilotOperatorConsole | None = None,
     founder_daily_use_loop: FounderDailyUseLoop | None = None,
     founder_feedback_capture: FounderFeedbackCaptureReceipt | None = None,
     feedback_ledger: FeedbackLedger | None = None,
@@ -1196,6 +1208,18 @@ def render_command_reply(
         if founder_to_friendly_pilot_baseline is None:
             raise TelegramRobotConfigError("rejected_missing_founder_to_friendly_pilot_baseline")
         return render_founder_to_friendly_pilot_baseline(founder_to_friendly_pilot_baseline)
+    if command == "/pilot_users":
+        if friendly_pilot_operator_console is None:
+            raise TelegramRobotConfigError("rejected_missing_friendly_pilot_operator_console")
+        return render_pilot_users(friendly_pilot_operator_console)
+    if command == "/pilot_user":
+        if friendly_pilot_operator_console is None:
+            raise TelegramRobotConfigError("rejected_missing_friendly_pilot_operator_console")
+        return render_pilot_user(friendly_pilot_operator_console)
+    if command == "/pilot_health":
+        if friendly_pilot_operator_console is None:
+            raise TelegramRobotConfigError("rejected_missing_friendly_pilot_operator_console")
+        return render_pilot_health(friendly_pilot_operator_console)
     if command == "/founder_loop":
         if founder_daily_use_loop is None:
             raise TelegramRobotConfigError("rejected_missing_founder_daily_use_loop")
@@ -1428,6 +1452,7 @@ def handle_incoming_command(
     usage_ledger_entries: tuple[UsageCostLedgerEntry, ...] = (),
     feedback_ledger_entries: tuple[FeedbackLedgerEntry, ...] = (),
     daily_loop_outcome_records: tuple[DailyLoopOutcomeRecord, ...] = (),
+    friendly_pilot_users: tuple[FriendlyPilotUserStatus, ...] = (),
     approval_items: tuple[UserApprovedOutputItem, ...] = (),
     fast_path_cache_entries: tuple[FastPathCacheEntry, ...] = (),
     fast_path_now_epoch_seconds: int | None = None,
@@ -1447,6 +1472,10 @@ def handle_incoming_command(
     gmail_thread_id = extract_telegram_command_argument(
         incoming_command.raw_text,
         command="/gmail_thread",
+    )
+    pilot_user_id = extract_telegram_command_argument(
+        incoming_command.raw_text,
+        command="/pilot_user",
     )
     memory_approve_candidate_id = extract_telegram_command_argument(
         incoming_command.raw_text,
@@ -1540,6 +1569,7 @@ def handle_incoming_command(
     pilot_metrics_snapshot = None
     friendly_user_onboarding_pack = None
     founder_to_friendly_pilot_baseline = None
+    friendly_pilot_operator_console = None
     founder_daily_use_loop = None
     founder_feedback_capture = None
     feedback_ledger = None
@@ -1689,6 +1719,13 @@ def handle_incoming_command(
         founder_to_friendly_pilot_baseline = build_founder_to_friendly_pilot_baseline(
             owner_id=config.owner_id,
             robot_id=config.robot_id,
+        )
+    if authorized and incoming_command.command in {"/pilot_users", "/pilot_user", "/pilot_health"}:
+        friendly_pilot_operator_console = build_friendly_pilot_operator_console(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            users=friendly_pilot_users,
+            selected_user_id=pilot_user_id,
         )
     if authorized and incoming_command.command == "/founder_loop":
         founder_daily_use_loop = build_founder_daily_use_loop(
@@ -2038,6 +2075,7 @@ def handle_incoming_command(
             pilot_metrics_snapshot=pilot_metrics_snapshot,
             friendly_user_onboarding_pack=friendly_user_onboarding_pack,
             founder_to_friendly_pilot_baseline=founder_to_friendly_pilot_baseline,
+            friendly_pilot_operator_console=friendly_pilot_operator_console,
             founder_daily_use_loop=founder_daily_use_loop,
             founder_feedback_capture=founder_feedback_capture,
             feedback_ledger=feedback_ledger,
@@ -2188,7 +2226,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             f"Dev mode: {'enabled' if validated.dev_mode else 'disabled'}",
             f"Dry run: {'enabled' if validated.dry_run else 'disabled'}",
             "Product menu: Today, Prep, Pilot, Suggestions, Approvals, Drafts, Memory, Documents, Usage, Status",
-            "Available commands: /start, /help, /menu, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /pilot_metrics, /friendly_onboarding, /friendly_pilot, /founder_loop, /feedback, /feedback_ledger, /founder_outcome, /suggestion_quality, /prep_quality, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /approvals, /approve, /reject, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_revise, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory_wrong, /memory_stale, /memory_duplicate, /memory_merge, /memory_never_use, /memory, /memory_limits, /memory_pending, document upload",
+            "Available commands: /start, /help, /menu, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /pilot_metrics, /friendly_onboarding, /friendly_pilot, /pilot_users, /pilot_user, /pilot_health, /founder_loop, /feedback, /feedback_ledger, /founder_outcome, /suggestion_quality, /prep_quality, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /approvals, /approve, /reject, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_revise, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory_wrong, /memory_stale, /memory_duplicate, /memory_merge, /memory_never_use, /memory, /memory_limits, /memory_pending, document upload",
             "External connectors: Google Calendar read-only optional",
             "Calendar writes: disabled",
             "LLM/model calls: disabled",
@@ -2205,6 +2243,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "Pilot Metrics Snapshot: /pilot_metrics shows local pilot metrics only",
             "Friendly User Onboarding Pack: /friendly_onboarding shows 1-3 user pilot setup only",
             "Founder-to-Friendly Pilot Baseline: /friendly_pilot shows the controlled pilot baseline only",
+            "Friendly Pilot Operator Console: /pilot_users, /pilot_user, and /pilot_health show local pilot status only",
             "Founder Daily Use Loop: /founder_loop owner-requested morning operating card only",
             "Founder Feedback Capture: /feedback creates local non-persistent feedback receipts only",
             "Feedback Ledger & Tags: /feedback_ledger shows local structured feedback entries only",
