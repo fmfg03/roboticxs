@@ -58,6 +58,7 @@ def test_189p_maps_main_telegram_commands_to_skill_manifests():
         "/memory_approve": "memory",
         "/drafts": "gmail_drafts",
         "/draft_approve": "gmail_drafts",
+        "/draft_revise": "gmail_drafts",
         "/export_email": "gmail_drafts",
         "/usage": "usage",
     }

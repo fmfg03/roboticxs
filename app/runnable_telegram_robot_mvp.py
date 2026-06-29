@@ -118,6 +118,13 @@ from app.prep_quality_tuning import (
     build_prep_quality_tuning_report,
     render_prep_quality_tuning_report,
 )
+from app.draft_revision_loop import (
+    DraftRevisionReceipt,
+    build_draft_revision_receipt,
+    parse_draft_revision_argument,
+    render_draft_revision_receipt,
+    render_draft_revision_usage,
+)
 from app.inbox_item_decision import (
     InboxItemDecisionRecord,
     build_inbox_item_decision,
@@ -328,6 +335,7 @@ SUPPORTED_COMMANDS = (
     "/draft_approve",
     "/draft_reject",
     "/draft_edit",
+    "/draft_revise",
     "/draft_expire",
     "/export_text",
     "/export_email",
@@ -354,7 +362,7 @@ PRODUCT_MENU_LINES = (
     "Prep: /prep, /prep <suggestion_id>",
     "Suggestions: /suggestions, /suggestion_dismiss <suggestion_id>, /suggestion_snooze <suggestion_id>, /suggestion_memory <suggestion_id>, /suggestion_draft <suggestion_id>, /suggestion_followup <suggestion_id>",
     "Approvals: /approvals, /approve <approval_id>, /reject <approval_id>",
-    "Drafts: /drafts, /draft_approve <draft_id>, /draft_reject <draft_id>, /draft_edit <draft_id> <text>, /draft_expire <draft_id>, /export_text <confirmation_id>, /export_email <confirmation_id>, /export_file <confirmation_id>",
+    "Drafts: /drafts, /draft_approve <draft_id>, /draft_reject <draft_id>, /draft_edit <draft_id> <text>, /draft_revise <draft_id> <revision>, /draft_expire <draft_id>, /export_text <confirmation_id>, /export_email <confirmation_id>, /export_file <confirmation_id>",
     "Usage: /usage",
     "Tasks: /inbox, /inbox_done <item_id>, /inbox_dismiss <item_id>",
     "Memory: /memory, /memory_review, /memory_pending, /memory_limits, /memory_approve <candidate_id>, /memory_reject <candidate_id>, /memory_edit <candidate_or_memory_id> <text>, /memory_forget <memory_id>",
@@ -1075,6 +1083,7 @@ def render_command_reply(
     daily_loop_outcome: DailyLoopOutcomeRecord | None = None,
     suggestion_quality_tuning: SuggestionQualityTuningReport | None = None,
     prep_quality_tuning: PrepQualityTuningReport | None = None,
+    draft_revision: DraftRevisionReceipt | None = None,
     live_connector_readiness: LiveConnectorReadinessReport | None = None,
     calendar_source_trace: CalendarContextSourceTrace | None = None,
     gmail_source_trace: GmailContextSourceTrace | None = None,
@@ -1163,6 +1172,10 @@ def render_command_reply(
         if prep_quality_tuning is None:
             raise TelegramRobotConfigError("rejected_missing_prep_quality_tuning")
         return render_prep_quality_tuning_report(prep_quality_tuning)
+    if command == "/draft_revise":
+        if draft_revision is None:
+            return render_draft_revision_usage()
+        return render_draft_revision_receipt(draft_revision)
     if command == "/gmail_thread":
         if gmail_thread_drilldown is None:
             raise TelegramRobotConfigError("rejected_missing_gmail_thread_drilldown")
@@ -1431,6 +1444,10 @@ def handle_incoming_command(
         incoming_command.raw_text,
         command="/founder_outcome",
     )
+    draft_revision_argument = extract_telegram_command_argument(
+        incoming_command.raw_text,
+        command="/draft_revise",
+    )
     suggested_meeting_brief = None
     calendar_result = None
     proactive_meeting_suggestion = None
@@ -1469,6 +1486,7 @@ def handle_incoming_command(
     daily_loop_outcome = None
     suggestion_quality_tuning = None
     prep_quality_tuning = None
+    draft_revision = None
     live_connector_readiness = None
     calendar_source_trace = None
     gmail_source_trace = None
@@ -1642,6 +1660,17 @@ def handle_incoming_command(
             robot_id=config.robot_id,
             feedback_entries=feedback_ledger_entries,
         )
+    if authorized and incoming_command.command == "/draft_revise":
+        draft_id, revision_request = parse_draft_revision_argument(draft_revision_argument)
+        try:
+            draft_revision = build_draft_revision_receipt(
+                owner_id=config.owner_id,
+                robot_id=config.robot_id,
+                draft_id=draft_id,
+                revision_request=revision_request,
+            )
+        except ValueError:
+            draft_revision = None
     if authorized and incoming_command.command in {"/checkup", "/setup"}:
         live_connector_readiness = build_live_connector_readiness_report(
             owner_id=config.owner_id,
@@ -1922,6 +1951,7 @@ def handle_incoming_command(
             daily_loop_outcome=daily_loop_outcome,
             suggestion_quality_tuning=suggestion_quality_tuning,
             prep_quality_tuning=prep_quality_tuning,
+            draft_revision=draft_revision,
             live_connector_readiness=live_connector_readiness,
             calendar_source_trace=calendar_source_trace,
             gmail_source_trace=gmail_source_trace,
@@ -2065,7 +2095,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             f"Dev mode: {'enabled' if validated.dev_mode else 'disabled'}",
             f"Dry run: {'enabled' if validated.dry_run else 'disabled'}",
             "Product menu: Today, Prep, Pilot, Suggestions, Approvals, Drafts, Memory, Documents, Usage, Status",
-            "Available commands: /start, /help, /menu, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /founder_loop, /feedback, /feedback_ledger, /founder_outcome, /suggestion_quality, /prep_quality, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /approvals, /approve, /reject, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory, /memory_limits, /memory_pending, document upload",
+            "Available commands: /start, /help, /menu, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /founder_loop, /feedback, /feedback_ledger, /founder_outcome, /suggestion_quality, /prep_quality, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /approvals, /approve, /reject, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_revise, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory, /memory_limits, /memory_pending, document upload",
             "External connectors: Google Calendar read-only optional",
             "Calendar writes: disabled",
             "LLM/model calls: disabled",
@@ -2103,6 +2133,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "User-Approved Output Queue: /approvals, /approve, and /reject create local receipts only",
             "Action Draft Queue: /drafts owner-requested local approval candidates only",
             "User Confirmation Runtime: /draft_* creates local confirmation receipts only",
+            "Draft Revision Loop: /draft_revise creates local revision candidates only",
             "Approved Output Export: /export_* creates local export payloads only",
             "Usage & Cost Ledger: /usage shows local estimated usage only",
             "Skill Manifest Runtime Gates: available for local command skill boundaries only",
