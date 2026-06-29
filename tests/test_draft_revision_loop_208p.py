@@ -119,4 +119,4 @@ def test_208p_reference_and_roadmap_close_draft_revision_without_writes():
     assert "208P adds safe local draft revision requests" in reference
     assert "does not send Gmail" in reference
     assert '"stage_id":"208P","stage_name":"Draft Revision Loop v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "214P and later remain unauthorized" in roadmap
+    assert "215P and later remain unauthorized" in roadmap
