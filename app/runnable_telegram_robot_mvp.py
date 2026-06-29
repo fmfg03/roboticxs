@@ -177,6 +177,15 @@ from app.memory_approval_telegram_flow import (
     render_memory_review_inbox,
 )
 from app.memory_intelligence import build_memory_intelligence_report, render_memory_intelligence_report
+from app.memory_correction_loop import (
+    MEMORY_CORRECTION_COMMANDS,
+    MemoryCorrectionReceipt,
+    build_memory_correction_receipt,
+    correction_type_from_command,
+    parse_memory_correction_argument,
+    render_memory_correction_receipt,
+    render_memory_correction_usage,
+)
 from app.memory_source_forget_receipts import (
     MemoryEditReceipt,
     MemoryForgetReceipt,
@@ -346,6 +355,11 @@ SUPPORTED_COMMANDS = (
     "/memory_reject",
     "/memory_edit",
     "/memory_forget",
+    "/memory_wrong",
+    "/memory_stale",
+    "/memory_duplicate",
+    "/memory_merge",
+    "/memory_never_use",
     "/memory",
     "/memory_limits",
     "/memory_pending",
@@ -365,7 +379,7 @@ PRODUCT_MENU_LINES = (
     "Drafts: /drafts, /draft_approve <draft_id>, /draft_reject <draft_id>, /draft_edit <draft_id> <text>, /draft_revise <draft_id> <revision>, /draft_expire <draft_id>, /export_text <confirmation_id>, /export_email <confirmation_id>, /export_file <confirmation_id>",
     "Usage: /usage",
     "Tasks: /inbox, /inbox_done <item_id>, /inbox_dismiss <item_id>",
-    "Memory: /memory, /memory_review, /memory_pending, /memory_limits, /memory_approve <candidate_id>, /memory_reject <candidate_id>, /memory_edit <candidate_or_memory_id> <text>, /memory_forget <memory_id>",
+    "Memory: /memory, /memory_review, /memory_pending, /memory_limits, /memory_approve <candidate_id>, /memory_reject <candidate_id>, /memory_edit <candidate_or_memory_id> <text>, /memory_forget <memory_id>, /memory_wrong <memory_id>, /memory_stale <memory_id>, /memory_duplicate <memory_id>, /memory_merge <memory_id> <target_memory_id>, /memory_never_use <memory_id>",
     "Documents: send a file for draft-only intake",
     "Setup Check: /status, /checkup, /setup",
 )
@@ -1062,6 +1076,7 @@ def render_command_reply(
     memory_approval_decision: MemoryApprovalTelegramReceipt | None = None,
     memory_edit_receipt: MemoryEditReceipt | None = None,
     memory_forget_receipt: MemoryForgetReceipt | None = None,
+    memory_correction_receipt: MemoryCorrectionReceipt | None = None,
     document_intake: TelegramDocumentIntakeStubRecord | None = None,
     document_review_pack_v1: DocumentReviewPackV1Record | None = None,
     suggestion_inbox: SuggestionInbox | None = None,
@@ -1288,6 +1303,10 @@ def render_command_reply(
         if memory_forget_receipt is None:
             raise TelegramRobotConfigError("rejected_missing_memory_forget_receipt")
         return render_memory_forget_receipt(memory_forget_receipt)
+    if command in MEMORY_CORRECTION_COMMANDS:
+        if memory_correction_receipt is None:
+            return render_memory_correction_usage()
+        return render_memory_correction_receipt(memory_correction_receipt)
     if command == "/memory":
         return render_memory_command_reply(config, source_bundle=memory_source_bundle)
     if command == "/memory_limits":
@@ -1412,6 +1431,10 @@ def handle_incoming_command(
         incoming_command.raw_text,
         command="/memory_forget",
     )
+    memory_correction_argument = extract_telegram_command_argument(
+        incoming_command.raw_text,
+        command=incoming_command.command if incoming_command.command in MEMORY_CORRECTION_COMMANDS else "/memory_wrong",
+    )
     inbox_done_item_id = extract_telegram_command_argument(
         incoming_command.raw_text,
         command="/inbox_done",
@@ -1465,6 +1488,7 @@ def handle_incoming_command(
     memory_approval_decision = None
     memory_edit_receipt = None
     memory_forget_receipt = None
+    memory_correction_receipt = None
     document_intake = None
     document_review_pack_v1 = None
     suggestion_inbox = None
@@ -1814,6 +1838,17 @@ def handle_incoming_command(
             memory_id=memory_forget_memory_id or "",
             source_bundle=memory_source_bundle,
         )
+    if authorized and incoming_command.command in MEMORY_CORRECTION_COMMANDS:
+        correction_type = correction_type_from_command(incoming_command.command)
+        memory_id, merge_target_memory_id = parse_memory_correction_argument(correction_type, memory_correction_argument)
+        memory_correction_receipt = build_memory_correction_receipt(
+            owner_id=config.owner_id,
+            robot_id=config.robot_id,
+            correction_type=correction_type,
+            memory_id=memory_id,
+            merge_target_memory_id=merge_target_memory_id,
+            source_bundle=memory_source_bundle,
+        )
     if authorized and incoming_command.command == "/document":
         if incoming_command.document is None:
             raise TelegramRobotConfigError("rejected_missing_document_metadata")
@@ -1930,6 +1965,7 @@ def handle_incoming_command(
             memory_approval_decision=memory_approval_decision,
             memory_edit_receipt=memory_edit_receipt,
             memory_forget_receipt=memory_forget_receipt,
+            memory_correction_receipt=memory_correction_receipt,
             document_intake=document_intake,
             document_review_pack_v1=document_review_pack_v1,
             suggestion_inbox=suggestion_inbox,
@@ -2095,7 +2131,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             f"Dev mode: {'enabled' if validated.dev_mode else 'disabled'}",
             f"Dry run: {'enabled' if validated.dry_run else 'disabled'}",
             "Product menu: Today, Prep, Pilot, Suggestions, Approvals, Drafts, Memory, Documents, Usage, Status",
-            "Available commands: /start, /help, /menu, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /founder_loop, /feedback, /feedback_ledger, /founder_outcome, /suggestion_quality, /prep_quality, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /approvals, /approve, /reject, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_revise, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory, /memory_limits, /memory_pending, document upload",
+            "Available commands: /start, /help, /menu, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /founder_loop, /feedback, /feedback_ledger, /founder_outcome, /suggestion_quality, /prep_quality, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /approvals, /approve, /reject, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_revise, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory_wrong, /memory_stale, /memory_duplicate, /memory_merge, /memory_never_use, /memory, /memory_limits, /memory_pending, document upload",
             "External connectors: Google Calendar read-only optional",
             "Calendar writes: disabled",
             "LLM/model calls: disabled",
@@ -2126,6 +2162,7 @@ def build_telegram_robot_startup_report(config: TelegramRobotConfig) -> str:
             "Brief Memory Proposals: shown in /prep as pending owner review only",
             "Memory Review Decisions: /memory_approve, /memory_reject, and /memory_edit create local decision receipts only",
             "Memory Source & Forget Receipts: /memory shows provenance and /memory_forget creates local receipts only",
+            "Memory Correction Loop: /memory_wrong, /memory_stale, /memory_duplicate, /memory_merge, and /memory_never_use create local receipts only",
             "Document Intake: Telegram document metadata receives draft-only local replies only",
             "Proactive meeting suggestions: /suggest_brief owner-requested replies only",
             "Suggestion Inbox: /suggestions owner-requested local pending suggestions only",

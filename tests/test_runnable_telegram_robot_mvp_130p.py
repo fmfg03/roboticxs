@@ -1260,7 +1260,7 @@ def test_130p_startup_report_is_deterministic():
     assert "Stage: 150P" in report
     assert "Owner gate: enabled" in report
     assert "Product menu: Today, Prep, Pilot, Suggestions, Approvals, Drafts, Memory, Documents, Usage, Status" in report
-    assert "Available commands: /start, /help, /menu, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /founder_loop, /feedback, /feedback_ledger, /founder_outcome, /suggestion_quality, /prep_quality, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /approvals, /approve, /reject, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_revise, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory, /memory_limits, /memory_pending, document upload" in report
+    assert "Available commands: /start, /help, /menu, /status, /checkup, /setup, /miss, /today, /daily_brief, /demo, /pilot, /pilot_pack, /pilot_audit, /live_smoke, /founder_loop, /feedback, /feedback_ledger, /founder_outcome, /suggestion_quality, /prep_quality, /gmail_thread, /loops, /inbox, /inbox_done, /inbox_dismiss, /prep, /brief, /suggest_brief, /suggestions, /suggestion_dismiss, /suggestion_snooze, /suggestion_memory, /suggestion_draft, /suggestion_followup, /approvals, /approve, /reject, /drafts, /draft_approve, /draft_reject, /draft_edit, /draft_revise, /draft_expire, /export_text, /export_email, /export_file, /usage, /memory_review, /memory_approve, /memory_reject, /memory_edit, /memory_forget, /memory_wrong, /memory_stale, /memory_duplicate, /memory_merge, /memory_never_use, /memory, /memory_limits, /memory_pending, document upload" in report
     assert "External connectors: Google Calendar read-only optional" in report
     assert "Calendar writes: disabled" in report
     assert "LLM/model calls: disabled" in report
@@ -1277,6 +1277,7 @@ def test_130p_startup_report_is_deterministic():
     assert "Open Loops command: /loops owner-requested read-only unresolved loops only" in report
     assert "Memory Review Decisions: /memory_approve, /memory_reject, and /memory_edit create local decision receipts only" in report
     assert "Memory Source & Forget Receipts: /memory shows provenance and /memory_forget creates local receipts only" in report
+    assert "Memory Correction Loop: /memory_wrong, /memory_stale, /memory_duplicate, /memory_merge, and /memory_never_use create local receipts only" in report
     assert "Document Intake: Telegram document metadata receives draft-only local replies only" in report
     assert "Proactive meeting suggestions: /suggest_brief owner-requested replies only" in report
     assert "Suggestion Inbox: /suggestions owner-requested local pending suggestions only" in report
@@ -2347,4 +2348,4 @@ def test_130p_roadmap_registers_stage_and_133p_plus_block():
     assert '"stage_id":"138P","stage_name":"Proactive Meeting Suggestion v0","status":"CLOSED_COMMITTED"' in roadmap
     assert '"stage_id":"139P","stage_name":"Owner-Requested Suggested Meeting Brief v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P later added customer-facing Meeting Prep Pack product flow only" in roadmap
-    assert "209P and later remain unauthorized" in roadmap
+    assert "210P and later remain unauthorized" in roadmap

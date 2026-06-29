@@ -158,4 +158,4 @@ def test_162p_reference_and_roadmap_close_calendar_backed_today_prep_without_aut
     assert "does not authorize Calendar writes" in reference
     assert "Gmail reads or writes" in reference
     assert '"stage_id":"162P","stage_name":"Calendar-Backed Today / Prep v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "209P and later remain unauthorized" in roadmap
+    assert "210P and later remain unauthorized" in roadmap

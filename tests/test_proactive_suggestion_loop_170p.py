@@ -134,4 +134,4 @@ def test_170p_reference_and_roadmap_close_proactive_loop_without_execution():
     assert "No action has been taken" in reference
     assert "does not authorize live Telegram sends" in reference
     assert '"stage_id":"170P","stage_name":"Proactive Suggestion Loop v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "209P and later remain unauthorized" in roadmap
+    assert "210P and later remain unauthorized" in roadmap

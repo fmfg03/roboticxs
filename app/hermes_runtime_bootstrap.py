@@ -9,9 +9,9 @@ import sys
 
 
 HERMES_RUNTIME_BOOTSTRAP_STAGE = "129P"
-ROADMAP_CLOSED_THROUGH = "208P"
-NEXT_STAGE = "209P"
-NEXT_STAGE_LABEL = "209P+ remains unauthorized."
+ROADMAP_CLOSED_THROUGH = "209P"
+NEXT_STAGE = "210P"
+NEXT_STAGE_LABEL = "210P+ remains unauthorized."
 DEFAULT_RUNTIME_MODE = "local-dev"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
@@ -67,8 +67,9 @@ FEATURE_MODULES = (
     ("feedback_ledger_tags", "app.feedback_ledger_tags", False),
     ("daily_loop_outcome_tracker", "app.daily_loop_outcome_tracker", False),
     ("suggestion_quality_tuning", "app.suggestion_quality_tuning", False),
-    ("prep_quality_tuning", "app.prep_quality_tuning", False),
-    ("draft_revision_loop", "app.draft_revision_loop", False),
+        ("prep_quality_tuning", "app.prep_quality_tuning", False),
+        ("draft_revision_loop", "app.draft_revision_loop", False),
+        ("memory_correction_loop", "app.memory_correction_loop", False),
     ("setup_capability_status_component", "app.setup_capability_status_component", False),
     ("calendar_backed_today_prep", "app.calendar_backed_today_prep", False),
     ("gmail_readonly_context_scan", "app.gmail_readonly_context_scan", False),
@@ -296,7 +297,7 @@ def render_hermes_runtime_bootstrap_report(
             f"Owner: {status.owner_id}",
             f"Owner Display Name: {status.owner_display_name}",
             f"Mode: {status.runtime_mode}",
-            f"Roadmap: 95P-208P CLOSED_COMMITTED",
+            f"Roadmap: 95P-209P CLOSED_COMMITTED",
             f"Roadmap Closed Through: {status.roadmap_closed_through}",
             f"Telegram: {'enabled' if status.telegram_enabled else 'disabled'}",
             f"Connectors: {'enabled' if status.connectors_enabled else 'disabled'}",
@@ -373,6 +374,7 @@ def render_hermes_runtime_bootstrap_report(
                 "Suggestion Quality Tuning: available for local feedback-based suggestion ranking only",
                 "Prep Quality Tuning: available for local prep feedback tuning only",
                 "Draft Revision Loop: available for local draft revision candidates only",
+                "Memory Correction Loop: available for local memory correction receipts only",
                 "Setup Capability Status Component: available for shared customer-facing setup copy only",
                 "Calendar-Backed Today / Prep: available for read-only Calendar product context only",
                 "Gmail Read-Only Context Scan: available for read-only Gmail context signals only",
