@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 import json
 
+from app.document_to_action_flow import build_document_to_action_flow, render_document_to_action_flow
 from app.document_review_pack import (
     DocumentReviewPackRecord,
     build_document_review_pack_from_intake,
@@ -187,6 +188,7 @@ def render_document_review_pack_v1(record: DocumentReviewPackV1Record) -> str:
     ]
     if record.error_code:
         lines.extend(["", f"Blocked reason: {record.error_code}"])
+    lines.extend(["", render_document_to_action_flow(build_document_to_action_flow(record))])
     lines.append("")
     lines.append("No external action was taken.")
     return "\n".join(lines)
