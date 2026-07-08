@@ -221,4 +221,4 @@ def test_224p_reference_and_roadmap_close_review_pack_without_external_writes():
     assert "does not" in reference
     assert "create external tickets" in reference
     assert '"stage_id":"224P","stage_name":"Pilot Review Session Pack v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "226P and later remain unauthorized" in roadmap
+    assert "227P and later remain unauthorized" in roadmap

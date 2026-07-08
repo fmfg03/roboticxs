@@ -68,6 +68,7 @@ def test_189p_maps_main_telegram_commands_to_skill_manifests():
         "/pilot_activate": "basic",
         "/pilot_review": "basic",
         "/pilot_learnings": "basic",
+        "/paid_pilot_gate": "basic",
         "/founder_loop": "basic",
         "/feedback": "basic",
         "/feedback_ledger": "basic",

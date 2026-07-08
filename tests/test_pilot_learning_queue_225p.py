@@ -189,4 +189,4 @@ def test_225p_reference_and_roadmap_close_learning_queue_without_external_writes
     assert "does not" in reference
     assert "write to an external backlog" in reference
     assert '"stage_id":"225P","stage_name":"Pilot Learning Queue v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "226P and later remain unauthorized" in roadmap
+    assert "227P and later remain unauthorized" in roadmap

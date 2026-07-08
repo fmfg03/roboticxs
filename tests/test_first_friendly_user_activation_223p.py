@@ -143,4 +143,4 @@ def test_223p_reference_and_roadmap_close_activation_without_external_writes():
     assert "does not" in reference
     assert "provision external accounts" in reference
     assert '"stage_id":"223P","stage_name":"First Friendly User Activation v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "226P and later remain unauthorized" in roadmap
+    assert "227P and later remain unauthorized" in roadmap

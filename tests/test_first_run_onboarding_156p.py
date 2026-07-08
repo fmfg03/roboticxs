@@ -39,4 +39,4 @@ def test_156p_reference_and_roadmap_close_first_run_without_authority_expansion(
     assert "does not add new commands" in reference
     assert "connector activation" in reference
     assert '"stage_id":"156P","stage_name":"First-Run Onboarding v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "226P and later remain unauthorized" in roadmap
+    assert "227P and later remain unauthorized" in roadmap
