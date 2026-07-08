@@ -124,4 +124,4 @@ def test_222p_reference_and_roadmap_close_launch_baseline_without_external_write
     assert "222P adds `/pilot_launch`" in reference
     assert "does not activate connectors" in reference
     assert '"stage_id":"222P","stage_name":"Friendly Pilot Launch Baseline v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "224P and later remain unauthorized" in roadmap
+    assert "225P and later remain unauthorized" in roadmap
