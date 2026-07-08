@@ -130,4 +130,4 @@ def test_207p_reference_and_roadmap_close_prep_quality_without_writes():
     assert "207P adds local quality feedback hooks" in reference
     assert "does not rewrite live prep automatically" in reference
     assert '"stage_id":"207P","stage_name":"Prep Quality Tuning v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "218P and later remain unauthorized" in roadmap
+    assert "219P and later remain unauthorized" in roadmap

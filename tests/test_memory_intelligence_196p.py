@@ -59,7 +59,7 @@ def test_196p_reference_and_roadmap_close_memory_intelligence_without_actions():
     assert "196P analyzes visible approved memory" in reference
     assert "does not perform those actions" in reference
     assert '"stage_id":"196P","stage_name":"Memory Intelligence v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "218P and later remain unauthorized" in roadmap
+    assert "219P and later remain unauthorized" in roadmap
 
 
 def snapshot():
