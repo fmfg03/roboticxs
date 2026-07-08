@@ -254,4 +254,4 @@ def test_220p_reference_and_roadmap_close_weekly_report_without_writes():
     assert "220P adds `/pilot_weekly_report`" in reference
     assert "does not claim live analytics" in reference
     assert '"stage_id":"220P","stage_name":"Pilot Weekly Report v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "225P and later remain unauthorized" in roadmap
+    assert "226P and later remain unauthorized" in roadmap

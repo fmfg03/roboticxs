@@ -206,4 +206,4 @@ def test_173p_reference_and_roadmap_close_memory_approval_flow_only():
     assert "No memory was written" in reference
     assert "does not authorize Memory Store writes" in reference
     assert '"stage_id":"173P","stage_name":"Memory Approval Telegram Flow v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "225P and later remain unauthorized" in roadmap
+    assert "226P and later remain unauthorized" in roadmap

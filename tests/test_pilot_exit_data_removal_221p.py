@@ -167,4 +167,4 @@ def test_221p_reference_and_roadmap_close_exit_flow_without_external_deletes():
     assert "221P adds local Telegram receipts" in reference
     assert "does not delete provider data" in reference
     assert '"stage_id":"221P","stage_name":"Pilot Exit / Data Removal Flow v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "225P and later remain unauthorized" in roadmap
+    assert "226P and later remain unauthorized" in roadmap

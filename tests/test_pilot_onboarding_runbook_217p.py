@@ -120,4 +120,4 @@ def test_217p_reference_and_roadmap_close_runbook_without_writes():
     assert "217P adds `/pilot_runbook`" in reference
     assert "Each day includes a command, expected result, fallback status, and stop condition" in reference
     assert '"stage_id":"217P","stage_name":"Pilot Onboarding Runbook v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "225P and later remain unauthorized" in roadmap
+    assert "226P and later remain unauthorized" in roadmap

@@ -150,4 +150,4 @@ def test_150p_roadmap_records_product_shell_and_blocks_151p_plus():
 
     assert '"stage_id":"150P","stage_name":"Telegram Product Shell v0","status":"CLOSED_COMMITTED"' in roadmap
     assert "151P behavior beyond customer-facing Meeting Prep Pack product flow" in roadmap
-    assert "225P and later remain unauthorized" in roadmap
+    assert "226P and later remain unauthorized" in roadmap

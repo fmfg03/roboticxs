@@ -155,4 +155,4 @@ def test_204p_reference_and_roadmap_close_feedback_ledger_without_writes():
     assert "204P turns captured feedback into local structured ledger entries" in reference
     assert "does not authorize Gmail send" in reference
     assert '"stage_id":"204P","stage_name":"Feedback Ledger & Tags v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "225P and later remain unauthorized" in roadmap
+    assert "226P and later remain unauthorized" in roadmap

@@ -78,7 +78,7 @@ def test_197p_reference_and_roadmap_close_document_actions_without_writes():
     assert "197P turns a completed draft-only document review" in reference
     assert "These are suggestions only" in reference
     assert '"stage_id":"197P","stage_name":"Document-to-Action Flow v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "225P and later remain unauthorized" in roadmap
+    assert "226P and later remain unauthorized" in roadmap
 
 
 def review():
