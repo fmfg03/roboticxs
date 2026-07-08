@@ -165,4 +165,4 @@ def test_213p_reference_and_roadmap_close_operator_console_without_writes():
     assert "213P adds local Telegram/admin pilot visibility commands" in reference
     assert "This is not a web console" in reference
     assert '"stage_id":"213P","stage_name":"Friendly Pilot Operator Console v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "222P and later remain unauthorized" in roadmap
+    assert "223P and later remain unauthorized" in roadmap

@@ -161,4 +161,4 @@ def test_218p_reference_and_roadmap_close_issue_capture_without_external_tickets
     assert "218P adds local Telegram issue capture" in reference
     assert "does not create external tickets" in reference
     assert '"stage_id":"218P","stage_name":"Pilot Support & Issue Capture v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "222P and later remain unauthorized" in roadmap
+    assert "223P and later remain unauthorized" in roadmap
