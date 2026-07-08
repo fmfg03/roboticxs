@@ -173,4 +173,4 @@ def test_172p_reference_and_roadmap_close_decision_flow_only():
     assert "No action has been taken" in reference
     assert "does not authorize drafts, memory writes, scheduler snoozes" in reference
     assert '"stage_id":"172P","stage_name":"Suggestion Decision Flow v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "217P and later remain unauthorized" in roadmap
+    assert "218P and later remain unauthorized" in roadmap
