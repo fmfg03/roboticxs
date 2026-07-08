@@ -101,4 +101,4 @@ def test_190p_reference_and_roadmap_close_pilot_without_new_authority():
     assert "Gmail send" in reference
     assert "no fast path cache" in reference
     assert '"stage_id":"190P","stage_name":"Controlled Live Pilot Baseline v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "223P and later remain unauthorized" in roadmap
+    assert "224P and later remain unauthorized" in roadmap

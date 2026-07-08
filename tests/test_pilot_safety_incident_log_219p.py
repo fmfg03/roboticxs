@@ -156,4 +156,4 @@ def test_219p_reference_and_roadmap_close_safety_log_without_external_tickets():
     assert "219P adds `/pilot_safety`" in reference
     assert "attempted Gmail send" in reference
     assert '"stage_id":"219P","stage_name":"Pilot Safety Incident Log v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "223P and later remain unauthorized" in roadmap
+    assert "224P and later remain unauthorized" in roadmap
