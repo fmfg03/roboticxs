@@ -58,6 +58,7 @@ def test_189p_maps_main_telegram_commands_to_skill_manifests():
         "/report_wrong": "basic",
         "/report_missing": "basic",
         "/report_slow": "basic",
+        "/pilot_safety": "basic",
         "/founder_loop": "basic",
         "/feedback": "basic",
         "/feedback_ledger": "basic",
