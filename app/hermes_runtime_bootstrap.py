@@ -9,9 +9,9 @@ import sys
 
 
 HERMES_RUNTIME_BOOTSTRAP_STAGE = "129P"
-ROADMAP_CLOSED_THROUGH = "220P"
-NEXT_STAGE = "221P"
-NEXT_STAGE_LABEL = "221P+ remains unauthorized."
+ROADMAP_CLOSED_THROUGH = "221P"
+NEXT_STAGE = "222P"
+NEXT_STAGE_LABEL = "222P+ remains unauthorized."
 DEFAULT_RUNTIME_MODE = "local-dev"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
@@ -81,6 +81,7 @@ FEATURE_MODULES = (
         ("pilot_support_issue_capture", "app.pilot_support_issue_capture", False),
         ("pilot_safety_incident_log", "app.pilot_safety_incident_log", False),
         ("pilot_weekly_report", "app.pilot_weekly_report", False),
+        ("pilot_exit_data_removal", "app.pilot_exit_data_removal", False),
     ("setup_capability_status_component", "app.setup_capability_status_component", False),
     ("calendar_backed_today_prep", "app.calendar_backed_today_prep", False),
     ("gmail_readonly_context_scan", "app.gmail_readonly_context_scan", False),
@@ -397,6 +398,7 @@ def render_hermes_runtime_bootstrap_report(
                 "Pilot Support Issue Capture: available for local pilot issue receipts only",
                 "Pilot Safety Incident Log: available for local safety incident visibility only",
                 "Pilot Weekly Report: available for local weekly pilot learning reports only",
+                "Pilot Exit / Data Removal: available for local pilot exit and data removal receipts only",
                 "Setup Capability Status Component: available for shared customer-facing setup copy only",
                 "Calendar-Backed Today / Prep: available for read-only Calendar product context only",
                 "Gmail Read-Only Context Scan: available for read-only Gmail context signals only",

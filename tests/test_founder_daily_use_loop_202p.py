@@ -142,4 +142,4 @@ def test_202p_reference_and_roadmap_close_founder_loop_without_writes():
     assert "does not authorize Gmail send" in reference
     assert "autonomous background actions" in reference
     assert '"stage_id":"202P","stage_name":"Founder Daily Use Loop v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "221P and later remain unauthorized" in roadmap
+    assert "222P and later remain unauthorized" in roadmap

@@ -166,4 +166,4 @@ def test_210p_reference_and_roadmap_close_metrics_without_writes():
     assert "210P adds `/pilot_metrics`" in reference
     assert "does not claim live analytics" in reference
     assert '"stage_id":"210P","stage_name":"Pilot Metrics Snapshot v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "221P and later remain unauthorized" in roadmap
+    assert "222P and later remain unauthorized" in roadmap

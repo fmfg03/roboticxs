@@ -82,4 +82,4 @@ def test_157p_reference_and_roadmap_close_demo_loop_without_authority_expansion(
     assert "does not send Telegram messages" in reference
     assert "mutate Memory Center" in reference
     assert '"stage_id":"157P","stage_name":"Telegram Demo Loop v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "221P and later remain unauthorized" in roadmap
+    assert "222P and later remain unauthorized" in roadmap
