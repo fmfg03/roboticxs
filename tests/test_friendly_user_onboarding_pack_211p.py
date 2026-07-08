@@ -103,4 +103,4 @@ def test_211p_reference_and_roadmap_close_friendly_onboarding_without_writes():
     assert "211P adds `/friendly_onboarding`" in reference
     assert "controlled 1-3 friendly-user pilot setup pack" in reference
     assert '"stage_id":"211P","stage_name":"Friendly User Onboarding Pack v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "220P and later remain unauthorized" in roadmap
+    assert "221P and later remain unauthorized" in roadmap

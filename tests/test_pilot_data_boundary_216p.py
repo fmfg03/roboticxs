@@ -151,4 +151,4 @@ def test_216p_reference_and_roadmap_close_boundary_without_migration():
     assert "216P adds local owner/robot data-boundary visibility" in reference
     assert "does not move, delete, merge, or mutate data" in reference
     assert '"stage_id":"216P","stage_name":"Pilot Data Boundary v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "220P and later remain unauthorized" in roadmap
+    assert "221P and later remain unauthorized" in roadmap

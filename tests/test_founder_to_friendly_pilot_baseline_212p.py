@@ -108,4 +108,4 @@ def test_212p_reference_and_roadmap_close_baseline_without_writes():
     assert "212P adds `/friendly_pilot`" in reference
     assert "controlled baseline from founder dogfooding" in reference
     assert '"stage_id":"212P","stage_name":"Founder-to-Friendly Pilot Baseline v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "220P and later remain unauthorized" in roadmap
+    assert "221P and later remain unauthorized" in roadmap
