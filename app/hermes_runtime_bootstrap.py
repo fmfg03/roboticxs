@@ -9,9 +9,9 @@ import sys
 
 
 HERMES_RUNTIME_BOOTSTRAP_STAGE = "129P"
-ROADMAP_CLOSED_THROUGH = "215P"
-NEXT_STAGE = "216P"
-NEXT_STAGE_LABEL = "216P+ remains unauthorized."
+ROADMAP_CLOSED_THROUGH = "216P"
+NEXT_STAGE = "217P"
+NEXT_STAGE_LABEL = "217P+ remains unauthorized."
 DEFAULT_RUNTIME_MODE = "local-dev"
 DEFAULT_ROBOT_ID = "roboticxs-dev"
 DEFAULT_OWNER_ID = "local-owner"
@@ -76,6 +76,7 @@ FEATURE_MODULES = (
         ("friendly_pilot_operator_console", "app.friendly_pilot_operator_console", False),
         ("friendly_pilot_invite_consent", "app.friendly_pilot_invite_consent", False),
         ("pilot_user_provisioning", "app.pilot_user_provisioning", False),
+        ("pilot_data_boundary", "app.pilot_data_boundary", False),
     ("setup_capability_status_component", "app.setup_capability_status_component", False),
     ("calendar_backed_today_prep", "app.calendar_backed_today_prep", False),
     ("gmail_readonly_context_scan", "app.gmail_readonly_context_scan", False),
@@ -303,7 +304,7 @@ def render_hermes_runtime_bootstrap_report(
             f"Owner: {status.owner_id}",
             f"Owner Display Name: {status.owner_display_name}",
             f"Mode: {status.runtime_mode}",
-            f"Roadmap: 95P-215P CLOSED_COMMITTED",
+            f"Roadmap: 95P-216P CLOSED_COMMITTED",
             f"Roadmap Closed Through: {status.roadmap_closed_through}",
             f"Telegram: {'enabled' if status.telegram_enabled else 'disabled'}",
             f"Connectors: {'enabled' if status.connectors_enabled else 'disabled'}",
@@ -387,6 +388,7 @@ def render_hermes_runtime_bootstrap_report(
                 "Friendly Pilot Operator Console: available for local Telegram/admin pilot visibility only",
                 "Friendly Pilot Invite & Consent: available for local consent text only",
                 "Pilot User Provisioning: available for strict local allowlist receipts only",
+                "Pilot Data Boundary: available for local owner/robot scope checks only",
                 "Setup Capability Status Component: available for shared customer-facing setup copy only",
                 "Calendar-Backed Today / Prep: available for read-only Calendar product context only",
                 "Gmail Read-Only Context Scan: available for read-only Gmail context signals only",

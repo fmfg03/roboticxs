@@ -157,4 +157,4 @@ def test_215p_reference_and_roadmap_close_provisioning_without_open_access():
     assert "215P adds local Telegram/admin pilot provisioning visibility" in reference
     assert "does not modify Telegram owner ids" in reference
     assert '"stage_id":"215P","stage_name":"Pilot User Provisioning v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "216P and later remain unauthorized" in roadmap
+    assert "217P and later remain unauthorized" in roadmap

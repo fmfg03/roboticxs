@@ -147,4 +147,4 @@ def test_182p_reference_and_roadmap_close_calendar_binding_only():
     assert "OAuth token refresh" in reference
     assert "189P and later remain unauthorized" in reference
     assert '"stage_id":"182P","stage_name":"Calendar Context Binding v1","status":"CLOSED_COMMITTED"' in roadmap
-    assert "216P and later remain unauthorized" in roadmap
+    assert "217P and later remain unauthorized" in roadmap

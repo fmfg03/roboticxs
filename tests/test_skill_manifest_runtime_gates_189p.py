@@ -50,6 +50,7 @@ def test_189p_maps_main_telegram_commands_to_skill_manifests():
         "/pilot_consent": "basic",
         "/pilot_provision": "basic",
         "/pilot_allowlist": "basic",
+        "/pilot_boundary": "basic",
         "/founder_loop": "basic",
         "/feedback": "basic",
         "/feedback_ledger": "basic",

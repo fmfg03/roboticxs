@@ -141,4 +141,4 @@ def test_214p_reference_and_roadmap_close_invite_consent_without_writes():
     assert "214P adds local Telegram/admin invite and consent text" in reference
     assert "does not create a real invite" in reference
     assert '"stage_id":"214P","stage_name":"Friendly Pilot Invite & Consent Flow v0","status":"CLOSED_COMMITTED"' in roadmap
-    assert "216P and later remain unauthorized" in roadmap
+    assert "217P and later remain unauthorized" in roadmap
