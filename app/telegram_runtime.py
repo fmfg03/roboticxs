@@ -17,6 +17,7 @@ from app.hermes_runtime import (
     HermesRuntimeResponse,
     dispatch_hermes_runtime_request,
 )
+from app.helper_discovery import handle_helper_discovery
 from app.memory_service import (
     approve_proposal,
     create_proposed_memory,
@@ -333,6 +334,31 @@ def run_telegram_conversation_loop(
         )
 
     hermes_request = build_hermes_request_from_telegram(message)
+    if (
+        session is not None
+        and settings.helper_discovery_enabled
+        and settings.is_telegram_user_allowed(message.user_id)
+        and message.user_id != settings.telegram_owner_id
+    ):
+        user, robot = _resolve_runtime_user_and_robot(session=session, message=message)
+        helper_discovery_reply = handle_helper_discovery(
+            session=session,
+            settings=settings,
+            user=user,
+            robot=robot,
+            telegram_user_id=message.user_id,
+            text=message.text,
+            first_name=message.first_name,
+        )
+        if helper_discovery_reply is not None:
+            return _build_helper_discovery_result(
+                message=message,
+                config=config,
+                trace=trace,
+                reply_text=helper_discovery_reply.reply_text,
+                status=helper_discovery_reply.status,
+                proposal_id=helper_discovery_reply.proposal_id,
+            )
     if session is not None:
         memory_result = _handle_telegram_memory_proposal_loop(
             session=session,
@@ -516,6 +542,42 @@ def run_telegram_conversation_loop(
             **({"error_code": active_error_code} if active_error_code is not None else {}),
         },
         error_code=active_error_code,
+    )
+
+
+def _build_helper_discovery_result(
+    *,
+    message: TelegramRuntimeMessage,
+    config: TelegramBotRuntimeConfig,
+    trace: dict[str, str],
+    reply_text: str,
+    status: str,
+    proposal_id: str | None,
+) -> TelegramConversationLoopResult:
+    hermes_request = build_hermes_request_from_telegram(message)
+    metadata = {
+        "helper_discovery": "active",
+        "helper_discovery_status": status,
+        "external_action_authority": "none",
+        "cross_user_sharing": "false",
+        "active_memory_changed": "false",
+    }
+    if proposal_id is not None:
+        metadata["memory_proposal_id"] = proposal_id
+    hermes_response = HermesRuntimeResponse(
+        status="ok",
+        text=reply_text,
+        task_id=None,
+        safety_decision="ANSWER_ONLY",
+        metadata=metadata,
+    )
+    return TelegramConversationLoopResult(
+        ok=True,
+        message=message,
+        hermes_request=hermes_request,
+        hermes_response=hermes_response,
+        prepared_send=prepare_telegram_text_send(chat_id=message.chat_id, text=reply_text, config=config),
+        trace={**trace, "stage": "HELPER_DISCOVERY_v0_1", "dispatch": "helper_discovery"},
     )
 
 
