@@ -1,9 +1,9 @@
 # ROBOTICXS — Brief Additions: Knowledge Loop / Policy v0.1
 
-> **Project:** Roboticxs  
-> **Document type:** Official addendum to `ROBOTICXS_PROJECT_BRIEF.md`  
-> **Status:** Planning addendum / Not implemented runtime behavior  
-> **Date:** 2026-06-01  
+> **Project:** Roboticxs
+> **Document type:** Official addendum to `ROBOTICXS_PROJECT_BRIEF.md`
+> **Status:** Planning addendum / Not implemented runtime behavior
+> **Date:** 2026-06-01
 > **Purpose:** Consolidate the knowledge-loop and policy-layer decisions derived from the Roboticxs Project Overview discussion without implying new runtime capability.
 
 This addendum does not mean the repo already implements Obsidian integration, GBrain integration, AgentWASP integration, live connectors, browser automation, or a policy engine runtime.
@@ -28,7 +28,7 @@ capture authorized information
 
 User-facing framing:
 
-> Roboticxs is not a vault.  
+> Roboticxs is not a vault.
 > Roboticxs is a personal robot that turns approved context into useful attention and prepared actions.
 
 ## 2. Obsidian / GBrain / graph-style systems
@@ -85,7 +85,7 @@ Required expectations:
 
 Spanish user-facing form:
 
-> Tú apruebas lo que tu robot recuerda.  
+> Tú apruebas lo que tu robot recuerda.
 > Puedes editarlo, corregirlo u olvidarlo.
 
 ## 5. Source policy

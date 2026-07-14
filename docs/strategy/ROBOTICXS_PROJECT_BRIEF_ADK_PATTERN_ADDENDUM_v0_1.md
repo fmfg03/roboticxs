@@ -1,10 +1,10 @@
 # Roboticxs Project Brief Addendum — ADK Pattern Harvest v0.1
 
-**Project:** Roboticxs.com  
-**Date:** 2026-06-01  
-**Status:** Brief addendum / product architecture update  
-**Applies to:** `docs/ROBOTICXS_PROJECT_BRIEF.md`  
-**Related artifact:** `docs/research/GOOGLE_ADK_AGENT_GARDEN_HARVEST_INDEX_v0_1.md`  
+**Project:** Roboticxs.com
+**Date:** 2026-06-01
+**Status:** Brief addendum / product architecture update
+**Applies to:** `docs/ROBOTICXS_PROJECT_BRIEF.md`
+**Related artifact:** `docs/research/GOOGLE_ADK_AGENT_GARDEN_HARVEST_INDEX_v0_1.md`
 
 ---
 

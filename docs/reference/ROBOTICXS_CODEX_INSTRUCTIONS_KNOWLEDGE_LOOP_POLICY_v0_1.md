@@ -2,11 +2,11 @@
 
 # Codex Instructions — Roboticxs Brief Additions: Obsidian / Knowledge Loop / Policy Layer
 
-> **Project:** Roboticxs  
-> **Instruction type:** Documentation-only Codex task  
-> **Proposed stage:** Stage 26Q-B — Knowledge Loop & Policy Consolidation  
-> **Status:** Proposed / not implemented  
-> **Source context:** Roboticxs project discussion around Obsidian-style knowledge loops, GBrain-style memory architecture, AgentWASP/policy boundaries, and the existing Stage 27P “Qué se me pasó v0” implementation.  
+> **Project:** Roboticxs
+> **Instruction type:** Documentation-only Codex task
+> **Proposed stage:** Stage 26Q-B — Knowledge Loop & Policy Consolidation
+> **Status:** Proposed / not implemented
+> **Source context:** Roboticxs project discussion around Obsidian-style knowledge loops, GBrain-style memory architecture, AgentWASP/policy boundaries, and the existing Stage 27P “Qué se me pasó v0” implementation.
 > **Hard constraint:** Do not modify runtime, app code, tests, database models, providers, connectors, browser automation, or retrieval behavior.
 
 ---

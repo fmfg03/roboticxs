@@ -1,9 +1,9 @@
 # Google ADK Agent Garden Harvest Index v0.1
 
-**Project:** Roboticxs / Agentius / Zaubern  
-**Date:** 2026-06-01  
-**Status:** Research artifact only  
-**Scope:** Pattern harvest from selected `google/adk-samples/python/agents` repositories  
+**Project:** Roboticxs / Agentius / Zaubern
+**Date:** 2026-06-01
+**Status:** Research artifact only
+**Scope:** Pattern harvest from selected `google/adk-samples/python/agents` repositories
 
 ---
 

@@ -1,12 +1,12 @@
 # ROBOTICXS — ChatGPT Project Starter
 
-> **Project:** Roboticxs.com  
-> **Status:** Product planning / MVP definition  
-> **Purpose:** Use this document as the starting context for a separate ChatGPT Project dedicated only to Roboticxs.  
-> **Strategic parent:** Agentius  
-> **Future upgrade path:** Agentius governed workflows → Zaubern authority layer  
-> **Runtime base:** Hermes Agent as runtime substrate, not consumer-facing product  
-> **Primary market:** B2C / prosumer / small business  
+> **Project:** Roboticxs.com
+> **Status:** Product planning / MVP definition
+> **Purpose:** Use this document as the starting context for a separate ChatGPT Project dedicated only to Roboticxs.
+> **Strategic parent:** Agentius
+> **Future upgrade path:** Agentius governed workflows → Zaubern authority layer
+> **Runtime base:** Hermes Agent as runtime substrate, not consumer-facing product
+> **Primary market:** B2C / prosumer / small business
 > **Product category:** Personal AI robots with memory, skills, model routing, and safety boundaries
 
 ---

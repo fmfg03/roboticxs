@@ -1,9 +1,9 @@
 # Roboticxs Roadmap Pivot — Stage 33P–46P after ADK Pattern Harvest v0.1
 
-**Project:** Roboticxs.com  
-**Date:** 2026-06-01  
-**Status:** Planning / roadmap candidate  
-**Depends on:** Clean runtime branch / workspace hygiene from Stages 27P–32P  
+**Project:** Roboticxs.com
+**Date:** 2026-06-01
+**Status:** Planning / roadmap candidate
+**Depends on:** Clean runtime branch / workspace hygiene from Stages 27P–32P
 
 This document does not authorize runtime implementation.
 

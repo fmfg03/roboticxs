@@ -1,9 +1,9 @@
 # ROBOTICXS — Brief Additions: Hermes / Routing / Web Task v0.1
 
-> **Project:** Roboticxs.com  
-> **Document type:** Official addendum to `ROBOTICXS_PROJECT_BRIEF.md`  
-> **Status:** Planning addendum / Not implemented runtime behavior  
-> **Date:** 2026-06-01  
+> **Project:** Roboticxs.com
+> **Document type:** Official addendum to `ROBOTICXS_PROJECT_BRIEF.md`
+> **Status:** Planning addendum / Not implemented runtime behavior
+> **Date:** 2026-06-01
 > **Purpose:** Capture the valid planning additions from the Hermes, LLM routing, low-latency, and Web Task discussion without implying current runtime implementation.
 
 This addendum extends the main project brief. It does not mean the repo already implements Hermes integration, Webwright integration, browser automation, or the future specs referenced below.

@@ -2,11 +2,11 @@
 
 # ROBOTICXS — Brief Additions from Hermes / LLM Routing / Webwright Thread v0.1
 
-> **Project:** Roboticxs.com  
-> **Document type:** Addendum to `ROBOTICXS_PROJECT_BRIEF.md`  
-> **Status:** Product / architecture planning  
-> **Date:** 2026-06-01  
-> **Purpose:** Capture the decisions and additions derived from the Hermes, LLM stack, low-latency routing, and Webwright discussion.  
+> **Project:** Roboticxs.com
+> **Document type:** Addendum to `ROBOTICXS_PROJECT_BRIEF.md`
+> **Status:** Product / architecture planning
+> **Date:** 2026-06-01
+> **Purpose:** Capture the decisions and additions derived from the Hermes, LLM stack, low-latency routing, and Webwright discussion.
 > **Use:** Append or merge into the main Roboticxs project brief before creating the product spec and MVP technical plan.
 
 ---
