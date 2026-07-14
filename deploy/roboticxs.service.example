@@ -1,0 +1,22 @@
+[Unit]
+Description=Roboticxs Telegram runtime
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=roboticxs
+Group=roboticxs
+WorkingDirectory=/opt/roboticxs
+EnvironmentFile=/etc/roboticxs/roboticxs.env
+ExecStart=/opt/roboticxs/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8080
+Restart=on-failure
+RestartSec=5
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/roboticxs
+
+[Install]
+WantedBy=multi-user.target

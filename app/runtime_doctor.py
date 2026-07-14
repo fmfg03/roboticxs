@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 import json
 import os
 import sys
@@ -23,7 +24,7 @@ from app.hermes_runtime_bootstrap import (
 )
 
 
-RUNTIME_DOCTOR_STAGE = "149P"
+RUNTIME_DOCTOR_STAGE = ROADMAP_CLOSED_THROUGH
 NEXT_STAGE = "227P"
 NEXT_STAGE_LABEL = "227P+ remains unauthorized."
 DIRECT_GOOGLE_TOKEN_ENV_KEYS = (
@@ -31,6 +32,9 @@ DIRECT_GOOGLE_TOKEN_ENV_KEYS = (
     "ROBOTICXS_GOOGLE_OAUTH_ACCESS_TOKEN",
 )
 ENV_CHECK_KEYS = (
+    "DATABASE_URL",
+    "TELEGRAM_BOT_TOKEN",
+    "TELEGRAM_PUBLIC_WEBHOOK_URL",
     "ROBOTICXS_RUNTIME_MODE",
     "ROBOTICXS_ROBOT_ID",
     "ROBOTICXS_OWNER_ID",
@@ -42,7 +46,16 @@ ENV_CHECK_KEYS = (
     "ROBOTICXS_GOOGLE_CALENDAR_TIMEZONE",
     *DIRECT_GOOGLE_TOKEN_ENV_KEYS,
 )
-SECRETISH_ENV_KEYS = frozenset(DIRECT_GOOGLE_TOKEN_ENV_KEYS)
+SECRETISH_ENV_KEYS = frozenset((*DIRECT_GOOGLE_TOKEN_ENV_KEYS, "TELEGRAM_BOT_TOKEN"))
+LAUNCH_REQUIRED_ENV_KEYS = (
+    "DATABASE_URL",
+    "TELEGRAM_BOT_TOKEN",
+    "TELEGRAM_PUBLIC_WEBHOOK_URL",
+    "ROBOTICXS_RUNTIME_MODE",
+    "ROBOTICXS_ROBOT_ID",
+    "ROBOTICXS_OWNER_ID",
+    "ROBOTICXS_LOCAL_STATE_DIR",
+)
 NO_AUTHORITY_FLAGS = (
     "calendar_writes",
     "gmail_writes",
@@ -125,6 +138,8 @@ class RuntimeDoctorStatus:
     service_readiness: tuple[RuntimeDoctorServiceReadiness, ...]
     boundary_status: RuntimeDoctorBoundaryStatus
     overall_status: str
+    launch_status: str
+    launch_blockers: tuple[str, ...]
     generated_at: str
 
 
@@ -247,7 +262,19 @@ def _overall_status(path_checks: tuple[RuntimeDoctorPathCheck, ...], service_rea
     return "ready"
 
 
-def build_runtime_doctor_status(*, env: dict[str, str] | None = None, generated_at: str = DEFAULT_GENERATED_AT) -> RuntimeDoctorStatus:
+def _launch_blockers(source: dict[str, str]) -> tuple[str, ...]:
+    blockers = [f"missing_env:{name}" for name in LAUNCH_REQUIRED_ENV_KEYS if not source.get(name, "").strip()]
+    webhook_url = source.get("TELEGRAM_PUBLIC_WEBHOOK_URL", "").strip()
+    if webhook_url and not webhook_url.startswith("https://"):
+        blockers.append("invalid_env:TELEGRAM_PUBLIC_WEBHOOK_URL_requires_https")
+    return tuple(blockers)
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def build_runtime_doctor_status(*, env: dict[str, str] | None = None, generated_at: str | None = None) -> RuntimeDoctorStatus:
     source = os.environ if env is None else env
     runtime_config = load_hermes_runtime_config_from_env(env=source)
     env_checks = tuple(_configured_env_status(name, source) for name in ENV_CHECK_KEYS)
@@ -257,6 +284,7 @@ def build_runtime_doctor_status(*, env: dict[str, str] | None = None, generated_
     _, token_payload, _ = _read_json_shape(Path(token_path))
     direct_token_configured = any(source.get(name, "").strip() for name in DIRECT_GOOGLE_TOKEN_ENV_KEYS)
     service_readiness = _build_service_readiness(token_payload=token_payload, direct_token_configured=direct_token_configured)
+    launch_blockers = _launch_blockers(source)
     return RuntimeDoctorStatus(
         stage=RUNTIME_DOCTOR_STAGE,
         runtime_online=True,
@@ -271,7 +299,9 @@ def build_runtime_doctor_status(*, env: dict[str, str] | None = None, generated_
         service_readiness=service_readiness,
         boundary_status=_build_boundary_status(),
         overall_status=_overall_status(path_checks, service_readiness),
-        generated_at=generated_at,
+        launch_status="blocked" if launch_blockers else "ready",
+        launch_blockers=launch_blockers,
+        generated_at=generated_at or _utc_now(),
     )
 
 
@@ -296,6 +326,7 @@ def render_runtime_doctor_report(*, status: RuntimeDoctorStatus, output_format: 
         "Runtime Doctor: local read-only",
         f"Stage: {status.stage}",
         f"Overall status: {status.overall_status}",
+        f"Launch status: {status.launch_status}",
         f"Roadmap Closed Through: {status.roadmap_closed_through}",
         f"Next authorized stage: {NEXT_STAGE_LABEL}",
         f"Robot: {status.robot_id}",
@@ -308,6 +339,10 @@ def render_runtime_doctor_report(*, status: RuntimeDoctorStatus, output_format: 
     lines.extend(f"- {check.name}: {check.shape_status} ({check.reason}) at {check.path}" for check in status.path_checks)
     lines.append("Service readiness:")
     lines.extend(f"- {readiness.service}: {'ready' if readiness.ready else 'not ready'} ({readiness.reason})" for readiness in status.service_readiness)
+    lines.append("Launch blockers:")
+    lines.extend(f"- {blocker}" for blocker in status.launch_blockers)
+    if not status.launch_blockers:
+        lines.append("- none")
     lines.append("Boundary status:")
     for name, value in asdict(status.boundary_status).items():
         lines.append(f"- {name}: {'enabled' if value else 'disabled'}")
@@ -315,7 +350,7 @@ def render_runtime_doctor_report(*, status: RuntimeDoctorStatus, output_format: 
     return RuntimeDoctorReport(status=status, rendered_text="\n".join(lines))
 
 
-def run_runtime_doctor(*, env: dict[str, str] | None = None, output_format: str = "text", generated_at: str = DEFAULT_GENERATED_AT) -> RuntimeDoctorReport:
+def run_runtime_doctor(*, env: dict[str, str] | None = None, output_format: str = "text", generated_at: str | None = None) -> RuntimeDoctorReport:
     status = build_runtime_doctor_status(env=env, generated_at=generated_at)
     return render_runtime_doctor_report(status=status, output_format=output_format)
 
