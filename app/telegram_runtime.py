@@ -18,6 +18,12 @@ from app.memory_service import (
 from app.memory_control import list_active_memories
 from app.memory_control import forget_active_memory
 from app.models import Robot, Task, TaskRun, User
+from app.robbie_conversation import (
+    ROBBIE_TEMPORARY_UNAVAILABLE_REPLY,
+    RobbieConversationError,
+    generate_robbie_reply,
+    guard_robbie_conversation_request,
+)
 
 
 TELEGRAM_RUNTIME_CHANNEL = "telegram"
@@ -281,6 +287,8 @@ def run_telegram_conversation_loop(
     settings: Settings,
     session=None,
     dispatch=dispatch_hermes_runtime_request,
+    conversation_reply_generator=generate_robbie_reply,
+    conversation_boundary_guard=guard_robbie_conversation_request,
 ) -> TelegramConversationLoopResult:
     trace = {
         "stage": "80P",
@@ -347,16 +355,69 @@ def run_telegram_conversation_loop(
             error_code="runtime_dispatch_error",
         )
 
+    response_status = hermes_response.status
+    reply_text = TELEGRAM_CONVERSATION_REPLY if hermes_response.status == "ok" else TELEGRAM_MALFORMED_REPLY
+    safety_decision = hermes_response.safety_decision
+    response_metadata = {
+        **hermes_response.metadata,
+        "telegram_conversation_loop": "active",
+        "persistence": "deferred",
+    }
+    dispatch_name = "hermes_runtime_foundation"
+    active_error_code: str | None = None
+
+    if settings.conversation_enabled and session is not None and hermes_response.status == "ok":
+        boundary = conversation_boundary_guard(message.text)
+        if boundary is not None:
+            reply_text = boundary.reply_text
+            safety_decision = boundary.decision
+            dispatch_name = "robbie_action_boundary"
+            response_metadata.update(
+                {
+                    "conversation_provider": "not_called",
+                    "action_boundary": boundary.decision,
+                }
+            )
+        else:
+            user, robot = _resolve_runtime_user_and_robot(session=session, message=message)
+            active_memories = list_active_memories(session=session, user_id=user.id, robot_id=robot.id)
+            try:
+                generated_reply = conversation_reply_generator(
+                    text=message.text,
+                    approved_memories=[memory.content for memory in active_memories],
+                    settings=settings,
+                )
+            except RobbieConversationError:
+                response_status = "safe_fallback"
+                reply_text = ROBBIE_TEMPORARY_UNAVAILABLE_REPLY
+                dispatch_name = "robbie_local_model_fallback"
+                active_error_code = "conversation_provider_unavailable"
+                response_metadata.update(
+                    {
+                        "conversation_provider": "unavailable",
+                        "conversation_error_exposed": "false",
+                    }
+                )
+            else:
+                reply_text = generated_reply.text
+                dispatch_name = "robbie_local_model"
+                response_metadata.update(
+                    {
+                        "conversation_provider": generated_reply.provider,
+                        "conversation_model": generated_reply.model,
+                        "conversation_input_tokens": str(generated_reply.input_tokens),
+                        "conversation_output_tokens": str(generated_reply.output_tokens),
+                        "approved_memory_items": str(len(active_memories)),
+                        "external_action_authority": "none",
+                    }
+                )
+
     active_response = HermesRuntimeResponse(
-        status=hermes_response.status,
-        text=TELEGRAM_CONVERSATION_REPLY if hermes_response.status == "ok" else TELEGRAM_MALFORMED_REPLY,
+        status=response_status,
+        text=reply_text,
         task_id=hermes_response.task_id,
-        safety_decision=hermes_response.safety_decision,
-        metadata={
-            **hermes_response.metadata,
-            "telegram_conversation_loop": "active",
-            "persistence": "deferred",
-        },
+        safety_decision=safety_decision,
+        metadata=response_metadata,
     )
     return TelegramConversationLoopResult(
         ok=active_response.status == "ok",
@@ -368,7 +429,12 @@ def run_telegram_conversation_loop(
             text=active_response.text,
             config=config,
         ),
-        trace={**trace, "dispatch": "hermes_runtime_foundation"},
+        trace={
+            **trace,
+            "dispatch": dispatch_name,
+            **({"error_code": active_error_code} if active_error_code is not None else {}),
+        },
+        error_code=active_error_code,
     )
 
 
