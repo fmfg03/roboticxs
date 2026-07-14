@@ -74,8 +74,10 @@ _EXTERNAL_ACTION_PATTERNS = (
 # both present. A topic such as "payment" or "credentials" is safe to discuss.
 _SENSITIVE_EXECUTION_PATTERNS = (
     r"\bpay\b.{0,80}\b(?:invoice|bill|payment)\b",
+    r"\brefund\b.{0,80}\b(?:me|customer|client|payment|charge|order)\b",
     r"\b(?:make|send|issue|process)\b.{0,80}\b(?:payment|refund)\b",
-    r"\b(?:paga|pague)\b.{0,80}\b(?:factura|cuenta|pago)\b",
+    r"\b(?:paga|pague|pagar)\b.{0,80}\b(?:factura|cuenta|pago)\b",
+    r"\b(?:reembolsa|reembolse|reembolsar)\b.{0,80}\b(?:me|cliente|pago|cargo|pedido)\b",
     r"\b(?:haz|realiza|envia|procesa)\b.{0,80}\b(?:el |un |ese |este )?(?:pago|reembolso)\b",
     r"\b(?:delete|close)\b.{0,50}\b(?:my )?(?:account|profile)\b",
     r"\b(?:borra|elimina|cierra)\b.{0,50}\b(?:mi |la )?(?:cuenta|perfil)\b",
@@ -290,8 +292,25 @@ def _normalize_for_matching(text: str) -> str:
 def _looks_like_task_list(text: str) -> bool:
     if "```" in text:
         return False
-    lines = [line.strip(" -\t") for line in text.splitlines() if line.strip(" -\t")]
-    return 2 <= len(lines) <= 20 and all(len(line) <= 200 for line in lines)
+    raw_lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if not (2 <= len(raw_lines) <= 20 and all(len(line) <= 200 for line in raw_lines)):
+        return False
+    if all(re.match(r"^(?:[-*•]|\d+[.)])\s+", line) for line in raw_lines):
+        return True
+    task_start = re.compile(
+        r"^(?:review|coordinate|create|prepare|draft|call|email|check|update|write|make|finish|complete|"
+        r"submit|schedule|book|organize|revisar|acordar|elaborar|preparar|redactar|llamar|enviar|"
+        r"verificar|actualizar|escribir|hacer|terminar|completar|presentar|agendar|organizar)\b"
+    )
+    return all(task_start.search(_normalize_for_matching(line)) for line in raw_lines)
+
+
+def _extract_task_lines(text: str) -> list[str]:
+    return [
+        re.sub(r"^(?:[-*•]|\d+[.)])\s+", "", line.strip()).strip()
+        for line in text.splitlines()
+        if line.strip()
+    ]
 
 
 def _task_rank(task: str) -> int:
@@ -308,7 +327,7 @@ def _task_rank(task: str) -> int:
 def _build_task_list_reply(text: str, *, spanish: bool) -> str:
     if not _looks_like_task_list(text):
         return ""
-    task_lines = [line.strip(" -\t") for line in text.splitlines() if line.strip(" -\t")]
+    task_lines = _extract_task_lines(text)
     ordered = sorted(
         (_task_rank(task), position, task)
         for position, task in enumerate(task_lines)

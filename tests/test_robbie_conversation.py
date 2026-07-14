@@ -194,8 +194,12 @@ def test_task_list_gets_a_concrete_safe_plan_in_stable_order():
     [
         "Pay the invoice now",
         "Make the payment for me",
+        "Refund the customer",
+        "Can you refund me for that charge?",
         "Paga la factura ahora",
+        "¿Puedes pagar la factura ahora?",
         "Haz el pago",
+        "Reembolsa al cliente",
         "Delete my account",
         "Change my password",
         "Accept the contract for me",
@@ -213,6 +217,18 @@ def test_prompt_requires_specific_adhd_support_and_provisional_task_planning():
     assert "first physical action under 10 minutes" in ROBBIE_SYSTEM_PROMPT
     assert "never invent deadlines or urgency" in ROBBIE_SYSTEM_PROMPT
     assert 'Spanish "acordar pago"' in ROBBIE_SYSTEM_PROMPT
+
+
+def test_plain_multiline_conversation_is_not_mistaken_for_a_task_list():
+    assert guard_robbie_conversation_request("I have ADHD\nI keep losing track of tasks") is None
+
+
+def test_bulleted_noun_phrases_are_recognized_as_a_task_list():
+    boundary = guard_robbie_conversation_request("- Platform contracts\n- Vendor coordination\n- Invoices")
+
+    assert boundary is not None
+    assert boundary.decision == "ANSWER_ONLY"
+    assert "Platform contracts" in boundary.reply_text
 
 
 def test_capability_disclosure_is_deterministic_and_does_not_overclaim():
