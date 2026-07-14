@@ -52,11 +52,16 @@ def create_app() -> FastAPI:
     async def telegram_runtime_webhook(update: dict) -> dict:
         message = update.get("message") if isinstance(update, dict) else None
         sender = message.get("from") if isinstance(message, dict) else None
+        chat = message.get("chat") if isinstance(message, dict) else None
         sender_id = sender.get("id") if isinstance(sender, dict) else None
+        chat_type = chat.get("type") if isinstance(chat, dict) else None
         if (
-            app.state.settings.telegram_owner_id is None
-            or not isinstance(sender_id, int)
-            or sender_id != app.state.settings.telegram_owner_id
+            not isinstance(sender_id, int)
+            or not app.state.settings.is_telegram_user_allowed(sender_id)
+            or (
+                sender_id != app.state.settings.telegram_owner_id
+                and chat_type != "private"
+            )
         ):
             return {}
         with app.state.db.session() as session:

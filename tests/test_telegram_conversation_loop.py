@@ -258,6 +258,61 @@ async def test_runtime_webhook_route_fails_closed_without_owner_configuration(cl
     assert db_counts() == before
 
 
+@pytest.mark.anyio
+async def test_runtime_webhook_allows_explicit_non_owner_user(client):
+    client.app.state.settings.telegram_owner_id = 9999
+    client.app.state.settings.telegram_allowed_user_ids = frozenset({3003})
+
+    response = await client.post("/api/telegram/runtime/webhook", json=build_text_update("hola"))
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "method": "sendMessage",
+        "chat_id": 4004,
+        "text": TELEGRAM_CONVERSATION_REPLY,
+    }
+
+
+@pytest.mark.anyio
+async def test_runtime_webhook_blocks_allowed_non_owner_in_group_chat(client):
+    client.app.state.settings.telegram_owner_id = 9999
+    client.app.state.settings.telegram_allowed_user_ids = frozenset({3003})
+    update = build_text_update("hola")
+    update["message"]["chat"]["type"] = "group"
+
+    response = await client.post("/api/telegram/runtime/webhook", json=update)
+
+    assert response.status_code == 200
+    assert response.json() == {}
+
+
+@pytest.mark.anyio
+async def test_runtime_webhook_starts_helper_discovery_for_allowed_non_owner(client):
+    client.app.state.settings.telegram_owner_id = 9999
+    client.app.state.settings.telegram_allowed_user_ids = frozenset({3003})
+    client.app.state.settings.helper_discovery_enabled = True
+
+    response = await client.post("/api/telegram/runtime/webhook", json=build_text_update("/start"))
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["method"] == "sendMessage"
+    assert body["chat_id"] == 4004
+    assert "Responde SÍ para comenzar" in body["text"]
+
+
+@pytest.mark.anyio
+async def test_helper_discovery_does_not_replace_owner_runtime(client):
+    client.app.state.settings.telegram_owner_id = 3003
+    client.app.state.settings.telegram_allowed_user_ids = frozenset({8891693168})
+    client.app.state.settings.helper_discovery_enabled = True
+
+    response = await client.post("/api/telegram/runtime/webhook", json=build_text_update("/start"))
+
+    assert response.status_code == 200
+    assert response.json()["text"] == TELEGRAM_CONVERSATION_REPLY
+
+
 def test_telegram_conversation_module_has_no_network_file_or_external_paths():
     text = RUNTIME_PATH.read_text()
 

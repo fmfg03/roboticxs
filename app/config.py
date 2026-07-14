@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import os
 
 
@@ -12,6 +12,7 @@ class Settings:
     telegram_bot_token: str | None = None
     telegram_public_webhook_url: str | None = None
     telegram_owner_id: int | None = None
+    telegram_allowed_user_ids: frozenset[int] = field(default_factory=frozenset)
     conversation_enabled: bool = False
     conversation_model: str = "qwen3:8b"
     conversation_base_url: str = "http://127.0.0.1:11434"
@@ -19,10 +20,21 @@ class Settings:
     conversation_history_enabled: bool = False
     conversation_history_max_turns: int = 6
     conversation_history_ttl_minutes: int = 120
+    helper_discovery_enabled: bool = False
 
     def __post_init__(self) -> None:
+        self.telegram_allowed_user_ids = frozenset(
+            user_id
+            for user_id in self.telegram_allowed_user_ids
+            if isinstance(user_id, int) and user_id > 0
+        )
         self.conversation_history_max_turns = max(1, min(self.conversation_history_max_turns, 6))
         self.conversation_history_ttl_minutes = max(1, min(self.conversation_history_ttl_minutes, 1440))
+
+    def is_telegram_user_allowed(self, user_id: int) -> bool:
+        if self.telegram_owner_id is None:
+            return False
+        return user_id == self.telegram_owner_id or user_id in self.telegram_allowed_user_ids
 
 
 def _read_bool_env(name: str, default: bool) -> bool:
@@ -45,6 +57,22 @@ def _read_optional_int_env(name: str) -> int | None:
         return int(raw_value.strip())
     except ValueError:
         return None
+
+
+def _read_int_set_env(name: str) -> frozenset[int]:
+    raw_value = os.getenv(name, "")
+    values: set[int] = set()
+    for item in raw_value.split(","):
+        normalized = item.strip()
+        if not normalized:
+            continue
+        try:
+            value = int(normalized)
+        except ValueError:
+            continue
+        if value > 0:
+            values.add(value)
+    return frozenset(values)
 
 
 def _read_positive_float_env(name: str, default: float) -> float:
@@ -79,6 +107,7 @@ def get_settings() -> Settings:
         telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN") or None,
         telegram_public_webhook_url=os.getenv("TELEGRAM_PUBLIC_WEBHOOK_URL") or None,
         telegram_owner_id=_read_optional_int_env("ROBOTICXS_OWNER_ID"),
+        telegram_allowed_user_ids=_read_int_set_env("ROBOTICXS_TELEGRAM_ALLOWED_USER_IDS"),
         conversation_enabled=_read_bool_env("ROBOTICXS_CONVERSATION_ENABLED", False),
         conversation_model=os.getenv("ROBOTICXS_CONVERSATION_MODEL", "qwen3:8b"),
         conversation_base_url=os.getenv("ROBOTICXS_CONVERSATION_BASE_URL", "http://127.0.0.1:11434"),
@@ -86,4 +115,5 @@ def get_settings() -> Settings:
         conversation_history_enabled=_read_bool_env("ROBOTICXS_CONVERSATION_HISTORY_ENABLED", False),
         conversation_history_max_turns=_read_positive_int_env("ROBOTICXS_CONVERSATION_HISTORY_MAX_TURNS", 6),
         conversation_history_ttl_minutes=_read_positive_int_env("ROBOTICXS_CONVERSATION_HISTORY_TTL_MINUTES", 120),
+        helper_discovery_enabled=_read_bool_env("ROBOTICXS_HELPER_DISCOVERY_ENABLED", False),
     )

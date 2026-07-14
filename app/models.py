@@ -183,6 +183,27 @@ class ConversationTurn(Base):
     created_at = Column(DateTime(timezone=True), default=now_utc, nullable=False)
 
 
+class HelperDiscoverySession(Base):
+    __tablename__ = "helper_discovery_sessions"
+    __table_args__ = (
+        UniqueConstraint("user_id", "robot_id", name="uq_helper_discovery_user_robot"),
+    )
+
+    id = Column(Text, primary_key=True, default=generate_id)
+    user_id = Column(Text, index=True, nullable=False)
+    robot_id = Column(Text, index=True, nullable=False)
+    status = Column(Text, nullable=False, default="WAITING_CONSENT")
+    current_step = Column(Integer, nullable=False, default=0)
+    answers_json = Column(Text, nullable=False, default="{}")
+    summary = Column(Text, nullable=True)
+    proposal_id = Column(Text, nullable=True)
+    consented_at = Column(DateTime(timezone=True), nullable=True)
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=now_utc, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=now_utc, nullable=False)
+
+
 class DocumentTask(Base):
     __tablename__ = "document_tasks"
 
