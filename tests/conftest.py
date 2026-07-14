@@ -14,6 +14,7 @@ if str(ROOT) not in sys.path:
 from app.main import create_app
 from app.models import (
     BudgetPolicy,
+    ConversationTurn,
     DocumentTask,
     FileIntakeAttempt,
     FileRetrievalEnablementRequest,
@@ -62,6 +63,7 @@ def db_counts(client):
                 "file_retrieval_attempts": session.scalar(select(func.count()).select_from(FileRetrievalAttempt)),
                 "file_retrieval_enablement_requests": session.scalar(select(func.count()).select_from(FileRetrievalEnablementRequest)),
                 "budget_policies": session.scalar(select(func.count()).select_from(BudgetPolicy)),
+                "conversation_turns": session.scalar(select(func.count()).select_from(ConversationTurn)),
             }
 
     return _counts

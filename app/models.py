@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import uuid
 
-from sqlalchemy import Boolean, Column, DateTime, Float, Integer, Text
+from sqlalchemy import Boolean, Column, DateTime, Float, Integer, Text, UniqueConstraint
 from sqlalchemy.orm import declarative_base
 
 
@@ -159,6 +159,28 @@ class MemoryItem(Base):
     importance = Column(Text, default="normal", nullable=False)
     created_at = Column(DateTime(timezone=True), default=now_utc, nullable=False)
     updated_at = Column(DateTime(timezone=True), default=now_utc, nullable=False)
+
+
+class ConversationTurn(Base):
+    __tablename__ = "conversation_turns"
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id",
+            "robot_id",
+            "source_channel",
+            "source_message_id",
+            name="uq_conversation_turn_source_message",
+        ),
+    )
+
+    id = Column(Text, primary_key=True, default=generate_id)
+    user_id = Column(Text, index=True, nullable=False)
+    robot_id = Column(Text, index=True, nullable=False)
+    source_channel = Column(Text, nullable=False, default="telegram")
+    source_message_id = Column(Text, nullable=False)
+    user_text = Column(Text, nullable=False)
+    assistant_text = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=now_utc, nullable=False)
 
 
 class DocumentTask(Base):

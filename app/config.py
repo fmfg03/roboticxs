@@ -16,6 +16,13 @@ class Settings:
     conversation_model: str = "granite4:7b-a1b-h"
     conversation_base_url: str = "http://127.0.0.1:11434"
     conversation_timeout_seconds: float = 8.0
+    conversation_history_enabled: bool = False
+    conversation_history_max_turns: int = 6
+    conversation_history_ttl_minutes: int = 120
+
+    def __post_init__(self) -> None:
+        self.conversation_history_max_turns = max(1, min(self.conversation_history_max_turns, 6))
+        self.conversation_history_ttl_minutes = max(1, min(self.conversation_history_ttl_minutes, 1440))
 
 
 def _read_bool_env(name: str, default: bool) -> bool:
@@ -51,6 +58,17 @@ def _read_positive_float_env(name: str, default: float) -> float:
     return value if value > 0 else default
 
 
+def _read_positive_int_env(name: str, default: int) -> int:
+    raw_value = os.getenv(name)
+    if raw_value is None:
+        return default
+    try:
+        value = int(raw_value.strip())
+    except ValueError:
+        return default
+    return value if value > 0 else default
+
+
 def get_settings() -> Settings:
     return Settings(
         database_url=os.getenv("DATABASE_URL", "sqlite:////tmp/roboticxs.db"),
@@ -65,4 +83,7 @@ def get_settings() -> Settings:
         conversation_model=os.getenv("ROBOTICXS_CONVERSATION_MODEL", "granite4:7b-a1b-h"),
         conversation_base_url=os.getenv("ROBOTICXS_CONVERSATION_BASE_URL", "http://127.0.0.1:11434"),
         conversation_timeout_seconds=_read_positive_float_env("ROBOTICXS_CONVERSATION_TIMEOUT_SECONDS", 8.0),
+        conversation_history_enabled=_read_bool_env("ROBOTICXS_CONVERSATION_HISTORY_ENABLED", False),
+        conversation_history_max_turns=_read_positive_int_env("ROBOTICXS_CONVERSATION_HISTORY_MAX_TURNS", 6),
+        conversation_history_ttl_minutes=_read_positive_int_env("ROBOTICXS_CONVERSATION_HISTORY_TTL_MINUTES", 120),
     )

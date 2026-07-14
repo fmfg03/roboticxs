@@ -47,6 +47,38 @@ def test_local_conversation_builds_bounded_prompt_with_approved_memory():
     assert reply.output_tokens == 17
 
 
+def test_recent_turns_are_inserted_as_bounded_session_context():
+    captured: dict[str, object] = {}
+
+    def transport(endpoint: str, payload: dict[str, object], timeout: float) -> dict[str, object]:
+        captured["payload"] = payload
+        return {"message": {"content": "The second task should come first."}}
+
+    generate_robbie_reply(
+        text="Which one should I do first?",
+        approved_memories=[],
+        recent_turns=[
+            ("I have a report and a phone call.", "What are their deadlines?"),
+            ("The report is due today.", "Then the report is more urgent."),
+        ],
+        settings=Settings(),
+        transport=transport,
+    )
+
+    payload = captured["payload"]
+    assert isinstance(payload, dict)
+    messages = payload["messages"]
+    assert isinstance(messages, list)
+    assert messages[-5:] == [
+        {"role": "user", "content": "I have a report and a phone call."},
+        {"role": "assistant", "content": "What are their deadlines?"},
+        {"role": "user", "content": "The report is due today."},
+        {"role": "assistant", "content": "Then the report is more urgent."},
+        {"role": "user", "content": "Which one should I do first?"},
+    ]
+    assert "short-lived session context, not approved memory" in ROBBIE_SYSTEM_PROMPT
+
+
 @pytest.mark.parametrize(
     "base_url",
     [
