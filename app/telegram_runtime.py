@@ -4,6 +4,14 @@ from dataclasses import dataclass, field
 import re
 
 from app.config import Settings
+from app.conversation_history import (
+    CONVERSATION_CLEARED_REPLY,
+    clear_conversation_turns,
+    detect_clear_conversation_command,
+    get_conversation_turn_by_source,
+    list_recent_conversation_turns,
+    record_conversation_turn,
+)
 from app.hermes_runtime import (
     HermesRuntimeRequest,
     HermesRuntimeResponse,
@@ -376,41 +384,114 @@ def run_telegram_conversation_loop(
                 {
                     "conversation_provider": "not_called",
                     "action_boundary": boundary.decision,
+                    "conversation_history_retained": "false",
                 }
             )
         else:
             user, robot = _resolve_runtime_user_and_robot(session=session, message=message)
-            active_memories = list_active_memories(session=session, user_id=user.id, robot_id=robot.id)
-            try:
-                generated_reply = conversation_reply_generator(
-                    text=message.text,
-                    approved_memories=[memory.content for memory in active_memories],
-                    settings=settings,
+            history_enabled = settings.conversation_history_enabled
+            source_message_id = str(message.message_id)
+            clear_language = detect_clear_conversation_command(message.text) if history_enabled else None
+            recent_turns = (
+                list_recent_conversation_turns(
+                    session=session,
+                    user_id=user.id,
+                    robot_id=robot.id,
+                    source_channel=TELEGRAM_RUNTIME_CHANNEL,
+                    max_turns=settings.conversation_history_max_turns,
+                    ttl_minutes=settings.conversation_history_ttl_minutes,
                 )
-            except RobbieConversationError:
-                response_status = "safe_fallback"
-                reply_text = ROBBIE_TEMPORARY_UNAVAILABLE_REPLY
-                dispatch_name = "robbie_local_model_fallback"
-                active_error_code = "conversation_provider_unavailable"
+                if history_enabled and clear_language is None
+                else []
+            )
+            replay_turn = (
+                get_conversation_turn_by_source(
+                    session=session,
+                    user_id=user.id,
+                    robot_id=robot.id,
+                    source_channel=TELEGRAM_RUNTIME_CHANNEL,
+                    source_message_id=source_message_id,
+                )
+                if history_enabled and clear_language is None
+                else None
+            )
+            if clear_language is not None:
+                cleared_turns = clear_conversation_turns(
+                    session=session,
+                    user_id=user.id,
+                    robot_id=robot.id,
+                    source_channel=TELEGRAM_RUNTIME_CHANNEL,
+                )
+                reply_text = CONVERSATION_CLEARED_REPLY[clear_language]
+                safety_decision = "ANSWER_ONLY"
+                dispatch_name = "robbie_conversation_clear"
                 response_metadata.update(
                     {
-                        "conversation_provider": "unavailable",
-                        "conversation_error_exposed": "false",
+                        "conversation_provider": "not_called",
+                        "conversation_history_mode": "session_only",
+                        "conversation_history_cleared_turns": str(cleared_turns),
+                        "approved_memory_changed": "false",
+                    }
+                )
+            elif replay_turn is not None:
+                reply_text = replay_turn.assistant_text
+                dispatch_name = "robbie_conversation_replay"
+                response_metadata.update(
+                    {
+                        "conversation_provider": "not_called",
+                        "conversation_history_mode": "session_only",
+                        "conversation_replayed": "true",
                     }
                 )
             else:
-                reply_text = generated_reply.text
-                dispatch_name = "robbie_local_model"
-                response_metadata.update(
-                    {
-                        "conversation_provider": generated_reply.provider,
-                        "conversation_model": generated_reply.model,
-                        "conversation_input_tokens": str(generated_reply.input_tokens),
-                        "conversation_output_tokens": str(generated_reply.output_tokens),
-                        "approved_memory_items": str(len(active_memories)),
-                        "external_action_authority": "none",
-                    }
-                )
+                active_memories = list_active_memories(session=session, user_id=user.id, robot_id=robot.id)
+                try:
+                    generated_reply = conversation_reply_generator(
+                        text=message.text,
+                        approved_memories=[memory.content for memory in active_memories],
+                        settings=settings,
+                        recent_turns=[(turn.user_text, turn.assistant_text) for turn in recent_turns],
+                    )
+                except RobbieConversationError:
+                    response_status = "safe_fallback"
+                    reply_text = ROBBIE_TEMPORARY_UNAVAILABLE_REPLY
+                    dispatch_name = "robbie_local_model_fallback"
+                    active_error_code = "conversation_provider_unavailable"
+                    response_metadata.update(
+                        {
+                            "conversation_provider": "unavailable",
+                            "conversation_error_exposed": "false",
+                            "conversation_history_retained": "false",
+                        }
+                    )
+                else:
+                    reply_text = generated_reply.text
+                    dispatch_name = "robbie_local_model"
+                    if history_enabled:
+                        record_conversation_turn(
+                            session=session,
+                            user_id=user.id,
+                            robot_id=robot.id,
+                            source_channel=TELEGRAM_RUNTIME_CHANNEL,
+                            source_message_id=source_message_id,
+                            user_text=message.text,
+                            assistant_text=reply_text,
+                            max_turns=settings.conversation_history_max_turns,
+                            ttl_minutes=settings.conversation_history_ttl_minutes,
+                        )
+                    response_metadata.update(
+                        {
+                            "conversation_provider": generated_reply.provider,
+                            "conversation_model": generated_reply.model,
+                            "conversation_input_tokens": str(generated_reply.input_tokens),
+                            "conversation_output_tokens": str(generated_reply.output_tokens),
+                            "approved_memory_items": str(len(active_memories)),
+                            "conversation_history_mode": "session_only" if history_enabled else "disabled",
+                            "conversation_history_turns_included": str(len(recent_turns)),
+                            "conversation_history_retained": str(history_enabled).lower(),
+                            "external_action_authority": "none",
+                        }
+                    )
 
     active_response = HermesRuntimeResponse(
         status=response_status,
