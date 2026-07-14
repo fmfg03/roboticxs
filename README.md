@@ -59,6 +59,13 @@ Current product value is strongest in:
 - auditability and approvals
 - local budget control
 
+Planned but not implemented:
+- Hermes as runtime substrate behind the Roboticxs control plane
+- policy-first low-latency routing refinements
+- Web Task Worker / Webwright as experimental sandbox-first infrastructure
+
+Those items are documentation and roadmap work today, not live runtime capability.
+
 ## Why the roadmap changes now
 
 Roboticxs has enough internal governance for this phase.
@@ -100,23 +107,26 @@ That means:
 - no move to live retrieval by default
 - no OCR/parsing/transport expansion by default
 
-## Next roadmap direction
+## Boundary reminder
 
-The next product stages are:
-- Stage 26P — Product Reorientation / Runtime Status Alignment
-- Stage 27P — Que se me paso v0
-- Stage 28P — Robot Folder / Mi informacion importante
-- Stage 29P — Skill Catalog + Capability Resolver
-- Stage 30P — Super Familiar v0
-- Stage 31P — Web Workflow Preflight Framework
-- Stage 32P — Skill Activation + Pricing Metadata
-- Stage 33P — Opportunity Log / Agentius Lead Handoff
+Roboticxs v0 is a local personal robot controlled by the user.
+
+Roboticxs may recognize Agentius territory, but does not create leads, CRM records, pipeline, notifications, handoffs, or external writes.
+
+## Historical roadmap note
+
+Older roadmap references in this repo may mention Agentius-oriented follow-up ideas.
+
+Treat those as superseded product-history notes, not as current runtime direction or active product scope.
 
 ## Recommended docs
 
 Read these next:
 - [Project Brief](docs/ROBOTICXS_PROJECT_BRIEF.md)
+- [Hermes / Routing / Web Task Addendum](docs/ROBOTICXS_BRIEF_ADDITIONS_HERMES_ROUTING_WEB_TASK_v0_1.md)
+- [Knowledge Loop / Policy Addendum](docs/ROBOTICXS_BRIEF_ADDITIONS_KNOWLEDGE_LOOP_POLICY_v0_1.md)
 - [Implementation Status](docs/ROBOTICXS_IMPLEMENTATION_STATUS.md)
 - [Product Pivot](docs/ROBOTICXS_PRODUCT_PIVOT_2026_05_30.md)
 - [Runtime Status](docs/ROBOTICXS_RUNTIME_STATUS.md)
 - [Roadmap Pivot](docs/ROBOTICXS_ROADMAP_PIVOT.md)
+- [Codex Session Product Boundary Preamble](docs/reference/CODEX_SESSION_PRODUCT_BOUNDARY_PREAMBLE_v0_1.md)

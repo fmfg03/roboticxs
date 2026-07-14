@@ -1,0 +1,233 @@
+{
+  "schema_version": "session_summary_v0",
+  "session_id": "019ecc57-9498-7850-8c1f-c0656026ed97",
+  "project": "roboticxs",
+  "repo": "/root/roboticxs",
+  "branch": "dirty/reference-before-runtime-promotion-20260601",
+  "latest_commit": "9414a53ac61033e7346077fb1e1958d1aaeb0062",
+  "budget_band": "HARD_LIMIT",
+  "estimated_tokens": 237670,
+  "handoff_path": "/root/roboticxs/artifacts/context_budget/HANDOFF_019ecc57-9498-7850-8c1f-c0656026ed97.md",
+  "next_action": "Fresh session should perform review-only 98P closeout validation for commit 9414a53; do not authorize or implement 99P; expected residual only artifacts/.",
+  "files_touched": [
+    ".../reference/ROUTINE_EXECUTION_ENGINE_98P_v0_1.md",
+    "./deploy-production.sh",
+    "./scripts/ci/pcs-container-smoke-gate.sh",
+    "./scripts/ci/pcs-ephemeral-gate.sh",
+    "./scripts/ci/pcs-sbom-vuln-gate.sh",
+    "./scripts/ci/sal3-loop-gate.sh",
+    ".codex-plugin/plugin.json",
+    "/INSTRUCTIONS",
+    "/abs/path/My",
+    "/abs/path/app.py",
+    "/api/routines/local-execute",
+    "/api/telegram/caregiver-mvp/webhook",
+    "/api/telegram/policy-chain/webhook",
+    "/api/telegram/runtime/webhook",
+    "/api/telegram/webhook",
+    "/approve",
+    "/apps_instructions",
+    "/autoreview",
+    "/bin/bash",
+    "/branch",
+    "/bundles",
+    "/codex-runtime",
+    "/collaboration_mode",
+    "/config",
+    "/context-budget"
+  ],
+  "commands_run": [
+    {
+      "command": "sed -n '1,240p' /root/.codex/skills/codex-factory-context-budget/SKILL.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "python /root/tools/context-budget/context_budget.py status --session-id current --project roboticxs",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "python3 /root/tools/context-budget/context_budget.py status --session-id current --project roboticxs",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' /root/.agents/skills/feature-factory/SKILL.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "pwd",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "rg --files",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git status --short",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' AGENTS.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,280p' app/telegram_policy_chain.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,280p' app/hermes_os_contract.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' tests/test_telegram_policy_chain_95p.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,300p' tests/test_hermes_os_runtime_contract_96p.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '260,620p' app/telegram_policy_chain.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '280,620p' app/hermes_os_contract.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,280p' docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,280p' tests/test_canonical_roadmap.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,280p' tests/test_roadmap_continuation_authorization_gate.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '620,1040p' docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '280,620p' tests/test_canonical_roadmap.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,320p' app/caregiver_relay.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,360p' app/guided_routines.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,300p' tests/test_caregiver_relay.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' app/main.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' tests/conftest.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' tests/test_guided_routines.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "You are Codex, a coding agent based on GPT-5. You and the user share one workspace, and your job is to collaborate with them until their goal is genuinely handled.\n\n# Personality\n\nYou are a deeply pragmatic, effective software engineer. You",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "<skills_instructions>\n## Skills\nA skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the s",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "# AGENTS.md instructions for /root/roboticxs\n\n<INSTRUCTIONS>\n# Global Codex Operating Standard\n\nThis file defines how Codex should work across repos.\nRepo-specific truth belongs in repo-level `AGENTS.md` overlays, not here.\n\n## Operating Pr",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "Use codex-factory-context-budget.\n\nAuthorize exactly one new stage:\n\n97P \u2014 Caregiver Telegram MVP v0\n\nCurrent canonical status:\n\n95P \u2014 CLOSED_COMMITTED\n96P \u2014 CLOSED_COMMITTED\n97P+ \u2014 unauthorized until this instruction\nNo NEXT_ELIGIBLE is cu",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "Use codex-factory-context-budget.\n\nAuthorize exactly one new stage:\n\n97P \u2014 Caregiver Telegram MVP v0\n\nCurrent canonical status:\n\n95P \u2014 CLOSED_COMMITTED\n96P \u2014 CLOSED_COMMITTED\n97P+ \u2014 unauthorized until this instruction\nNo NEXT_ELIGIBLE is cu",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    }
+  ],
+  "blockers": [
+    {
+      "blocker": "You are Codex, a coding agent based on GPT-5. You and the user share one workspace, and your job is to collaborate with them until their goal is genuinely handled.\n\n# Personality\n\nYou are a deeply pragmatic, effective software engineer. You",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "<skills_instructions>\n## Skills\nA skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the s",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "<plugins_instructions>\n## Plugins\nA plugin is a local bundle of skills, MCP servers, and apps. Below is the list of plugins that are enabled and available in this session.\n### Available plugins\n- `Canva`: Search, create, edit designs\n- `Git",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "Use codex-factory-context-budget.\n\nAuthorize exactly one new stage:\n\n97P \u2014 Caregiver Telegram MVP v0\n\nCurrent canonical status:\n\n95P \u2014 CLOSED_COMMITTED\n96P \u2014 CLOSED_COMMITTED\n97P+ \u2014 unauthorized until this instruction\nNo NEXT_ELIGIBLE is cu",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "Use codex-factory-context-budget.\n\nAuthorize exactly one new stage:\n\n97P \u2014 Caregiver Telegram MVP v0\n\nCurrent canonical status:\n\n95P \u2014 CLOSED_COMMITTED\n96P \u2014 CLOSED_COMMITTED\n97P+ \u2014 unauthorized until this instruction\nNo NEXT_ELIGIBLE is cu",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    }
+  ],
+  "redaction": {
+    "secrets_detected": false,
+    "pii_detected": false,
+    "redaction_patterns_applied": [
+      "PHONE"
+    ]
+  },
+  "handoff_sha256": "97ea61fe65603dc6bfe3e1477192f5dd981c57b307ff67770370c7101be3a91d"
+}

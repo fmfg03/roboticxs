@@ -9,6 +9,8 @@ class Settings:
     default_model: str = "gpt-4o-mini-or-equivalent"
     default_routing_mode: str = "economy"
     file_retrieval_enabled: bool = False
+    telegram_bot_token: str | None = None
+    telegram_public_webhook_url: str | None = None
 
 
 def _read_bool_env(name: str, default: bool) -> bool:
@@ -30,4 +32,6 @@ def get_settings() -> Settings:
         default_model=os.getenv("ROBOTICXS_MODEL", "gpt-4o-mini-or-equivalent"),
         default_routing_mode=os.getenv("ROBOTICXS_ROUTING_MODE", "economy"),
         file_retrieval_enabled=_read_bool_env("FILE_RETRIEVAL_ENABLED", False),
+        telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN") or None,
+        telegram_public_webhook_url=os.getenv("TELEGRAM_PUBLIC_WEBHOOK_URL") or None,
     )

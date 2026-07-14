@@ -1,0 +1,7245 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+import re
+import subprocess
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+ROADMAP_PATH = REPO_ROOT / "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md"
+ALLOWED_STAGE_STATUSES = {
+    "CLOSED_COMMITTED",
+    "COMPLETED_FIXED_BASELINE",
+    "CURRENT_STAGE",
+    "NEXT_ELIGIBLE",
+    "SEQUENCE_ENTRY_ONLY",
+}
+ALLOWED_DEFERRED_CLASSIFICATIONS = {"DEFERRED", "RADAR_ONLY", "PARKING_LOT"}
+LOCAL_BASELINE_EVIDENCE = {
+    "61P": {
+        "commit": "c079a96",
+        "path": "docs/reference/COMMAND_ROUTING_CONSOLIDATION_v0_1.md",
+    },
+    "62P": {
+        "commit": "93bcbff",
+        "path": "docs/reference/RUNTIME_SURFACE_AUDIT_v0_1.md",
+    },
+    "63P": {
+        "commit": "86afd53",
+        "path": "docs/reference/RETRIEVAL_CONTROL_FREEZE_v0_1.md",
+    },
+}
+REQUIRED_BLOCKED_IDS = {
+    "total_autonomy",
+    "continuous_screen_tracking",
+    "authenticated_scraping",
+    "automatic_publishing_or_direct_messages",
+    "cloned_voice",
+    "external_action_without_approval_packet",
+    "connector_activation",
+    "live_retrieval_execution",
+    "browser_email_whatsapp_execution",
+    "crm_lead_pipeline_handoff",
+    "external_writes",
+}
+REQUIRED_DEFERRED_IDS = {
+    "connector_architecture",
+    "live_retrieval",
+    "browser_email_whatsapp_execution",
+    "external_skills",
+    "agent_reach",
+    "voxcpm",
+}
+REQUIRED_SEQUENCE_RULES = {
+    "no_stage_is_next_eligible_after_101P_without_explicit_maintainer_direction",
+    "eligibility_permits_story_drafting_only",
+    "roadmap_inclusion_never_authorizes_implementation",
+    "every_stage_requires_story_approval",
+    "every_stage_requires_technical_spec_approval",
+    "runtime_implementation_requires_separately_approved_scoped_build_tests_and_validation",
+    "stage_83P_is_closed_committed_after_metadata_reconciliation",
+    "stage_84P_is_closed_committed_after_active_memory_forget_closeout",
+    "stage_85P_is_closed_committed_after_hermes_soul_rebase_closeout",
+    "stage_86P_is_closed_committed_after_hermes_real_settings_baseline_closeout",
+    "stage_87P_is_closed_committed_after_hermes_agent_skills_cron_baseline_closeout",
+    "stage_88P_is_closed_committed_after_routine_wake_gate_closeout",
+    "stage_89P_is_closed_committed_after_automation_blueprints_closeout",
+    "stage_90P_is_closed_committed_after_command_surface_policy_closeout",
+    "stage_91P_is_closed_committed_after_skill_activation_scope_guard_closeout",
+    "stage_92P_is_closed_committed_after_tool_authority_guard_closeout",
+    "stage_93P_is_closed_committed_after_memory_center_bridge_closeout",
+    "stage_94P_is_closed_committed_after_telegram_hermes_gateway_mvp_closeout",
+    "stage_95P_is_closed_committed_after_telegram_hermes_policy_chain_runtime_skeleton",
+    "stage_96P_is_closed_committed_after_hermes_os_runtime_contract_closeout",
+    "stage_97P_is_closed_committed_after_caregiver_telegram_mvp_closeout",
+    "stage_98P_is_closed_committed_after_routine_execution_engine_skeleton_closeout",
+    "stage_99P_is_closed_committed_after_memory_center_projection_runtime_remediation_validation",
+    "stage_100P_is_closed_committed_after_cost_governor_model_routing_runtime_closeout",
+    "stage_101P_is_closed_committed_after_action_packet_approval_loop_remediation_review",
+    "stage_102P_is_closed_committed_after_async_delegation_authority_adapter_closeout",
+    "stage_103P_is_closed_committed_after_async_delegation_completion_inbox_closeout",
+    "stage_104P_is_closed_committed_after_async_result_user_surface_closeout",
+    "stage_105P_is_closed_committed_after_telegram_async_result_delivery_closeout",
+    "stage_106P_is_closed_committed_after_telegram_result_acknowledgement_binding_closeout",
+    "stage_107P_is_closed_committed_after_followup_intent_review_queue_closeout",
+    "stage_108P_is_closed_committed_after_followup_draft_planner_closeout",
+    "stage_109P_is_closed_committed_after_telegram_followup_choice_surface_closeout",
+    "stage_110P_is_closed_committed_after_telegram_followup_choice_selection_binding_closeout",
+    "stage_111P_is_closed_committed_after_user_approved_followup_delegation_closeout",
+    "stage_112P_is_closed_committed_after_controlled_followup_execution_skeleton_closeout",
+    "stage_113P_is_closed_committed_after_followup_completion_loop_integration_closeout",
+    "stage_114P_is_closed_committed_after_followup_result_acknowledgement_closeout",
+    "stage_115P_is_closed_committed_after_followup_memory_proposal_closeout",
+    "stage_116P_is_closed_committed_after_telegram_memory_proposal_approval_closeout",
+    "stage_117P_is_closed_committed_after_memory_center_writeback_closeout",
+    "stage_118P_is_closed_committed_after_context_scan_candidate_source_closeout",
+    "stage_119P_is_closed_committed_after_proactive_opportunity_detection_closeout",
+    "stage_120P_is_closed_committed_after_proactive_telegram_suggestion_closeout",
+    "stage_121P_is_closed_committed_after_proactive_suggestion_adapter_closeout",
+    "stage_122P_is_closed_committed_after_proactive_delegation_adapter_closeout",
+    "stage_123P_is_closed_committed_after_controlled_proactive_execution_skeleton_closeout",
+    "stage_124P_is_closed_committed_after_what_did_i_miss_daily_brief_closeout",
+    "stage_125P_is_closed_committed_after_skill_pack_activation_surface_closeout",
+    "stage_126P_is_closed_committed_after_first_demo_flow_meeting_brief_from_context_closeout",
+    "stage_127P_is_closed_committed_after_demo_result_delivery_surface_closeout",
+    "stage_128P_is_closed_committed_after_document_review_demo_flow_closeout",
+    "stage_129P_is_closed_committed_after_hermes_runtime_bootstrap_closeout",
+    "stage_130P_is_closed_committed_after_runnable_telegram_robot_mvp_closeout",
+    "stage_131P_is_closed_committed_after_telegram_what_did_i_miss_command_closeout",
+    "stage_132P_is_closed_committed_after_telegram_meeting_brief_command_closeout",
+    "stage_133P_is_closed_committed_after_read_only_google_calendar_connector_closeout",
+    "stage_134P_is_closed_committed_after_calendar_backed_telegram_meeting_brief_closeout",
+    "stage_135P_is_closed_committed_after_real_calendar_meeting_brief_composer_closeout",
+    "stage_136P_is_closed_committed_after_memory_center_telegram_commands_closeout",
+    "stage_137P_is_closed_committed_after_calendar_context_scan_closeout",
+    "stage_138P_is_closed_committed_after_proactive_meeting_suggestion_closeout",
+    "stage_139P_is_closed_committed_after_owner_requested_suggested_meeting_brief_closeout",
+    "stage_140P_is_closed_committed_after_deerflow_pattern_review_closeout",
+    "stage_141P_is_closed_committed_after_today_command_closeout",
+    "stage_142P_is_closed_committed_after_open_loops_command_closeout",
+    "stage_143P_is_closed_committed_after_meeting_prep_pack_closeout",
+    "stage_144P_is_closed_committed_after_brief_memory_proposal_closeout",
+    "stage_145P_is_closed_committed_after_brief_memory_approval_closeout",
+    "stage_146P_is_closed_committed_after_personal_admin_inbox_closeout",
+    "stage_147P_is_closed_committed_after_inbox_item_decision_closeout",
+    "stage_148P_is_closed_committed_after_factory_loop_handoff_harness_closeout",
+    "stage_149P_is_closed_committed_after_runtime_doctor_helper_manager_closeout",
+    "stage_150P_is_closed_committed_after_telegram_product_shell_closeout",
+    "stage_151P_is_closed_committed_after_meeting_prep_pack_product_flow_closeout",
+    "stage_152P_is_closed_committed_after_today_brief_product_flow_closeout",
+    "stage_153P_is_closed_committed_after_setup_capability_status_closeout",
+    "stage_154P_is_closed_committed_after_task_inbox_flow_closeout",
+    "stage_155P_is_closed_committed_after_memory_review_flow_closeout",
+    "stage_156P_is_closed_committed_after_first_run_onboarding_closeout",
+    "stage_157P_is_closed_committed_after_telegram_demo_loop_closeout",
+    "stage_158P_is_closed_committed_after_telegram_document_intake_stub_closeout",
+    "stage_159P_is_closed_committed_after_telegram_product_copy_consolidation_closeout",
+    "stage_160P_is_closed_committed_after_customer_mvp_baseline_closeout",
+    "stage_161P_is_closed_committed_after_setup_capability_status_component_closeout",
+    "stage_162P_is_closed_committed_after_calendar_backed_today_prep_closeout",
+    "stage_163P_is_closed_committed_after_gmail_readonly_context_scan_closeout",
+    "stage_164P_is_closed_committed_after_context_scan_proposed_memories_closeout",
+    "stage_165P_is_closed_committed_after_memory_store_closeout",
+    "stage_166P_is_closed_committed_after_document_review_pack_closeout",
+    "stage_167P_is_closed_committed_after_action_boundary_confirmation_gate_closeout",
+    "stage_168P_is_closed_committed_after_token_usage_cost_meter_closeout",
+    "stage_169P_is_closed_committed_after_model_router_runtime_closeout",
+    "stage_170P_is_closed_committed_after_proactive_suggestion_loop_closeout",
+    "stage_171P_is_closed_committed_after_suggestion_inbox_closeout",
+    "stage_172P_is_closed_committed_after_suggestion_decision_flow_closeout",
+    "stage_173P_is_closed_committed_after_memory_approval_telegram_flow_closeout",
+    "stage_174P_is_closed_committed_after_cross_source_daily_brief_closeout",
+    "stage_175P_is_closed_committed_after_meeting_prep_pack_v1_closeout",
+    "stage_176P_is_closed_committed_after_gmail_thread_drilldown_closeout",
+    "stage_177P_is_closed_committed_after_action_draft_queue_closeout",
+    "stage_178P_is_closed_committed_after_user_confirmation_runtime_closeout",
+    "stage_179P_is_closed_committed_after_approved_output_export_closeout",
+    "stage_180P_is_closed_committed_after_customer_mvp_demo_pack_v1_closeout",
+    "stage_181P_is_closed_committed_after_live_connector_readiness_check_closeout",
+    "stage_182P_is_closed_committed_after_calendar_context_binding_v1_closeout",
+    "stage_183P_is_closed_committed_after_gmail_context_binding_v1_closeout",
+    "do_not_invent_133P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_134P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_135P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_136P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_137P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_138P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_139P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_140P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_141P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_142P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_143P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_144P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_145P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_146P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_147P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_148P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_149P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_150P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_151P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_152P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_153P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_154P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_155P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_156P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_157P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_158P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_159P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_160P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_161P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_162P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_163P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_164P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_165P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_166P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_167P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_168P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_169P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_170P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_171P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_172P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_173P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_174P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_175P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_176P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_177P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_178P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_179P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_180P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_181P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_182P_without_explicit_maintainer_direction_in_repo_evidence",
+    "do_not_invent_183P_without_explicit_maintainer_direction_in_repo_evidence",
+    "sequence_changes_require_explicit_maintainer_approval_and_canonical_roadmap_update",
+    "external_repositories_and_recent_planning_threads_cannot_independently_change_sequence",
+}
+EXPECTED_FINAL_SEQUENCE = {
+    "66P": ("COMPLETED_FIXED_BASELINE", "Conversación Horizontal / Continuity Spine v0"),
+    "66P2": ("COMPLETED_FIXED_BASELINE", "Memory Stack Architecture / Criterio Store Spec"),
+    "67P": ("COMPLETED_FIXED_BASELINE", "Caregiver Mode Boundary Spec"),
+    "68P": ("COMPLETED_FIXED_BASELINE", "Caregiver Telegram Group Relay v0"),
+    "69P": ("COMPLETED_FIXED_BASELINE", "Guided Routine Packets v0"),
+    "70P": ("COMPLETED_FIXED_BASELINE", "Voice Notes Intelligence / VibeVoice Spike"),
+    "71P": ("COMPLETED_FIXED_BASELINE", "Voice Intake for Caregiver Routines"),
+    "72P": ("COMPLETED_FIXED_BASELINE", "Research Radar / Last30Days Skill"),
+    "73P": ("COMPLETED_FIXED_BASELINE", "Understand-Anything + codegraph Factory Skill"),
+    "74P": ("COMPLETED_FIXED_BASELINE", "ECC Knowledge Compiler Factory Skill"),
+    "75P": ("COMPLETED_FIXED_BASELINE", "Agent-Reach Research Parking Lot"),
+    "76P": ("COMPLETED_FIXED_BASELINE", "VoxCPM Research Parking Lot"),
+    "77P": ("COMPLETED_FIXED_BASELINE", "Roadmap Continuation Authorization Gate v0"),
+    "78P": ("COMPLETED_FIXED_BASELINE", "Hermes Runtime Foundation Bootstrap v0"),
+    "79P": ("COMPLETED_FIXED_BASELINE", "Telegram Bot Runtime Bootstrap v0"),
+    "80P": ("COMPLETED_FIXED_BASELINE", "Telegram Conversation Loop v0"),
+    "81P": ("COMPLETED_FIXED_BASELINE", "Telegram Runtime Smoke / Manual Bot Wiring v0"),
+    "82P": ("COMPLETED_FIXED_BASELINE", "Memory Proposal Loop over Telegram v0"),
+    "83P": ("CLOSED_COMMITTED", "Active Memory Recall over Telegram v0"),
+    "84P": ("CLOSED_COMMITTED", "Active Memory Forget over Telegram v0"),
+    "85P": ("CLOSED_COMMITTED", "Hermes Profile / Roboticxs SOUL Rebase v0"),
+    "86P": ("CLOSED_COMMITTED", "Hermes Real Settings Baseline v0"),
+    "87P": ("CLOSED_COMMITTED", "Hermes + Agent Skills + Cron Integration Baseline v0"),
+    "88P": ("CLOSED_COMMITTED", "Routine Wake Gate / Zero-Token Preflight v0"),
+    "89P": ("CLOSED_COMMITTED", "Roboticxs Automation Blueprints v0"),
+    "90P": ("CLOSED_COMMITTED", "Roboticxs Command Surface Policy v0"),
+    "91P": ("CLOSED_COMMITTED", "Skill Activation Scope Guard v0"),
+    "92P": ("CLOSED_COMMITTED", "Hermes Tool Authority Guard v0"),
+    "93P": ("CLOSED_COMMITTED", "Roboticxs Memory Center Bridge v0"),
+    "94P": ("CLOSED_COMMITTED", "Telegram MVP on Hermes Gateway v0"),
+    "95P": ("CLOSED_COMMITTED", "Telegram-Hermes Policy Chain Runtime Skeleton v0"),
+    "96P": ("CLOSED_COMMITTED", "Hermes OS Runtime Contract v0"),
+    "97P": ("CLOSED_COMMITTED", "Caregiver Telegram MVP v0"),
+    "98P": ("CLOSED_COMMITTED", "Routine Execution Engine Skeleton v0"),
+    "99P": ("CLOSED_COMMITTED", "Memory Center Projection Runtime Slice v0"),
+    "100P": ("CLOSED_COMMITTED", "Cost Governor / Model Routing Runtime v0"),
+    "101P": ("CLOSED_COMMITTED", "Action Packet Approval Loop v0"),
+    "102P": ("CLOSED_COMMITTED", "Hermes Async Delegation Authority Adapter v0"),
+    "103P": ("CLOSED_COMMITTED", "Async Delegation Completion Inbox v0"),
+    "104P": ("CLOSED_COMMITTED", "Async Result User Surface v0"),
+    "105P": ("CLOSED_COMMITTED", "Telegram Async Result Delivery v0"),
+    "106P": ("CLOSED_COMMITTED", "Telegram Result Acknowledgement Binding v0"),
+    "107P": ("CLOSED_COMMITTED", "Follow-up Intent Review Queue v0"),
+    "108P": ("CLOSED_COMMITTED", "Follow-up Draft Planner v0"),
+    "109P": ("CLOSED_COMMITTED", "Telegram Follow-up Choice Surface v0"),
+    "110P": ("CLOSED_COMMITTED", "Telegram Follow-up Choice Selection Binding v0"),
+    "111P": ("CLOSED_COMMITTED", "User-Approved Follow-up Delegation v0"),
+    "112P": ("CLOSED_COMMITTED", "Controlled Follow-up Execution Skeleton v0"),
+    "113P": ("CLOSED_COMMITTED", "Follow-up Completion Loop Integration v0"),
+    "114P": ("CLOSED_COMMITTED", "Follow-up Result Acknowledgement v0"),
+    "115P": ("CLOSED_COMMITTED", "Memory Proposal from Follow-up Result v0"),
+    "116P": ("CLOSED_COMMITTED", "Telegram Memory Proposal Approval v0"),
+    "117P": ("CLOSED_COMMITTED", "Memory Center Writeback v0"),
+    "118P": ("CLOSED_COMMITTED", "Context Scan Candidate Source v0"),
+    "119P": ("CLOSED_COMMITTED", "Proactive Opportunity Detection v0"),
+    "120P": ("CLOSED_COMMITTED", "Proactive Telegram Suggestion v0"),
+    "121P": ("CLOSED_COMMITTED", "Proactive Suggestion Adapter to Follow-up Loop v0"),
+    "122P": ("CLOSED_COMMITTED", "Proactive Delegation Adapter v0"),
+    "123P": ("CLOSED_COMMITTED", "Controlled Proactive Execution Skeleton v0"),
+    "124P": ("CLOSED_COMMITTED", "What Did I Miss? Daily Brief v0"),
+    "125P": ("CLOSED_COMMITTED", "Skill Pack Activation Surface v0"),
+    "126P": ("CLOSED_COMMITTED", "First Demo Flow: Meeting Brief from Context v0"),
+    "127P": ("CLOSED_COMMITTED", "Demo Result Delivery Surface v0"),
+    "128P": ("CLOSED_COMMITTED", "Document Review Demo Flow v0"),
+    "129P": ("CLOSED_COMMITTED", "Hermes Runtime Bootstrap v0"),
+    "130P": ("CLOSED_COMMITTED", "Runnable Telegram Robot MVP v0"),
+    "131P": ("CLOSED_COMMITTED", "Telegram What Did I Miss Command v0"),
+    "132P": ("CLOSED_COMMITTED", "Telegram Meeting Brief Command v0"),
+    "133P": ("CLOSED_COMMITTED", "Read-Only Google Calendar Connector v0"),
+    "134P": ("CLOSED_COMMITTED", "Calendar-backed Telegram Meeting Brief v0"),
+    "135P": ("CLOSED_COMMITTED", "Real Calendar Meeting Brief Composer v0"),
+    "136P": ("CLOSED_COMMITTED", "Memory Center Telegram Commands v0"),
+    "137P": ("CLOSED_COMMITTED", "Context Scan from Calendar v0"),
+    "138P": ("CLOSED_COMMITTED", "Proactive Meeting Suggestion v0"),
+    "139P": ("CLOSED_COMMITTED", "Owner-Requested Suggested Meeting Brief v0"),
+    "140P": ("CLOSED_COMMITTED", "DeerFlow Pattern Review / Sandbox Boundary Spike v0"),
+    "141P": ("CLOSED_COMMITTED", "Today Command v0"),
+    "142P": ("CLOSED_COMMITTED", "Open Loops Command v0"),
+    "143P": ("CLOSED_COMMITTED", "Meeting Prep Pack v0"),
+    "144P": ("CLOSED_COMMITTED", "Brief-Derived Memory Proposal v0"),
+    "145P": ("CLOSED_COMMITTED", "Telegram Memory Approval for Brief Proposals v0"),
+    "146P": ("CLOSED_COMMITTED", "Personal Admin Inbox v0"),
+    "147P": ("CLOSED_COMMITTED", "Inbox Resolve / Dismiss v0"),
+    "148P": ("CLOSED_COMMITTED", "Factory Loop Handoff Harness v0"),
+    "149P": ("CLOSED_COMMITTED", "Runtime Doctor / Helper Manager v0"),
+    "150P": ("CLOSED_COMMITTED", "Telegram Product Shell v0"),
+    "151P": ("CLOSED_COMMITTED", "Meeting Prep Pack Product Flow v0"),
+    "152P": ("CLOSED_COMMITTED", "Today / Brief Product Flow v0"),
+    "153P": ("CLOSED_COMMITTED", "Setup & Capability Status v0"),
+    "154P": ("CLOSED_COMMITTED", "Task Inbox Flow v0"),
+    "155P": ("CLOSED_COMMITTED", "Memory Review Flow v0"),
+    "156P": ("CLOSED_COMMITTED", "First-Run Onboarding v0"),
+    "157P": ("CLOSED_COMMITTED", "Telegram Demo Loop v0"),
+    "158P": ("CLOSED_COMMITTED", "Telegram Document Intake Stub v0"),
+    "159P": ("CLOSED_COMMITTED", "Telegram Product Copy Consolidation v0"),
+    "160P": ("CLOSED_COMMITTED", "Customer MVP Baseline v0"),
+    "161P": ("CLOSED_COMMITTED", "Setup Capability Status Component v0"),
+    "162P": ("CLOSED_COMMITTED", "Calendar-Backed Today / Prep v0"),
+    "163P": ("CLOSED_COMMITTED", "Gmail Read-Only Context Scan v0"),
+    "164P": ("CLOSED_COMMITTED", "Context Scan -> Proposed Memories v0"),
+    "165P": ("CLOSED_COMMITTED", "Memory Store v0"),
+    "166P": ("CLOSED_COMMITTED", "Document Review Pack v0"),
+    "167P": ("CLOSED_COMMITTED", "Action Boundary Confirmation Gate v0"),
+    "168P": ("CLOSED_COMMITTED", "Token Usage + Cost Meter v0"),
+    "169P": ("CLOSED_COMMITTED", "Model Router Runtime v0"),
+    "170P": ("CLOSED_COMMITTED", "Proactive Suggestion Loop v0"),
+    "171P": ("CLOSED_COMMITTED", "Suggestion Inbox v0"),
+    "172P": ("CLOSED_COMMITTED", "Suggestion Decision Flow v0"),
+    "173P": ("CLOSED_COMMITTED", "Memory Approval Telegram Flow v0"),
+    "174P": ("CLOSED_COMMITTED", "Cross-Source Daily Brief v1"),
+    "175P": ("CLOSED_COMMITTED", "Meeting Prep Pack v1"),
+    "176P": ("CLOSED_COMMITTED", "Gmail Thread Drilldown v0"),
+    "177P": ("CLOSED_COMMITTED", "Action Draft Queue v0"),
+    "178P": ("CLOSED_COMMITTED", "User Confirmation Runtime v0"),
+    "179P": ("CLOSED_COMMITTED", "Approved Output Export v0"),
+    "180P": ("CLOSED_COMMITTED", "Customer MVP Demo Pack v1"),
+    "181P": ("CLOSED_COMMITTED", "Live Connector Readiness Check v0"),
+    "182P": ("CLOSED_COMMITTED", "Calendar Context Binding v1"),
+    "183P": ("CLOSED_COMMITTED", "Gmail Context Binding v1"),
+    "184P": ("CLOSED_COMMITTED", "Source Trace Receipts v0"),
+    "185P": ("CLOSED_COMMITTED", "Approved Gmail Draft Creation v0"),
+    "186P": ("CLOSED_COMMITTED", "Document Review Pack v1"),
+    "187P": ("CLOSED_COMMITTED", "Memory Source & Forget Receipts v0"),
+    "188P": ("CLOSED_COMMITTED", "Usage & Cost Ledger v0"),
+    "189P": ("CLOSED_COMMITTED", "Skill Manifest Runtime Gates v0"),
+    "190P": ("CLOSED_COMMITTED", "Controlled Live Pilot Baseline v0"),
+    "191P": ("CLOSED_COMMITTED", "Premium Telegram UX Shell v0"),
+    "192P": ("CLOSED_COMMITTED", "Fast Path Cache v0"),
+    "193P": ("CLOSED_COMMITTED", "Smart Context Ranking v0"),
+    "194P": ("CLOSED_COMMITTED", "Proactive Priority Engine v0"),
+    "195P": ("CLOSED_COMMITTED", "Draft Quality Engine v0"),
+    "196P": ("CLOSED_COMMITTED", "Memory Intelligence v0"),
+    "197P": ("CLOSED_COMMITTED", "Document-to-Action Flow v0"),
+    "198P": ("CLOSED_COMMITTED", "Cost-Aware Model Routing v1"),
+    "199P": ("CLOSED_COMMITTED", "Customer Pilot Readiness Pack v0"),
+    "200P": ("CLOSED_COMMITTED", "Customer Pilot Audit Gate v0"),
+    "201P": ("CLOSED_COMMITTED", "Live Smoke Script v0"),
+    "202P": ("CLOSED_COMMITTED", "Founder Daily Use Loop v0"),
+    "203P": ("CLOSED_COMMITTED", "Founder Feedback Capture v0"),
+    "204P": ("CLOSED_COMMITTED", "Feedback Ledger & Tags v0"),
+    "205P": ("CLOSED_COMMITTED", "Daily Loop Outcome Tracker v0"),
+    "206P": ("CLOSED_COMMITTED", "Suggestion Quality Tuning v0"),
+    "207P": ("CLOSED_COMMITTED", "Prep Quality Tuning v0"),
+    "208P": ("CLOSED_COMMITTED", "Draft Revision Loop v0"),
+    "209P": ("CLOSED_COMMITTED", "Memory Correction Loop v0"),
+    "210P": ("CLOSED_COMMITTED", "Pilot Metrics Snapshot v0"),
+    "211P": ("CLOSED_COMMITTED", "Friendly User Onboarding Pack v0"),
+    "212P": ("CLOSED_COMMITTED", "Founder-to-Friendly Pilot Baseline v0"),
+    "213P": ("CLOSED_COMMITTED", "Friendly Pilot Operator Console v0"),
+    "214P": ("CLOSED_COMMITTED", "Friendly Pilot Invite & Consent Flow v0"),
+    "215P": ("CLOSED_COMMITTED", "Pilot User Provisioning v0"),
+    "216P": ("CLOSED_COMMITTED", "Pilot Data Boundary v0"),
+    "217P": ("CLOSED_COMMITTED", "Pilot Onboarding Runbook v0"),
+    "218P": ("CLOSED_COMMITTED", "Pilot Support & Issue Capture v0"),
+    "219P": ("CLOSED_COMMITTED", "Pilot Safety Incident Log v0"),
+    "220P": ("CLOSED_COMMITTED", "Pilot Weekly Report v0"),
+    "221P": ("CLOSED_COMMITTED", "Pilot Exit / Data Removal Flow v0"),
+    "222P": ("CLOSED_COMMITTED", "Friendly Pilot Launch Baseline v0"),
+    "223P": ("CLOSED_COMMITTED", "First Friendly User Activation v0"),
+    "224P": ("CLOSED_COMMITTED", "Pilot Review Session Pack v0"),
+    "225P": ("CLOSED_COMMITTED", "Pilot Learning Queue v0"),
+    "226P": ("CLOSED_COMMITTED", "Paid Pilot Readiness Gate v0"),
+}
+
+
+def load_json_block(block_name: str):
+    pattern = re.compile(
+        rf"```json {re.escape(block_name)}\n(?P<payload>.+?)\n```",
+        re.DOTALL,
+    )
+    match = pattern.search(ROADMAP_PATH.read_text())
+    assert match is not None, f"Canonical roadmap must contain {block_name}."
+    return json.loads(match.group("payload"))
+
+
+def load_stage_registry() -> list[dict]:
+    return load_json_block("canonical-stage-registry")
+
+
+def test_authority_policy_separates_local_evidence_from_maintainer_direction():
+    authority = load_json_block("canonical-roadmap-authority")
+
+    assert authority == {
+        "authority_source": "maintainer_approved_chatgpt_web_planning_thread",
+        "local_evidence_scope": "stages_61P_through_226P",
+        "forward_sequence_source": "explicit_maintainer_direction",
+        "runtime_truth_source": "local_repo",
+        "roadmap_inclusion_authorizes_implementation": False,
+    }
+
+
+def test_stage_registry_contains_ordered_61p_through_66p2_and_83p_once():
+    stages = load_stage_registry()
+    stage_ids = [stage["stage_id"] for stage in stages]
+
+    assert stage_ids == [f"{number}P" for number in range(61, 67)] + ["66P2"] + [
+        f"{number}P" for number in range(67, 227)
+    ]
+    assert len(stage_ids) == len(set(stage_ids))
+    assert all(stage["status"] in ALLOWED_STAGE_STATUSES for stage in stages)
+    assert all(stage["implementation_authorized"] is False for stage in stages)
+
+
+def test_local_fixed_baselines_have_existing_repo_evidence():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    for stage_id, expected in LOCAL_BASELINE_EVIDENCE.items():
+        stage = stages_by_id[stage_id]
+        assert stage["status"] == "COMPLETED_FIXED_BASELINE"
+        assert stage["authority_source"] == "local_repo_evidence"
+        assert stage["local_evidence"] == {
+            "commit": expected["commit"],
+            "paths": [expected["path"]],
+        }
+        assert (REPO_ROOT / expected["path"]).is_file()
+        result = subprocess.run(
+            ["git", "cat-file", "-e", f"{expected['commit']}^{{commit}}"],
+            cwd=REPO_ROOT,
+            check=False,
+        )
+        assert result.returncode == 0
+
+
+def test_65p_is_committed_before_66p_closure():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+    stage = stages_by_id["65P"]
+
+    assert stage["status"] == "COMPLETED_FIXED_BASELINE"
+    assert stage["stage_name"] == "Budget Awareness / Cost Authority Guard v0"
+    assert stage["local_evidence"] == {
+        "commit": "d346939",
+        "paths": [
+            "app/budget_authority.py",
+            "docs/reference/BUDGET_AUTHORITY_GUARD_v0_1.md",
+            "tests/test_budget_authority_guard.py",
+        ],
+    }
+    result = subprocess.run(
+        ["git", "cat-file", "-e", "d346939^{commit}"],
+        cwd=REPO_ROOT,
+        check=False,
+    )
+    assert result.returncode == 0
+
+
+def test_66p_local_evidence_is_additive_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+    stage = stages_by_id["66P"]
+
+    assert stage["status"] == "COMPLETED_FIXED_BASELINE"
+    assert stage["stage_name"] == "Conversación Horizontal / Continuity Spine v0"
+    assert stage["local_evidence"] == {
+        "commit": "same_commit_as_66P_closeout",
+        "paths": [
+            "app/conversation_continuity.py",
+            "docs/reference/CONVERSATION_CONTINUITY_SPINE_v0_1.md",
+            "tests/test_conversation_continuity_spine.py",
+        ],
+    }
+    for path in stage["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_66p_transition_points_to_66p2_continuation():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+    transition = load_json_block("stage-66p-completion-transition")
+
+    assert stages_by_id["66P"]["status"] == "COMPLETED_FIXED_BASELINE"
+    assert stages_by_id["66P2"]["stage_name"] == "Memory Stack Architecture / Criterio Store Spec"
+    assert transition == {
+        "closeout_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_next_eligible": "66P2",
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+
+
+def test_66p2_transition_and_67p_are_the_only_current_sequence_gate():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+    transition = load_json_block("stage-66p2-completion-transition")
+
+    assert stages_by_id["66P2"]["status"] == "COMPLETED_FIXED_BASELINE"
+    assert stages_by_id["67P"]["stage_name"] == "Caregiver Mode Boundary Spec"
+    assert transition == {
+        "closeout_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_next_eligible": "67P",
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+
+
+def test_67p_transition_and_68p_are_the_only_current_sequence_gate():
+    stages = load_stage_registry()
+    stages_by_id = {stage["stage_id"]: stage for stage in stages}
+    transition = load_json_block("stage-67p-completion-transition")
+
+    assert stages_by_id["67P"]["status"] == "COMPLETED_FIXED_BASELINE"
+    assert transition == {
+        "closeout_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_next_eligible": "68P",
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    next_eligible = [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"]
+    assert next_eligible == []
+    assert next_eligible == []
+
+
+def test_68p_transition_and_69p_are_the_only_current_sequence_gate():
+    stages = load_stage_registry()
+    stages_by_id = {stage["stage_id"]: stage for stage in stages}
+    transition = load_json_block("stage-68p-completion-transition")
+
+    assert stages_by_id["68P"]["status"] == "COMPLETED_FIXED_BASELINE"
+    assert transition == {
+        "closeout_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_next_eligible": "69P",
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    next_eligible = [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"]
+    assert next_eligible == []
+    assert next_eligible == []
+
+
+def test_69p_transition_and_70p_are_the_only_current_sequence_gate():
+    stages = load_stage_registry()
+    stages_by_id = {stage["stage_id"]: stage for stage in stages}
+    transition = load_json_block("stage-69p-completion-transition")
+
+    assert stages_by_id["69P"]["status"] == "COMPLETED_FIXED_BASELINE"
+    assert transition == {
+        "closeout_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_next_eligible": "70P",
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    next_eligible = [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"]
+    assert next_eligible == []
+    assert next_eligible == []
+
+
+def test_required_final_sequence_after_66p_is_encoded_exactly():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    for stage_id, (status, stage_name) in EXPECTED_FINAL_SEQUENCE.items():
+        stage = stages_by_id[stage_id]
+        assert stage["status"] == status
+        assert stage["stage_name"] == stage_name
+
+
+def test_no_future_sequence_entries_claim_local_evidence_or_authorization():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["83P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["83P"]["authority_source"] == "local_repo_evidence"
+    assert stages_by_id["83P"]["local_evidence"]["commit"] == "ef9faeb5ed427e2fe4cc04720a50a0a5eadf4d22"
+    assert stages_by_id["84P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["84P"]["local_evidence"]["commit"] == "1b5875db2cc0864a7aa02ac80b5b60507ca0a0a6"
+    assert stages_by_id["85P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["85P"]["local_evidence"]["commit"] == "95e23e5438812328f804ba026095237d17f1bf72"
+    assert stages_by_id["86P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["87P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["88P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["89P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["90P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["91P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["92P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["93P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["94P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["95P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["96P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["97P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["98P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_ch01_is_the_non_authorizing_66p_canonical_product_spine():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+    spine = load_json_block("canonical-product-spine-stage")
+
+    assert stages_by_id["66P"]["stage_name"] == "Conversación Horizontal / Continuity Spine v0"
+    assert spine == {
+        "spine_id": "CH-01",
+        "stage_id": "66P",
+        "stage_name": "Conversación Horizontal / Continuity Spine v0",
+        "status": "COMPLETED_FIXED_BASELINE",
+        "rationale": "Defines continuity across conversations before later caregiver, voice, research, and advanced-skill stages.",
+        "scope_signals": [
+            "conversation_classification",
+            "selective_notes",
+            "user_criterio",
+            "priority_gate",
+            "que_hago_hoy_mode",
+            "proactive_intervention_rules",
+            "cross_topic_synthesis",
+            "next_step_resolver",
+            "zaubern_authority_checks",
+        ],
+        "implementation_authorized": False,
+        "baseline_paths": [
+            "app/conversation_continuity.py",
+            "docs/reference/CONVERSATION_CONTINUITY_SPINE_v0_1.md",
+            "tests/test_conversation_continuity_spine.py",
+        ],
+        "next_stage": "66P2",
+    }
+
+
+def test_66p2_is_memory_architecture_continuation_not_feature_expansion():
+    text = ROADMAP_PATH.read_text()
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["65P"]["status"] == "COMPLETED_FIXED_BASELINE"
+    assert stages_by_id["66P"]["status"] == "COMPLETED_FIXED_BASELINE"
+    assert stages_by_id["66P2"] == {
+        "stage_id": "66P2",
+        "stage_name": "Memory Stack Architecture / Criterio Store Spec",
+        "status": "COMPLETED_FIXED_BASELINE",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "same_commit_as_66P2_closeout",
+            "paths": [
+                "docs/reference/MEMORY_STACK_ARCHITECTURE_CRITERIO_STORE_v0_1.md",
+                "tests/test_memory_stack_architecture.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the memory architecture boundary for continuity and criterio; no storage implementation is authorized.",
+    }
+    assert "66P2 is a continuation of 66P, not a feature expansion." in text
+    for allowed in [
+        "story/spec for memory architecture",
+        "docs/tests only by default",
+        "inventory existing memory surfaces",
+        "map `ContinuityMemoryCandidate` from 66P to current and future storage targets",
+        "define authority, sensitivity, confirmation, expiration, export, deletion, and influence rules",
+    ]:
+        assert allowed in text
+    for forbidden in [
+        "no storage migration",
+        "no new backend",
+        "no Mirix implementation",
+        "no vector store",
+        "no graph store",
+        "no external retrieval",
+        "no connector",
+        "no caregiver behavior",
+    ]:
+        assert forbidden in text
+
+
+def test_67p_is_caregiver_boundary_only_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["67P"] == {
+        "stage_id": "67P",
+        "stage_name": "Caregiver Mode Boundary Spec",
+        "status": "COMPLETED_FIXED_BASELINE",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "same_commit_as_67P_closeout",
+            "paths": [
+                "docs/reference/CAREGIVER_MODE_BOUNDARY_SPEC_v0_1.md",
+                "tests/test_caregiver_mode_boundary.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the caregiver boundary baseline; no caregiver runtime, relay, routine packet, medication, monitoring, or external action is authorized.",
+    }
+
+
+def test_68p_is_caregiver_relay_packet_preparation_only_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["68P"] == {
+        "stage_id": "68P",
+        "stage_name": "Caregiver Telegram Group Relay v0",
+        "status": "COMPLETED_FIXED_BASELINE",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "same_commit_as_68P_closeout",
+            "paths": [
+                "app/caregiver_relay.py",
+                "docs/reference/CAREGIVER_TELEGRAM_GROUP_RELAY_v0_1.md",
+                "tests/test_caregiver_relay.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local caregiver relay packet baseline; no Telegram sending, group management, routine execution, medication, monitoring, emergency handling, sensitive caregiver memory, or external action is authorized.",
+    }
+
+
+def test_69p_is_guided_routine_packet_preparation_only_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["69P"] == {
+        "stage_id": "69P",
+        "stage_name": "Guided Routine Packets v0",
+        "status": "COMPLETED_FIXED_BASELINE",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "same_commit_as_69P_closeout",
+            "paths": [
+                "app/guided_routines.py",
+                "docs/reference/GUIDED_ROUTINE_PACKETS_v0_1.md",
+                "tests/test_guided_routines.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local guided routine packet baseline; no scheduler, reminders, Telegram sending, routine execution, medication decision, ingestion verification, monitoring, emergency handling, durable routine memory, voice behavior, or external action is authorized.",
+    }
+
+
+def test_71p_is_voice_intake_transcript_stub_only_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["71P"] == {
+        "stage_id": "71P",
+        "stage_name": "Voice Intake for Caregiver Routines",
+        "status": "COMPLETED_FIXED_BASELINE",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "same_commit_as_71P_closeout",
+            "paths": [
+                "app/voice_caregiver_intake.py",
+                "docs/reference/VOICE_INTAKE_FOR_CAREGIVER_ROUTINES_v0_1.md",
+                "tests/test_voice_caregiver_intake.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local transcript-stub caregiver voice intake baseline; no audio processing, ASR, Telegram voice handling, TTS, voice clone, speaker authentication, durable transcript storage, routine execution, medication decision, emergency triage, surveillance, or external send is authorized.",
+    }
+
+
+def test_71p_transition_and_72p_are_the_only_current_sequence_gate():
+    stages = load_stage_registry()
+    stages_by_id = {stage["stage_id"]: stage for stage in stages}
+    transition = load_json_block("stage-71p-completion-transition")
+
+    assert stages_by_id["71P"]["status"] == "COMPLETED_FIXED_BASELINE"
+    assert transition == {
+        "closeout_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_next_eligible": "72P",
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    next_eligible = [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"]
+    assert next_eligible == []
+
+
+def test_72p_is_research_radar_packet_preparation_only_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["72P"] == {
+        "stage_id": "72P",
+        "stage_name": "Research Radar / Last30Days Skill",
+        "status": "COMPLETED_FIXED_BASELINE",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "same_commit_as_72P_closeout",
+            "paths": [
+                "app/research_radar.py",
+                "docs/reference/RESEARCH_RADAR_LAST30DAYS_SKILL_v0_1.md",
+                "tests/test_research_radar.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local request-scoped research packet baseline; no live search, scraping, connector activation, browser automation, external API calls, background monitoring, scheduled alerts, memory writes, raw content storage, external actions, CRM, lead-gen, handoff, or 73P behavior is authorized.",
+    }
+
+
+def test_72p_transition_and_73p_are_the_only_current_sequence_gate():
+    stages = load_stage_registry()
+    stages_by_id = {stage["stage_id"]: stage for stage in stages}
+    transition = load_json_block("stage-72p-completion-transition")
+
+    assert stages_by_id["72P"]["status"] == "COMPLETED_FIXED_BASELINE"
+    assert transition == {
+        "closeout_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_next_eligible": "73P",
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    next_eligible = [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"]
+
+
+def test_73p_is_repo_understanding_packet_preparation_only_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["73P"] == {
+        "stage_id": "73P",
+        "stage_name": "Understand-Anything + codegraph Factory Skill",
+        "status": "COMPLETED_FIXED_BASELINE",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "same_commit_as_73P_closeout",
+            "paths": [
+                "app/repo_understanding.py",
+                "docs/reference/REPO_UNDERSTANDING_FACTORY_SKILL_v0_1.md",
+                "tests/test_repo_understanding.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local repo-understanding packet baseline; no code execution, dependency install, repo clone, MCP server, external tool activation, network access, persistent index, raw source archive, security certification, correctness claim, or 74P behavior is authorized.",
+    }
+
+
+def test_73p_transition_and_74p_are_the_only_current_sequence_gate():
+    stages = load_stage_registry()
+    stages_by_id = {stage["stage_id"]: stage for stage in stages}
+    transition = load_json_block("stage-73p-completion-transition")
+
+    assert stages_by_id["73P"]["status"] == "COMPLETED_FIXED_BASELINE"
+    assert transition == {
+        "closeout_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_next_eligible": "74P",
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    next_eligible = [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"]
+
+
+def test_74p_is_ecc_knowledge_compilation_packet_preparation_only_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["74P"] == {
+        "stage_id": "74P",
+        "stage_name": "ECC Knowledge Compiler Factory Skill",
+        "status": "COMPLETED_FIXED_BASELINE",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "same_commit_as_74P_closeout",
+            "paths": [
+                "app/ecc_knowledge_compiler.py",
+                "docs/reference/ECC_KNOWLEDGE_COMPILER_FACTORY_SKILL_v0_1.md",
+                "tests/test_ecc_knowledge_compiler.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local ECC knowledge compilation packet baseline; no memory writes, proposed-memory writes, retrieval, connectors, network access, user-facing commands, canon auto-apply, or truth conversion is authorized.",
+    }
+
+
+def test_74p_transition_and_75p_are_the_only_current_sequence_gate():
+    stages = load_stage_registry()
+    stages_by_id = {stage["stage_id"]: stage for stage in stages}
+    transition = load_json_block("stage-74p-completion-transition")
+
+    assert stages_by_id["74P"]["status"] == "COMPLETED_FIXED_BASELINE"
+    assert transition == {
+        "closeout_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_next_eligible": "75P",
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    next_eligible = [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"]
+
+
+def test_75p_is_agent_reach_research_parking_lot_only_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["75P"] == {
+        "stage_id": "75P",
+        "stage_name": "Agent-Reach Research Parking Lot",
+        "status": "COMPLETED_FIXED_BASELINE",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "same_commit_as_75P_closeout",
+            "paths": [
+                "docs/research/AGENT_REACH_RESEARCH_PARKING_LOT_v0_1.md",
+                "tests/test_agent_reach_research_parking_lot.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Agent-Reach research parking-lot baseline; no runtime dependency, connector, live retrieval, memory ingestion, automatic source scanning, scraping, cookies, credentials, MCP config, user-facing command, or product support claim is authorized.",
+    }
+
+
+def test_75p_transition_and_76p_are_the_only_current_sequence_gate():
+    stages = load_stage_registry()
+    stages_by_id = {stage["stage_id"]: stage for stage in stages}
+    transition = load_json_block("stage-75p-completion-transition")
+
+    assert stages_by_id["75P"]["status"] == "COMPLETED_FIXED_BASELINE"
+    assert transition == {
+        "closeout_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_next_eligible": "76P",
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    next_eligible = [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"]
+    assert next_eligible == []
+
+
+def test_76p_is_voxcpm_research_parking_lot_only_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["76P"] == {
+        "stage_id": "76P",
+        "stage_name": "VoxCPM Research Parking Lot",
+        "status": "COMPLETED_FIXED_BASELINE",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "same_commit_as_76P_closeout",
+            "paths": [
+                "docs/research/VOXCPM_RESEARCH_PARKING_LOT_v0_1.md",
+                "tests/test_voxcpm_research_parking_lot.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local VoxCPM research parking-lot baseline; no dependency, model download, inference, audio generation, voice cloning, audio storage, Telegram voice handling, connector, MCP config, user-facing command, or product support claim is authorized.",
+    }
+
+
+def test_76p_transition_points_to_77p_governance_gate():
+    stages = load_stage_registry()
+    transition = load_json_block("stage-76p-completion-transition")
+
+    assert transition == {
+        "closeout_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_next_eligible": None,
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    assert [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_77p_is_roadmap_continuation_authorization_gate_only_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["77P"] == {
+        "stage_id": "77P",
+        "stage_name": "Roadmap Continuation Authorization Gate v0",
+        "status": "COMPLETED_FIXED_BASELINE",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "same_commit_as_77P_closeout",
+            "paths": [
+                "docs/reference/ROADMAP_CONTINUATION_AUTHORIZATION_GATE_v0_1.md",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local roadmap continuation authorization gate; no next implementation stage, 78P, runtime change, product feature, staging, or commit is authorized without explicit maintainer approval.",
+    }
+
+
+def test_77p_transition_did_not_auto_invent_78p():
+    stages = load_stage_registry()
+    transition = load_json_block("stage-77p-completion-transition")
+
+    assert transition == {
+        "closeout_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_next_eligible": None,
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    assert [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_78p_is_hermes_runtime_foundation_only_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["78P"] == {
+        "stage_id": "78P",
+        "stage_name": "Hermes Runtime Foundation Bootstrap v0",
+        "status": "COMPLETED_FIXED_BASELINE",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "same_commit_as_78P_closeout",
+            "paths": [
+                "app/hermes_runtime.py",
+                "docs/reference/HERMES_RUNTIME_FOUNDATION_BOOTSTRAP_v0_1.md",
+                "docs/reference/HERMES_UPSTREAM_TRACKING_v0_1.md",
+                "tests/test_hermes_runtime_foundation.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Hermes-compatible runtime foundation baseline; no Telegram, caregiver routines, document intake, connectors, retrieval, memory writes, ProposedMemory writes, scheduler, background jobs, shell execution, Hermes dependency install, upstream install script execution, auto-update, staging, commit, or 79P behavior is authorized.",
+    }
+
+
+def test_78p_transition_did_not_auto_invent_79p():
+    stages = load_stage_registry()
+    transition = load_json_block("stage-78p-completion-transition")
+
+    assert transition == {
+        "closeout_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_next_eligible": None,
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    assert [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_79p_is_telegram_bot_runtime_bootstrap_only_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["79P"] == {
+        "stage_id": "79P",
+        "stage_name": "Telegram Bot Runtime Bootstrap v0",
+        "status": "COMPLETED_FIXED_BASELINE",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "same_commit_as_79P_closeout",
+            "paths": [
+                "app/telegram_runtime.py",
+                "app/config.py",
+                "app/main.py",
+                "docs/reference/TELEGRAM_BOT_RUNTIME_BOOTSTRAP_v0_1.md",
+                "tests/test_telegram_runtime_bootstrap.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Telegram text-channel runtime bootstrap baseline; no caregiver routines, guided routines, document/PDF intake, file downloads, voice, payments, Telegram group relay, proactive/background messages, memory writes, ProposedMemory writes, retrieval, connectors, scheduler, WhatsApp, production deployment, staging, commit, or 80P behavior is authorized.",
+    }
+
+
+def test_79p_transition_did_not_auto_invent_80p():
+    stages = load_stage_registry()
+    transition = load_json_block("stage-79p-completion-transition")
+
+    assert transition == {
+        "closeout_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_next_eligible": None,
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    assert [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_80p_is_telegram_conversation_loop_only_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["80P"] == {
+        "stage_id": "80P",
+        "stage_name": "Telegram Conversation Loop v0",
+        "status": "COMPLETED_FIXED_BASELINE",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "same_commit_as_80P_closeout",
+            "paths": [
+                "app/telegram_runtime.py",
+                "app/main.py",
+                "docs/reference/TELEGRAM_CONVERSATION_LOOP_v0_1.md",
+                "tests/test_telegram_conversation_loop.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic Telegram text conversation loop baseline; no real Telegram API delivery, long-term memory, user profile memory, ProposedMemory creation, caregiver behavior, document/file handling, voice, retrieval, connectors, proactive/background messaging, scheduler, deployment, staging, commit, or 81P behavior is authorized.",
+    }
+
+
+def test_80p_transition_did_not_auto_authorize_81p():
+    stages = load_stage_registry()
+    transition = load_json_block("stage-80p-completion-transition")
+
+    assert transition == {
+        "closeout_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_next_eligible": None,
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    assert [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_81p_is_telegram_runtime_smoke_only_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["81P"] == {
+        "stage_id": "81P",
+        "stage_name": "Telegram Runtime Smoke / Manual Bot Wiring v0",
+        "status": "COMPLETED_FIXED_BASELINE",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "same_commit_as_81P_closeout",
+            "paths": [
+                "app/config.py",
+                "app/telegram_runtime.py",
+                "docs/reference/TELEGRAM_RUNTIME_SMOKE_MANUAL_WIRING_v0_1.md",
+                "tests/test_telegram_runtime_smoke.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local manual Telegram runtime smoke baseline; no production deployment, automatic webhook registration, real Telegram API calls in tests, committed secrets, caregiver routines, document/file handling, voice, memory writes, ProposedMemory writes, retrieval, connectors, proactive/background messaging, scheduler, staging, commit, or 82P behavior is authorized.",
+    }
+
+
+def test_81p_transition_did_not_auto_authorize_82p():
+    stages = load_stage_registry()
+    transition = load_json_block("stage-81p-completion-transition")
+
+    assert transition == {
+        "closeout_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_next_eligible": None,
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    assert [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_82p_is_telegram_memory_proposal_loop_only_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["82P"] == {
+        "stage_id": "82P",
+        "stage_name": "Memory Proposal Loop over Telegram v0",
+        "status": "COMPLETED_FIXED_BASELINE",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "same_commit_as_82P_closeout",
+            "paths": [
+                "app/telegram_runtime.py",
+                "app/main.py",
+                "app/memory_service.py",
+                "docs/reference/TELEGRAM_MEMORY_PROPOSAL_LOOP_v0_1.md",
+                "tests/test_telegram_memory_proposal_loop.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Telegram memory proposal loop baseline; no automatic memory activation, normal-conversation memory extraction, Context Scan, external source scanning, retrieval, connectors, caregiver routines, document/file handling, voice, proactive/background behavior, scheduler, staging, commit, or 83P behavior is authorized.",
+    }
+
+
+def test_82p_transition_keeps_no_next_eligible_after_82p_closeout():
+    stages = load_stage_registry()
+    transition = load_json_block("stage-82p-completion-transition")
+
+    assert transition == {
+        "closeout_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_status": "COMPLETED_FIXED_BASELINE",
+        "after_commit_next_eligible": None,
+        "transition_requires_commit": True,
+        "implementation_authorized": False,
+    }
+    assert [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_83p_is_active_memory_recall_closed_committed_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["83P"] == {
+        "stage_id": "83P",
+        "stage_name": "Active Memory Recall over Telegram v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "ef9faeb5ed427e2fe4cc04720a50a0a5eadf4d22",
+            "commit_message": "feat: add active memory recall over telegram",
+            "paths": [
+                "app/telegram_runtime.py",
+                "app/memory_control.py",
+                "docs/reference/TELEGRAM_ACTIVE_MEMORY_RECALL_v0_1.md",
+                "tests/test_telegram_memory_proposal_loop.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local active memory recall over Telegram baseline.",
+    }
+    for path in stages_by_id["83P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_83p_transition_does_not_authorize_next_eligible():
+    stages = load_stage_registry()
+    transition = load_json_block("stage-83p-closeout-transition")
+
+    assert transition == {
+        "closeout_status": "CLOSED_COMMITTED",
+        "commit": "ef9faeb5ed427e2fe4cc04720a50a0a5eadf4d22",
+        "commit_message": "feat: add active memory recall over telegram",
+        "after_commit_next_eligible": None,
+        "transition_requires_commit": False,
+        "implementation_authorized": False,
+    }
+    assert [stage for stage in stages if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_84p_is_active_memory_forget_closed_committed_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["84P"] == {
+        "stage_id": "84P",
+        "stage_name": "Active Memory Forget over Telegram v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "1b5875db2cc0864a7aa02ac80b5b60507ca0a0a6",
+            "commit_message": "feat: add telegram active memory forget",
+            "paths": [
+                "app/telegram_runtime.py",
+                "docs/reference/TELEGRAM_ACTIVE_MEMORY_FORGET_v0_1.md",
+                "tests/test_telegram_memory_proposal_loop.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local active memory forget over Telegram baseline.",
+    }
+    for path in stages_by_id["84P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+    result = subprocess.run(
+        ["git", "cat-file", "-e", "1b5875db2cc0864a7aa02ac80b5b60507ca0a0a6^{commit}"],
+        cwd=REPO_ROOT,
+        check=False,
+    )
+    assert result.returncode == 0
+
+
+def test_84p_transition_selects_85p_without_runtime_authorization():
+    transition = load_json_block("stage-84p-closeout-transition")
+
+    assert transition == {
+        "closeout_status": "CLOSED_COMMITTED",
+        "commit": "1b5875db2cc0864a7aa02ac80b5b60507ca0a0a6",
+        "commit_message": "feat: add telegram active memory forget",
+        "after_commit_next_eligible": "85P",
+        "transition_requires_commit": False,
+        "implementation_authorized": False,
+    }
+
+
+def test_85p_is_hermes_profile_rebase_closed_committed_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["85P"] == {
+        "stage_id": "85P",
+        "stage_name": "Hermes Profile / Roboticxs SOUL Rebase v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "95e23e5438812328f804ba026095237d17f1bf72",
+            "commit_message": "docs: add hermes roboticxs soul rebase",
+            "paths": [
+                "runtime/hermes/SOUL.md",
+                "runtime/hermes/AGENTS.md",
+                "docs/reference/85P_HERMES_PROFILE_ROBOTICXS_SOUL_REBASE_SPEC_v0_1.md",
+                "docs/reference/ROBOTICXS_HERMES_SOUL_v0_1.md",
+                "docs/reference/ROBOTICXS_HERMES_PROFILE_REBASE_v0_1.md",
+                "tests/test_hermes_soul_contract.py",
+                "tests/test_hermes_profile_boundary.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Hermes profile and Roboticxs SOUL rebase baseline. 86P is closed committed; do not infer 87P implementation, 88P, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["85P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+    result = subprocess.run(
+        ["git", "cat-file", "-e", "95e23e5438812328f804ba026095237d17f1bf72^{commit}"],
+        cwd=REPO_ROOT,
+        check=False,
+    )
+    assert result.returncode == 0
+
+
+def test_85p_transition_selects_86p_without_runtime_authorization():
+    transition = load_json_block("stage-85p-closeout-transition")
+
+    assert transition == {
+        "closeout_status": "CLOSED_COMMITTED",
+        "commit": "95e23e5438812328f804ba026095237d17f1bf72",
+        "commit_message": "docs: add hermes roboticxs soul rebase",
+        "after_commit_next_eligible": "86P",
+        "transition_requires_commit": False,
+        "implementation_authorized": False,
+    }
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+    assert stages_by_id["86P"]["status"] == "CLOSED_COMMITTED"
+
+
+def test_86p_is_hermes_real_settings_baseline_closed_committed_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["86P"] == {
+        "stage_id": "86P",
+        "stage_name": "Hermes Real Settings Baseline v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "efb4f5f",
+            "commit_message": "docs: add hermes real settings baseline",
+            "paths": [
+                "docs/research/HERMES_REAL_SETTINGS_BASELINE_v0_1.md",
+                "docs/reference/ROBOTICXS_HERMES_CONFIG_CONTRACT_v0_1.md",
+                "tests/test_hermes_real_settings_baseline.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the verified Hermes real-settings baseline and config contract. 87P is closed committed; do not infer 88P implementation, 89P, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["86P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_86p_transition_selects_87p_without_runtime_authorization():
+    transition = load_json_block("stage-86p-implementation-transition")
+
+    assert transition == {
+        "closeout_status": "CLOSED_COMMITTED",
+        "commit": "efb4f5f",
+        "commit_message": "docs: add hermes real settings baseline",
+        "after_commit_next_eligible": "87P",
+        "next_eligible_stage_name": "Hermes + Agent Skills + Cron Integration Baseline v0",
+        "next_eligible_implementation_status": "CLOSED_COMMITTED",
+        "stage_88p_and_later_authorized": False,
+        "transition_requires_commit": False,
+        "implementation_authorized": False,
+    }
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+    assert stages_by_id["87P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["88P"]["status"] == "CLOSED_COMMITTED"
+
+
+def test_87p_is_hermes_agent_skills_cron_baseline_closed_committed_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["87P"] == {
+        "stage_id": "87P",
+        "stage_name": "Hermes + Agent Skills + Cron Integration Baseline v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "213a7772aef3a55e03f2284044aba458c752c54e",
+            "commit_message": "docs: add hermes agent skills cron baseline",
+            "paths": [
+                "docs/reference/ROBOTICXS_SKILL_MANIFEST_TO_AGENT_SKILLS_BRIDGE_v0_1.md",
+                "docs/reference/ROBOTICXS_HERMES_CRON_ROUTINE_MAPPING_v0_1.md",
+                "docs/reference/ROBOTICXS_HERMES_CAPABILITY_SURFACE_AUDIT_v0_1.md",
+                "docs/research/HERMES_AGENT_SKILLS_CRON_BASELINE_v0_1.md",
+                "tests/test_agent_skills_export_contract.py",
+                "tests/test_hermes_cron_routine_mapping.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the Hermes Agent Skills and cron integration baseline. 88P - Routine Wake Gate / Zero-Token Preflight v0 - is closed committed; do not infer 89P implementation, 90P, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["87P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_87p_transition_selects_88p_without_runtime_authorization():
+    transition = load_json_block("stage-87p-implementation-transition")
+
+    assert transition == {
+        "closeout_status": "CLOSED_COMMITTED",
+        "commit": "213a7772aef3a55e03f2284044aba458c752c54e",
+        "commit_message": "docs: add hermes agent skills cron baseline",
+        "after_commit_next_eligible": "88P",
+        "next_eligible_stage_name": "Routine Wake Gate / Zero-Token Preflight v0",
+        "next_eligible_implementation_status": "CLOSED_COMMITTED",
+        "stage_91p_and_later_authorized": False,
+        "transition_requires_commit": False,
+        "implementation_authorized": False,
+    }
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+    assert stages_by_id["88P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["89P"]["status"] == "CLOSED_COMMITTED"
+
+
+def test_88p_is_routine_wake_gate_closed_committed_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["88P"] == {
+        "stage_id": "88P",
+        "stage_name": "Routine Wake Gate / Zero-Token Preflight v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "590305394f57ccfbc729b895b446b052adbc4e6e",
+            "commit_message": "docs: add routine wake gate baseline",
+            "paths": [
+                "docs/reference/ROBOTICXS_ROUTINE_WAKE_GATE_v0_1.md",
+                "docs/reference/ROBOTICXS_ROUTINE_COST_POLICY_v0_1.md",
+                "docs/reference/ROBOTICXS_SCRIPT_ONLY_ROUTINES_v0_1.md",
+                "runtime/hermes/scripts/examples/file_change_gate.py",
+                "runtime/hermes/scripts/examples/http_diff_gate.py",
+                "runtime/hermes/scripts/examples/external_flag_gate.py",
+                "tests/test_routine_wake_gate.py",
+                "tests/test_routine_no_agent_mode.py",
+                "tests/test_routine_budget_skip.py",
+                "tests/test_routine_context_payload.py",
+                "tests/test_routine_silent_is_not_cost_control.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the Routine Wake Gate and Zero-Token Preflight baseline. 89P - Roboticxs Automation Blueprints v0 - is closed committed; do not infer 90P implementation, 91P, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["88P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_88p_transition_selects_89p_without_implementation_authorization():
+    transition = load_json_block("stage-88p-closeout-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "closeout_status": "CLOSED_COMMITTED",
+        "commit": "590305394f57ccfbc729b895b446b052adbc4e6e",
+        "commit_message": "docs: add routine wake gate baseline",
+        "after_commit_next_eligible": "89P",
+        "next_eligible_stage_name": "Roboticxs Automation Blueprints v0",
+        "next_eligible_implementation_status": "CLOSED_COMMITTED",
+        "stage_91p_and_later_authorized": False,
+        "transition_requires_commit": False,
+        "implementation_authorized": False,
+    }
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+    assert stages_by_id["89P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["90P"]["status"] == "CLOSED_COMMITTED"
+
+
+def test_89p_is_automation_blueprints_closed_committed_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["89P"] == {
+        "stage_id": "89P",
+        "stage_name": "Roboticxs Automation Blueprints v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "dc53ef24f2d15ba1d35ce93ec82555e8290dc565",
+            "commit_message": "docs: add roboticxs automation blueprints",
+            "paths": [
+                "docs/reference/ROBOTICXS_AUTOMATION_BLUEPRINTS_v0_1.md",
+                "docs/reference/ROBOTICXS_BLUEPRINT_AUTHORITY_BOUNDARIES_v0_1.md",
+                "docs/reference/ROBOTICXS_BLUEPRINT_INSTALLATION_CONTRACT_v0_1.md",
+                "runtime/hermes/skills/roboticxs-daily-brief/SKILL.md",
+                "runtime/hermes/skills/roboticxs-research-radar/SKILL.md",
+                "runtime/hermes/skills/roboticxs-caregiver-routine/SKILL.md",
+                "tests/test_roboticxs_blueprint_manifest.py",
+                "tests/test_roboticxs_blueprint_authority.py",
+                "tests/test_roboticxs_blueprint_no_silent_schedule.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the Automation Blueprints baseline. 90P - Roboticxs Command Surface Policy v0 - is closed committed; do not infer 91P implementation, 92P, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["89P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_89p_transition_selects_90p_without_implementation_authorization():
+    transition = load_json_block("stage-89p-closeout-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "closeout_status": "CLOSED_COMMITTED",
+        "commit": "dc53ef24f2d15ba1d35ce93ec82555e8290dc565",
+        "commit_message": "docs: add roboticxs automation blueprints",
+        "after_commit_next_eligible": "90P",
+        "next_eligible_stage_name": "Roboticxs Command Surface Policy v0",
+        "next_eligible_implementation_status": "CLOSED_COMMITTED",
+        "stage_91p_next_eligible_after_90p_closeout": True,
+        "stage_91p_implemented": False,
+        "stage_92p_and_later_authorized": False,
+        "transition_requires_commit": False,
+        "implementation_authorized": False,
+    }
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+    assert stages_by_id["90P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["91P"]["status"] == "CLOSED_COMMITTED"
+
+
+def test_90p_is_command_surface_policy_closed_committed_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["90P"] == {
+        "stage_id": "90P",
+        "stage_name": "Roboticxs Command Surface Policy v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "970e6e9014ec6e7b3031a7d3d412004fdebea815",
+            "commit_message": "docs: add roboticxs command surface policy",
+            "paths": [
+                "docs/reference/ROBOTICXS_COMMAND_SURFACE_POLICY_v0_1.md",
+                "docs/reference/ROBOTICXS_CONSUMER_COMMAND_ALIASES_v0_1.md",
+                "docs/reference/ROBOTICXS_HERMES_RAW_COMMAND_BLOCKLIST_v0_1.md",
+                "tests/test_command_surface_policy.py",
+                "tests/test_forbidden_hermes_commands.py",
+                "tests/test_consumer_command_aliases.py",
+                "tests/test_approval_command_packets.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the Command Surface Policy baseline. 91P - Skill Activation Scope Guard v0 - is closed committed; do not infer 92P implementation, 93P, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["90P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_90p_closeout_selects_91p_without_implementation_authorization():
+    transition = load_json_block("stage-90p-closeout-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "closeout_status": "CLOSED_COMMITTED",
+        "commit": "970e6e9014ec6e7b3031a7d3d412004fdebea815",
+        "commit_message": "docs: add roboticxs command surface policy",
+        "after_commit_next_eligible": "91P",
+        "next_eligible_stage_name": "Skill Activation Scope Guard v0",
+        "next_eligible_implementation_status": "CLOSED_COMMITTED",
+        "stage_92p_next_eligible_after_91p_closeout": True,
+        "stage_92p_implemented": False,
+        "stage_93p_and_later_authorized": False,
+        "transition_requires_commit": False,
+        "implementation_authorized": False,
+    }
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+    assert stages_by_id["91P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["92P"]["status"] == "CLOSED_COMMITTED"
+
+
+def test_91p_is_skill_activation_scope_guard_closed_committed_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["91P"] == {
+        "stage_id": "91P",
+        "stage_name": "Skill Activation Scope Guard v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "0f786def035d0c6380f6f511c03313b4d9db3756",
+            "commit_message": "docs: add skill activation scope guard",
+            "paths": [
+                "docs/reference/ROBOTICXS_SKILL_ACTIVATION_SCOPE_GUARD_v0_1.md",
+                "docs/reference/ROBOTICXS_SKILL_SCOPE_DECISIONS_v0_1.md",
+                "docs/reference/ROBOTICXS_SKILL_UPGRADE_AND_REDIRECT_POLICY_v0_1.md",
+                "tests/test_skill_activation_scope_guard.py",
+                "tests/test_skill_scope_decisions.py",
+                "tests/test_skill_redirect_upgrade_policy.py",
+                "tests/test_skill_scope_guard_blocks_prohibited_actions.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the Skill Activation Scope Guard baseline. 92P - Hermes Tool Authority Guard v0 - is closed committed; do not infer 93P implementation, 94P, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["91P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_91p_closeout_selects_92p_closed_committed_without_implementation_authorization():
+    transition = load_json_block("stage-91p-closeout-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "closeout_status": "CLOSED_COMMITTED",
+        "commit": "0f786def035d0c6380f6f511c03313b4d9db3756",
+        "commit_message": "docs: add skill activation scope guard",
+        "after_commit_next_eligible": "92P",
+        "next_eligible_stage_name": "Hermes Tool Authority Guard v0",
+        "next_eligible_implementation_status": "CLOSED_COMMITTED",
+        "stage_93p_next_eligible_after_92p_closeout": True,
+        "stage_93p_implemented": False,
+        "stage_94p_and_later_authorized": False,
+        "transition_requires_commit": False,
+        "implementation_authorized": False,
+    }
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+    assert stages_by_id["92P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["93P"]["status"] == "CLOSED_COMMITTED"
+
+
+def test_92p_is_hermes_tool_authority_guard_closed_committed_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["92P"] == {
+        "stage_id": "92P",
+        "stage_name": "Hermes Tool Authority Guard v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "ac6d5c4d775367ea9b1774cfe985fedeee7a49cf",
+            "commit_message": "docs: add hermes tool authority guard",
+            "paths": [
+                "docs/reference/ROBOTICXS_HERMES_TOOL_AUTHORITY_GUARD_v0_1.md",
+                "docs/reference/ROBOTICXS_TOOL_ACTION_CLASSIFICATION_v0_1.md",
+                "docs/reference/ROBOTICXS_ACTION_PACKET_CONTRACT_v0_1.md",
+                "docs/reference/ROBOTICXS_TOOL_AUTHORITY_DECISIONS_v0_1.md",
+                "tests/test_hermes_tool_authority_guard.py",
+                "tests/test_tool_action_classification.py",
+                "tests/test_action_packet_contract.py",
+                "tests/test_tool_authority_blocks_sensitive_actions.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the Hermes Tool Authority Guard baseline. 93P - Roboticxs Memory Center Bridge v0 - is closed committed; do not infer 94P implementation, 95P, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["92P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_92p_closeout_records_93p_closed_committed_without_94p_implementation():
+    transition = load_json_block("stage-92p-closeout-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "closeout_status": "CLOSED_COMMITTED",
+        "commit": "ac6d5c4d775367ea9b1774cfe985fedeee7a49cf",
+        "commit_message": "docs: add hermes tool authority guard",
+        "after_commit_next_eligible": "93P",
+        "next_eligible_stage_name": "Roboticxs Memory Center Bridge v0",
+        "next_eligible_implementation_status": "CLOSED_COMMITTED",
+        "stage_94p_closed_committed": True,
+        "stage_95p_and_later_authorized": False,
+        "transition_requires_commit": False,
+        "implementation_authorized": False,
+    }
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+    assert stages_by_id["93P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["94P"]["status"] == "CLOSED_COMMITTED"
+
+
+def test_93p_is_memory_center_bridge_closed_committed_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["93P"] == {
+        "stage_id": "93P",
+        "stage_name": "Roboticxs Memory Center Bridge v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "65ac8c03fc3305548627ca3162fb71191fcdcbb7",
+            "commit_message": "docs: add memory center bridge",
+            "paths": [
+                "docs/reference/ROBOTICXS_MEMORY_CENTER_BRIDGE_v0_1.md",
+                "docs/reference/ROBOTICXS_MEMORY_PROJECTION_POLICY_v0_1.md",
+                "docs/reference/ROBOTICXS_MEMORY_WRITEBACK_BOUNDARY_v0_1.md",
+                "docs/reference/ROBOTICXS_MEMORY_CONTEXT_INJECTION_CONTRACT_v0_1.md",
+                "tests/test_memory_center_bridge.py",
+                "tests/test_memory_projection_policy.py",
+                "tests/test_memory_writeback_boundary.py",
+                "tests/test_memory_context_injection_contract.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the Memory Center Bridge baseline. 94P - Telegram MVP on Hermes Gateway v0 - is closed committed as story/spec/test work only; do not infer 95P or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["93P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_93p_closeout_selects_94p_as_closed_committed_without_future_authorization():
+    transition = load_json_block("stage-93p-closeout-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "closeout_status": "CLOSED_COMMITTED",
+        "commit": "65ac8c03fc3305548627ca3162fb71191fcdcbb7",
+        "commit_message": "docs: add memory center bridge",
+        "after_commit_next_eligible": "94P",
+        "next_eligible_stage_name": "Telegram MVP on Hermes Gateway v0",
+        "next_eligible_implementation_status": "CLOSED_COMMITTED",
+        "stage_94p_closed_committed": True,
+        "stage_95p_and_later_authorized": False,
+        "transition_requires_commit": False,
+        "implementation_authorized": False,
+    }
+    assert stages_by_id["93P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["94P"]["status"] == "CLOSED_COMMITTED"
+
+
+def test_94p_is_telegram_hermes_gateway_mvp_closed_committed_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["94P"] == {
+        "stage_id": "94P",
+        "stage_name": "Telegram MVP on Hermes Gateway v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "local_repo_evidence",
+        "local_evidence": {
+            "commit": "97777ca68e0443e17236e9858ce350f68ed77864",
+            "commit_message": "docs: add telegram hermes gateway mvp",
+            "paths": [
+                "docs/reference/ROBOTICXS_TELEGRAM_HERMES_GATEWAY_MVP_v0_1.md",
+                "docs/reference/ROBOTICXS_TELEGRAM_GATEWAY_BOUNDARY_v0_1.md",
+                "docs/reference/ROBOTICXS_TELEGRAM_ACTION_PACKET_FLOW_v0_1.md",
+                "docs/reference/ROBOTICXS_TELEGRAM_MEMORY_ROUTINE_FLOW_v0_1.md",
+                "tests/test_telegram_hermes_gateway_mvp.py",
+                "tests/test_telegram_gateway_boundary.py",
+                "tests/test_telegram_action_packet_flow.py",
+                "tests/test_telegram_memory_routine_flow.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the Telegram MVP on Hermes Gateway story/spec/test contract. 95P and 96P are closed committed; do not infer runtime gateway startup, production Telegram messaging, credentials, UI, 97P, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["94P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_94p_closeout_transition_records_later_95p_authorization_without_live_runtime_or_credentials():
+    transition = load_json_block("stage-94p-closeout-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "closeout_status": "CLOSED_COMMITTED",
+        "commit": "97777ca68e0443e17236e9858ce350f68ed77864",
+        "commit_message": "docs: add telegram hermes gateway mvp",
+        "closed_stage": "94P",
+        "closed_stage_name": "Telegram MVP on Hermes Gateway v0",
+        "stage_95p_authorized_later": True,
+        "stage_96p_and_later_authorized": False,
+        "next_eligible_stage": "95P",
+        "runtime_gateway_start_authorized": False,
+        "production_messaging_authorized": False,
+        "telegram_credentials_authorized": False,
+        "implementation_authorized": False,
+    }
+    assert stages_by_id["94P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["95P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_95p_is_telegram_hermes_policy_chain_runtime_skeleton_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["95P"] == {
+        "stage_id": "95P",
+        "stage_name": "Telegram-Hermes Policy Chain Runtime Skeleton v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "699f5e8953227bb16164b5ee7c8749f662b6d731",
+            "commit_message": "feat: add telegram hermes policy chain runtime skeleton",
+            "paths": [
+                "app/telegram_policy_chain.py",
+                "app/main.py",
+                "docs/reference/TELEGRAM_HERMES_POLICY_CHAIN_RUNTIME_SKELETON_95P_v0_1.md",
+                "tests/test_telegram_policy_chain_95p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Telegram-Hermes policy-chain runtime skeleton baseline. 96P is closed committed; do not infer caregiver behavior, live Telegram sends, live Hermes Gateway startup, live cron scheduling, connector activation, external writes, payments, publishing, browser/email/WhatsApp execution, production credentials, 97P, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["95P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_95p_transition_records_later_96p_authorization_and_blocks_external_runtime_surfaces():
+    transition = load_json_block("stage-95p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "95P",
+        "stage_name": "Telegram-Hermes Policy Chain Runtime Skeleton v0",
+        "implementation_commit": "699f5e8953227bb16164b5ee7c8749f662b6d731",
+        "stage_96p_authorized_later": True,
+        "stage_97p_and_later_authorized": False,
+        "next_eligible_stage": "96P",
+        "caregiver_behavior_authorized": False,
+        "live_telegram_sends_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_scheduling_authorized": False,
+        "connector_activation_authorized": False,
+        "external_writes_authorized": False,
+        "payments_authorized": False,
+        "publishing_authorized": False,
+        "browser_email_whatsapp_execution_authorized": False,
+        "production_credentials_authorized": False,
+    }
+    assert stages_by_id["95P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["96P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_96p_is_hermes_os_runtime_contract_closed_committed_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["96P"] == {
+        "stage_id": "96P",
+        "stage_name": "Hermes OS Runtime Contract v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "d2aa97d",
+            "commit_message": "feat: add hermes os runtime contract",
+            "paths": [
+                "app/hermes_os_contract.py",
+                "docs/reference/HERMES_OS_RUNTIME_CONTRACT_96P_v0_1.md",
+                "tests/test_hermes_os_runtime_contract_96p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Hermes OS runtime contract baseline. 97P is closed committed; do not infer live Hermes startup, live cron execution, live Telegram sends, connector activation, model provider calls, auto skill install, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, 98P, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["96P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_96p_transition_records_later_97p_authorization_and_blocks_external_runtime_surfaces():
+    transition = load_json_block("stage-96p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "96P",
+        "stage_name": "Hermes OS Runtime Contract v0",
+        "implementation_commit": "d2aa97d",
+        "stage_97p_authorized_later": True,
+        "stage_98p_and_later_authorized": False,
+        "next_eligible_stage": "97P",
+        "caregiver_workflows_authorized": "local_deterministic_97p_slice_only",
+        "live_hermes_start_authorized": False,
+        "live_cron_execution_authorized": False,
+        "live_telegram_sends_authorized": False,
+        "connector_activation_authorized": False,
+        "model_provider_calls_authorized": False,
+        "auto_skill_install_authorized": False,
+        "production_credentials_authorized": False,
+        "external_writes_authorized": False,
+        "payments_authorized": False,
+        "publishing_authorized": False,
+        "browser_email_whatsapp_execution_authorized": False,
+        "destructive_actions_authorized": False,
+    }
+    assert stages_by_id["96P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["97P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_97p_is_caregiver_telegram_mvp_closed_committed_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["97P"] == {
+        "stage_id": "97P",
+        "stage_name": "Caregiver Telegram MVP v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_97P_closeout",
+            "commit_message": "feat: add caregiver telegram mvp slice",
+            "paths": [
+                "app/caregiver_telegram_mvp.py",
+                "app/telegram_policy_chain.py",
+                "app/main.py",
+                "docs/reference/CAREGIVER_TELEGRAM_MVP_97P_v0_1.md",
+                "tests/test_caregiver_telegram_mvp_97p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic caregiver Telegram MVP slice. 98P is closed committed; do not infer live Telegram sends, automatic caregiver alerts, live Hermes startup, live cron execution, connector activation, model provider calls, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, medical decisions, medication changes, emergency monitoring, destructive actions, 99P, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["97P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_97p_transition_records_later_98p_authorization_and_blocks_external_runtime_surfaces():
+    transition = load_json_block("stage-97p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "97P",
+        "stage_name": "Caregiver Telegram MVP v0",
+        "implementation_commit": "same_commit_as_97P_closeout",
+        "stage_98p_authorized_later": True,
+        "stage_99p_and_later_authorized": False,
+        "next_eligible_stage": "98P",
+        "live_telegram_sends_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+        "live_hermes_start_authorized": False,
+        "live_cron_execution_authorized": False,
+        "connector_activation_authorized": False,
+        "model_provider_calls_authorized": False,
+        "production_credentials_authorized": False,
+        "external_writes_authorized": False,
+        "payments_authorized": False,
+        "publishing_authorized": False,
+        "browser_email_whatsapp_execution_authorized": False,
+        "medical_decisions_authorized": False,
+        "medication_changes_authorized": False,
+        "emergency_monitoring_authorized": False,
+        "destructive_actions_authorized": False,
+    }
+    assert stages_by_id["97P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["98P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_98p_is_routine_execution_engine_closed_committed_and_self_referenced():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["98P"] == {
+        "stage_id": "98P",
+        "stage_name": "Routine Execution Engine Skeleton v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_98P_closeout",
+            "commit_message": "feat: add routine execution engine skeleton",
+            "paths": [
+                "app/routine_execution_engine.py",
+                "app/main.py",
+                "docs/reference/ROUTINE_EXECUTION_ENGINE_98P_v0_1.md",
+                "tests/test_routine_execution_engine_98p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic routine execution engine skeleton. 99P and 100P are closed committed; do not infer live scheduler, live cron, live Telegram sends, automatic delivery, automatic caregiver alerts, live Hermes startup, connector activation, model provider calls, production credentials, external writes, payments, publishing, browser/email/WhatsApp execution, medical decisions, medication changes, emergency monitoring, destructive actions, 101P, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["98P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_98p_transition_blocks_99p_and_external_runtime_surfaces():
+    transition = load_json_block("stage-98p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "98P",
+        "stage_name": "Routine Execution Engine Skeleton v0",
+        "implementation_commit": "same_commit_as_98P_closeout",
+        "stage_99p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "live_scheduler_authorized": False,
+        "live_cron_authorized": False,
+        "live_telegram_sends_authorized": False,
+        "automatic_delivery_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+        "live_hermes_start_authorized": False,
+        "connector_activation_authorized": False,
+        "model_provider_calls_authorized": False,
+        "production_credentials_authorized": False,
+        "external_writes_authorized": False,
+        "payments_authorized": False,
+        "publishing_authorized": False,
+        "browser_email_whatsapp_execution_authorized": False,
+        "medical_decisions_authorized": False,
+        "medication_changes_authorized": False,
+        "emergency_monitoring_authorized": False,
+        "destructive_actions_authorized": False,
+    }
+    assert stages_by_id["98P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_99p_transition_records_later_100p_authorization_and_keeps_101p_blocked():
+    transition = load_json_block("stage-99p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "99P",
+        "stage_name": "Memory Center Projection Runtime Slice v0",
+        "implementation_commit": "same_commit_as_99P_closeout",
+        "stage_100p_authorized_later": True,
+        "stage_101p_and_later_authorized": False,
+        "next_eligible_stage": "100P",
+        "database_migrations_authorized": False,
+        "canonical_memory_writes_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "live_telegram_or_hermes_authorized": False,
+        "live_cron_authorized": False,
+        "connector_or_provider_calls_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["99P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["100P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_100p_is_cost_governor_model_routing_runtime_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["100P"] == {
+        "stage_id": "100P",
+        "stage_name": "Cost Governor / Model Routing Runtime v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_100P_closeout",
+            "commit_message": "feat: add cost governor model routing runtime",
+            "paths": [
+                "app/cost_governor.py",
+                "app/telegram_policy_chain.py",
+                "app/hermes_os_contract.py",
+                "app/routine_execution_engine.py",
+                "docs/reference/COST_GOVERNOR_MODEL_ROUTING_RUNTIME_100P_v0_1.md",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_cost_governor_model_routing_100p.py",
+                "tests/test_telegram_policy_chain_95p.py",
+                "tests/test_routine_execution_engine_98p.py",
+                "tests/test_canonical_roadmap.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic cost governor and model-routing runtime baseline. 101P and 102P are closed committed; 103P, 104P, 105P, 106P, 107P, 108P, 109P, 110P, and 111P are closed committed; 112P and later remain unauthorized. Do not infer async delegation dispatch, live Telegram sends, live Hermes startup, live cron scheduling, connectors, provider calls, billing, credential checks, migrations, UI, endpoints, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, medical decisions, emergency monitoring, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["100P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_101p_is_action_packet_approval_loop_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["101P"] == {
+        "stage_id": "101P",
+        "stage_name": "Action Packet Approval Loop v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_101P_closeout",
+            "commit_message": "docs: close action packet approval loop",
+            "paths": [
+                "app/action_packet_approval.py",
+                "app/cost_governor.py",
+                "app/routine_execution_engine.py",
+                "app/telegram_policy_chain.py",
+                "docs/reference/ROBOTICXS_ACTION_PACKET_APPROVAL_LOOP_101P_v0_1.md",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_action_packet_approval_101p.py",
+                "tests/test_telegram_policy_chain_95p.py",
+                "tests/test_routine_execution_engine_98p.py",
+                "tests/test_cost_governor_model_routing_100p.py",
+                "tests/test_memory_center_projection_99p.py",
+                "tests/test_hermes_os_runtime_contract_96p.py",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic Action Packet approval loop baseline. 102P is closed committed; 103P, 104P, 105P, 106P, 107P, 108P, 109P, 110P, and 111P are closed committed; 112P and later remain unauthorized. Do not infer live execution, async delegation dispatch, live Telegram sends, live Hermes startup, live cron scheduling, connectors, provider calls, billing, credential checks, migrations, UI, endpoints, external writes, payments, publishing, browser/email/WhatsApp execution, destructive actions, medical decisions, emergency monitoring, automatic caregiver alerts, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["101P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_102p_is_async_delegation_authority_adapter_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["102P"] == {
+        "stage_id": "102P",
+        "stage_name": "Hermes Async Delegation Authority Adapter v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_102P_closeout",
+            "commit_message": "docs: close async delegation authority adapter",
+            "paths": [
+                "app/async_delegation_authority.py",
+                "tests/test_async_delegation_authority_102p.py",
+                "docs/reference/HERMES_ASYNC_DELEGATION_AUTHORITY_ADAPTER_102P_v0_1.md",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic async delegation authority adapter baseline. 102P is closed committed after remediation review and validation. 103P, 104P, 105P, 106P, and 107P are closed committed. Do not infer live Hermes delegate_task, background dispatch, live subagents, provider calls, connector activation, live Telegram sends, external effects, 108P, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["102P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_103p_is_async_delegation_completion_inbox_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["103P"] == {
+        "stage_id": "103P",
+        "stage_name": "Async Delegation Completion Inbox v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_103P_closeout",
+            "commit_message": "docs: close async delegation completion inbox",
+            "paths": [
+                "app/async_delegation_inbox.py",
+                "tests/test_async_delegation_completion_inbox_103p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic async delegation completion inbox baseline. 103P is closed committed after implementation, validation, and closeout review. 104P, 105P, 106P, and 107P are closed committed. Do not infer async workers, live Hermes delegate_task, background dispatch, callbacks, live subagents, provider calls, connector activation, live Telegram sends, Memory Center mutation, external effects, 108P, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["103P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_104p_is_async_result_user_surface_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["104P"] == {
+        "stage_id": "104P",
+        "stage_name": "Async Result User Surface v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_104P_closeout",
+            "commit_message": "docs: close async result user surface",
+            "paths": [
+                "app/async_result_surface.py",
+                "tests/test_async_result_user_surface_104p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic async result user surface baseline. 104P is closed committed after implementation, validation, and closeout review. 105P, 106P, and 107P are closed committed. Do not infer model calls, new delegations, approvals, Memory Center mutation, external effects, 108P, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["104P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_105p_is_telegram_async_result_delivery_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["105P"] == {
+        "stage_id": "105P",
+        "stage_name": "Telegram Async Result Delivery v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_105P_closeout",
+            "commit_message": "feat: add telegram async result delivery",
+            "paths": [
+                "app/telegram_async_result_delivery.py",
+                "tests/test_telegram_async_result_delivery_105p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic Telegram async result delivery baseline. 105P is closed committed after implementation, validation, and closeout review. 106P and 107P are closed committed. Do not infer Telegram callback execution, new delegations, new approvals, Memory Center mutation, external effects, 108P, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["105P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_106p_is_telegram_result_acknowledgement_binding_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["106P"] == {
+        "stage_id": "106P",
+        "stage_name": "Telegram Result Acknowledgement Binding v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_106P_closeout",
+            "commit_message": "feat: add telegram result acknowledgement binding",
+            "paths": [
+                "app/telegram_result_acknowledgement.py",
+                "tests/test_telegram_result_acknowledgement_106p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic Telegram result acknowledgement baseline. 106P is closed committed after implementation, validation, and closeout review. 107P is closed committed. Do not infer Telegram callback execution authority, new delegations, new approvals, Memory Center mutation, external effects, 108P, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["106P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_107p_is_followup_intent_review_queue_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["107P"] == {
+        "stage_id": "107P",
+        "stage_name": "Follow-up Intent Review Queue v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_107P_closeout",
+            "commit_message": "feat: add follow-up intent review queue",
+            "paths": [
+                "app/followup_intent_review.py",
+                "tests/test_followup_intent_review_107p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic follow-up intent review queue baseline. 107P is closed committed after implementation, validation, and closeout review. 108P, 109P, 110P, and 111P are closed committed after follow-up planning, Telegram choice-surface validation, local selection binding validation, and governed delegation registration validation. Do not infer follow-up execution, worker dispatch, completion events, model/tool calls, Memory Center mutation, Telegram sends beyond approved owner-scoped local transport, external effects, 112P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["107P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_108p_is_followup_draft_planner_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["108P"] == {
+        "stage_id": "108P",
+        "stage_name": "Follow-up Draft Planner v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_108P_closeout",
+            "commit_message": "feat: add follow-up draft planner",
+            "paths": [
+                "app/followup_draft_planner.py",
+                "tests/test_followup_draft_planner_108p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic follow-up draft planner baseline. 108P is closed committed after implementation, validation, and closeout review. 109P later added Telegram-facing choice surfaces only, 110P later added local option selection binding only, and 111P later added local governed delegation registration only. Do not infer follow-up execution, worker dispatch, completion events, model/tool calls, Memory Center mutation, live Telegram APIs, external effects, 112P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["108P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_109p_is_telegram_followup_choice_surface_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["109P"] == {
+        "stage_id": "109P",
+        "stage_name": "Telegram Follow-up Choice Surface v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_109P_closeout",
+            "commit_message": "feat: add telegram follow-up choice surface",
+            "paths": [
+                "app/telegram_followup_choice_surface.py",
+                "tests/test_telegram_followup_choice_surface_109p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic Telegram follow-up choice surface baseline. 109P is closed committed after implementation, validation, and closeout review. 110P later added local selection binding only, and 111P later added local governed delegation registration only. Do not infer follow-up execution, worker dispatch, completion events, new approvals, action packets, model/tool calls, Memory Center mutation, live Telegram APIs, external effects, 112P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["109P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_110p_is_telegram_followup_choice_selection_binding_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["110P"] == {
+        "stage_id": "110P",
+        "stage_name": "Telegram Follow-up Choice Selection Binding v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_110P_closeout",
+            "commit_message": "feat: add telegram follow-up choice selection binding",
+            "paths": [
+                "app/telegram_followup_choice_selection.py",
+                "app/telegram_followup_choice_surface.py",
+                "tests/test_telegram_followup_choice_selection_110p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic Telegram follow-up choice selection binding baseline. 110P is closed committed after implementation, validation, and closeout review. 111P later added local governed follow-up delegation creation only. Do not infer follow-up execution, workers, completion events, model/tool calls, Memory Center mutation, live Telegram APIs, external effects, 112P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["110P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_111p_is_user_approved_followup_delegation_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["111P"] == {
+        "stage_id": "111P",
+        "stage_name": "User-Approved Follow-up Delegation v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_111P_closeout",
+            "commit_message": "feat: add follow-up delegation authority",
+            "paths": [
+                "app/followup_delegation_authority.py",
+                "app/async_delegation_authority.py",
+                "tests/test_followup_delegation_authority_111p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic follow-up delegation authority baseline. 111P is closed committed after implementation, validation, and closeout review. Do not infer follow-up execution, worker dispatch, completion or failure events, model/tool calls, Memory Center mutation, live Telegram APIs, external effects, 112P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["111P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_112p_is_controlled_followup_execution_skeleton_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["112P"] == {
+        "stage_id": "112P",
+        "stage_name": "Controlled Follow-up Execution Skeleton v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_112P_closeout",
+            "commit_message": "feat: add controlled follow-up execution skeleton",
+            "paths": [
+                "app/followup_execution_skeleton.py",
+                "tests/test_followup_execution_skeleton_112p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic controlled follow-up execution skeleton baseline. 112P is closed committed after implementation, validation, and closeout review. Do not infer 103P inbox insertion, 104P result surfaces, 105P Telegram delivery, model/tool calls, worker dispatch, Memory Center mutation, live Telegram APIs, external effects, 113P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["112P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_113p_is_followup_completion_loop_integration_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["113P"] == {
+        "stage_id": "113P",
+        "stage_name": "Follow-up Completion Loop Integration v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_113P_closeout",
+            "commit_message": "feat: add follow-up completion loop integration",
+            "paths": [
+                "app/followup_completion_loop.py",
+                "tests/test_followup_completion_loop_113p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic follow-up completion loop integration baseline. 113P is closed committed after implementation, validation, and closeout review. 114P later added local acknowledgement binding only. Do not infer new follow-up execution, live Telegram APIs, memory proposal/writeback behavior, model/tool calls, worker dispatch, external effects, 115P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["113P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_114p_is_followup_result_acknowledgement_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["114P"] == {
+        "stage_id": "114P",
+        "stage_name": "Follow-up Result Acknowledgement v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_114P_closeout",
+            "commit_message": "feat: add follow-up result acknowledgement",
+            "paths": [
+                "app/followup_result_acknowledgement.py",
+                "tests/test_followup_result_acknowledgement_114p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic follow-up result acknowledgement baseline. 114P is closed committed after implementation, validation, and closeout review. 115P later added local memory proposal candidates only, 116P later added local Telegram-facing approval surfaces and approval binding only, 117P later added local Memory Center writeback only, 118P later added local context scan candidate source records only, 119P later added local proactive opportunity candidate detection only, 120P later added local proactive Telegram suggestion surfaces and local delivery only, 121P later added local adaptation into a 107P-compatible follow-up intent-review record only, 122P later added local governed proactive delegation registration only, and 123P later added local deterministic proactive execution attempts and local completion or failure event candidates only. Do not infer new follow-up execution, new draft options, selections, delegations, executions, routes, live connector reads, model/tool calls, external effects, 124P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["114P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_115p_is_followup_memory_proposal_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["115P"] == {
+        "stage_id": "115P",
+        "stage_name": "Memory Proposal from Follow-up Result v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_115P_closeout",
+            "commit_message": "feat: add follow-up memory proposal candidates",
+            "paths": [
+                "app/followup_memory_proposal.py",
+                "tests/test_followup_memory_proposal_115p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic follow-up memory proposal candidate baseline. 115P is closed committed after implementation, validation, and closeout review. 116P later added Telegram-facing approval surfaces and local approval binding only, 117P later added local Memory Center writeback only, 118P later added local context scan candidate source records only, 119P later added local proactive opportunity candidate detection only, 120P later added local proactive Telegram suggestion surfaces and local delivery only, 121P later added local adaptation into a 107P-compatible follow-up intent-review record only, 122P later added local governed proactive delegation registration only, and 123P later added local deterministic proactive execution attempts and local completion or failure event candidates only. Do not infer new action packets, new delegations, new follow-up execution, live connector reads, model/tool calls, live Telegram APIs, external effects, 124P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["115P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_116p_is_telegram_memory_proposal_approval_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["116P"] == {
+        "stage_id": "116P",
+        "stage_name": "Telegram Memory Proposal Approval v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_116P_closeout",
+            "commit_message": "feat: add telegram memory proposal approval",
+            "paths": [
+                "app/telegram_memory_proposal_approval.py",
+                "tests/test_telegram_memory_proposal_approval_116p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic Telegram memory proposal approval baseline. 116P is closed committed after implementation, validation, and closeout review. 117P later added local Memory Center writeback only, 118P later added local context scan candidate source records only, 119P later added local proactive opportunity candidate detection only, 120P later added local proactive Telegram suggestion surfaces and local delivery only, 121P later added local adaptation into a 107P-compatible follow-up intent-review record only, 122P later added local governed proactive delegation registration only, and 123P later added local deterministic proactive execution attempts and local completion or failure event candidates only. Do not infer automatic later-stage execution, new action packets, new delegations, new follow-up execution, live connector reads, model/tool calls, live Telegram APIs, external effects, 124P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["116P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_117p_is_memory_center_writeback_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["117P"] == {
+        "stage_id": "117P",
+        "stage_name": "Memory Center Writeback v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_117P_closeout",
+            "commit_message": "feat: add memory center writeback",
+            "paths": [
+                "app/memory_center_writeback.py",
+                "tests/test_memory_center_writeback_117p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic Memory Center writeback baseline. 117P is closed committed after implementation, validation, and closeout review. 118P later added local context scan candidate source records only, 119P later added local proactive opportunity candidate detection only, 120P later added local proactive Telegram suggestion surfaces and local delivery only, 121P later added local adaptation into a 107P-compatible follow-up intent-review record only, 122P later added local governed proactive delegation registration only, and 123P later added local deterministic proactive execution attempts and local completion or failure event candidates only. Do not infer live connector reads, model/tool calls, external effects, 124P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["117P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_118p_is_context_scan_candidate_source_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["118P"] == {
+        "stage_id": "118P",
+        "stage_name": "Context Scan Candidate Source v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_118P_closeout",
+            "commit_message": "feat: add context scan candidate sources",
+            "paths": [
+                "app/context_scan_candidate_source.py",
+                "tests/test_context_scan_candidate_source_118p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic Context Scan candidate source baseline. 118P is closed committed after implementation, validation, and closeout review. 119P later added local proactive opportunity candidate detection only, 120P later added local proactive Telegram suggestion surfaces and local delivery only, 121P later added local adaptation into a 107P-compatible follow-up intent-review record only, 122P later added local governed proactive delegation registration only, and 123P later added local deterministic proactive execution attempts and local completion or failure event candidates only. Do not infer live connector reads, scan extraction, memory proposals, memory writes, model/tool calls, external effects, 124P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["118P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_119p_is_proactive_opportunity_detection_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["119P"] == {
+        "stage_id": "119P",
+        "stage_name": "Proactive Opportunity Detection v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_119P_closeout",
+            "commit_message": "feat: add proactive opportunity detection",
+            "paths": [
+                "app/proactive_opportunity_detection.py",
+                "tests/test_proactive_opportunity_detection_119p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic proactive opportunity detection baseline. 119P is closed committed after implementation, validation, and closeout review. 120P later added local proactive Telegram suggestion surfaces and local delivery only, 121P later added local adaptation into a 107P-compatible follow-up intent-review record only, 122P later added local governed proactive delegation registration only, and 123P later added local deterministic proactive execution attempts and local completion or failure event candidates only. Do not infer planning, choice surfaces, selections, delegations, execution, Memory Center mutation, live connector reads, model/tool calls, external effects, 124P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["119P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_120p_is_proactive_telegram_suggestion_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["120P"] == {
+        "stage_id": "120P",
+        "stage_name": "Proactive Telegram Suggestion v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_120P_closeout",
+            "commit_message": "feat: add proactive telegram suggestions",
+            "paths": [
+                "app/proactive_telegram_suggestion.py",
+                "tests/test_proactive_telegram_suggestion_120p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic proactive Telegram suggestion baseline. 120P is closed committed after implementation, validation, and closeout review. 121P later added local adaptation into a 107P-compatible follow-up intent-review record only, 122P later added local governed proactive delegation registration only, and 123P later added local deterministic proactive execution attempts and local completion or failure event candidates only. Do not infer callback binding, acknowledgement, planner execution, choice surfaces, selections, delegations, execution, Memory Center mutation, live Telegram APIs, model/tool calls, external effects, 124P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["120P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_121p_is_proactive_suggestion_adapter_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["121P"] == {
+        "stage_id": "121P",
+        "stage_name": "Proactive Suggestion Adapter to Follow-up Loop v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_121P_closeout",
+            "commit_message": "feat: add proactive suggestion adapter",
+            "paths": [
+                "app/proactive_suggestion_adapter.py",
+                "tests/test_proactive_suggestion_adapter_121p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic proactive suggestion adapter baseline. 121P is closed committed after implementation, validation, and closeout review. 122P later added local governed delegation registration for explicitly authorized proactive-sourced selections only. 123P later added local deterministic proactive execution attempts and local completion or failure event candidates only. Do not infer planner execution, Telegram choice surfaces, selection binding outside the existing follow-up path, inbox routing, result surfaces, Telegram delivery, Memory Center mutation, live Telegram APIs, model/tool calls, external effects, 124P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["121P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_122p_is_proactive_delegation_adapter_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["122P"] == {
+        "stage_id": "122P",
+        "stage_name": "Proactive Delegation Adapter v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_122P_closeout",
+            "commit_message": "feat: add proactive delegation adapter",
+            "paths": [
+                "app/proactive_delegation_adapter.py",
+                "tests/test_proactive_delegation_adapter_122p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic proactive delegation adapter baseline. 122P is closed committed after implementation, validation, and closeout review. It reuses the existing 111P-style governed delegation authority path for explicitly authorized proactive-sourced work and stops at packet and handle registration only. 123P later added local deterministic proactive execution attempts and local completion or failure event candidates only. Do not infer inbox routing, result surfaces, Telegram delivery, Memory Center mutation, live connector reads, model/tool calls, external effects, 124P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["122P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_123p_is_controlled_proactive_execution_skeleton_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["123P"] == {
+        "stage_id": "123P",
+        "stage_name": "Controlled Proactive Execution Skeleton v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_123P_closeout",
+            "commit_message": "feat: add controlled proactive execution skeleton",
+            "paths": [
+                "app/proactive_execution_skeleton.py",
+                "tests/test_proactive_execution_skeleton_123p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic proactive execution skeleton baseline. 123P is closed committed after implementation, validation, and closeout review. It executes governed proactive-origin delegations through deterministic local skeleton behavior only and produces local completion or failure event candidates only. 124P later added deterministic read-only daily brief snapshots only, 125P later added deterministic read-only skill pack activation surfaces only, 126P later added a deterministic local first-demo composition flow only, 127P later added a deterministic local owner-facing demo result surface only, 128P later added a deterministic local document-review demo flow only, 129P later added a runnable local Hermes runtime bootstrap shell only, and 130P later added a runnable owner-gated Telegram robot with deterministic replies only. Do not infer inbox routing, result surfaces beyond the closed local demo surfaces, Telegram delivery beyond the closed command replies, Memory Center mutation, live connector reads, model/tool calls, worker dispatch, external effects, 131P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["123P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_124p_is_what_did_i_miss_daily_brief_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["124P"] == {
+        "stage_id": "124P",
+        "stage_name": "What Did I Miss? Daily Brief v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_124P_closeout",
+            "commit_message": "feat: add what did i miss daily brief",
+            "paths": [
+                "app/daily_brief_what_did_i_miss.py",
+                "tests/test_daily_brief_what_did_i_miss_124p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic read-only daily brief baseline. 124P is closed committed after implementation, validation, and closeout review. It aggregates existing 103P through 123P local records into read-only daily brief snapshots and renderable local text only. 125P later added deterministic read-only skill pack classification surfaces only, 126P later added a deterministic local first-demo composition flow only, 127P later added a deterministic local owner-facing demo result surface only, 128P later added a deterministic local document-review demo flow only, 129P later added a runnable local Hermes runtime bootstrap shell only, and 130P later added a runnable owner-gated Telegram robot with deterministic replies only. Do not infer Telegram delivery beyond the closed command replies, callback binding, follow-up intent creation, async delegations, execution, Memory Center mutation, model/tool calls, live connector reads, external writes, worker dispatch, 131P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["124P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_125p_is_skill_pack_activation_surface_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["125P"] == {
+        "stage_id": "125P",
+        "stage_name": "Skill Pack Activation Surface v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_125P_closeout",
+            "commit_message": "feat: add skill pack activation surface",
+            "paths": [
+                "app/skill_pack_activation_surface.py",
+                "tests/test_skill_pack_activation_surface_125p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic read-only skill pack activation baseline. 125P is closed committed after implementation, validation, and closeout review. It classifies existing 103P through 124P local records into skill pack surfaces and renderable local text only. 126P later added a deterministic local first-demo composition flow only, 127P later added a deterministic local owner-facing demo result surface only, 128P later added a deterministic local document-review demo flow only, 129P later added a runnable local Hermes runtime bootstrap shell only, and 130P later added a runnable owner-gated Telegram robot with deterministic replies only. Do not infer billing, entitlement enforcement, package activation, upgrade prompts, Telegram delivery beyond the closed command replies, callback binding, follow-up intent creation, async delegations, execution, Memory Center mutation, model/tool calls, live connector reads, external writes, worker dispatch, 131P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["125P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_126p_is_first_demo_flow_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["126P"] == {
+        "stage_id": "126P",
+        "stage_name": "First Demo Flow: Meeting Brief from Context v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_126P_closeout",
+            "commit_message": "feat: add meeting brief demo flow",
+            "paths": [
+                "app/meeting_brief_demo_flow.py",
+                "tests/test_meeting_brief_demo_flow_126p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic first product-demo baseline. 126P is closed committed after implementation, validation, and closeout review. It composes existing 118P through 125P local primitives into a deterministic local meeting-brief demo flow, preserves normalized_intent_kind=prepare_meeting_brief as product lineage, reuses the existing governed human_review_checklist / FOLLOWUP_HUMAN_REVIEW_CHECKLIST task class for deterministic local execution, and stops at local demo artifacts, daily brief inclusion, and skill pack inclusion only. 127P later added a deterministic local owner-facing demo result surface only. 128P later added a deterministic local document-review demo flow only. 129P later added a runnable local Hermes runtime bootstrap shell only. 130P later added a runnable owner-gated Telegram robot with deterministic replies only. Do not infer new task classes, new authority paths, live connector reads, Telegram delivery beyond the closed command replies, model/tool calls, worker dispatch, Memory Center mutation, billing, entitlement enforcement, external writes, 131P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["126P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_127p_is_demo_result_delivery_surface_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["127P"] == {
+        "stage_id": "127P",
+        "stage_name": "Demo Result Delivery Surface v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_127P_closeout",
+            "commit_message": "feat: add demo result delivery surface",
+            "paths": [
+                "app/demo_result_delivery_surface.py",
+                "tests/test_demo_result_delivery_surface_127p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the deterministic local owner-facing demo result surface baseline. 127P is closed committed after implementation, validation, and closeout review. It consumes valid 126P meeting-brief demo flow and artifact records, preserves 118P through 126P lineage, renders only a deterministic local owner-facing result surface, and does not deliver through live Telegram, bind callbacks, create approvals or follow-up intents, delegate, execute, mutate Memory Center, call models/tools, read live connectors, dispatch workers, enforce billing or entitlements, or write external systems. 128P later added a deterministic local document-review demo flow only. 129P later added a runnable local Hermes runtime bootstrap shell only. 130P later added a runnable owner-gated Telegram robot with deterministic replies only. Do not infer 131P+, NEXT_ELIGIBLE, or any new authority path from this status.",
+    }
+    for path in stages_by_id["127P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_128p_is_document_review_demo_flow_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["128P"] == {
+        "stage_id": "128P",
+        "stage_name": "Document Review Demo Flow v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_128P_closeout",
+            "commit_message": "feat: add document review demo flow",
+            "paths": [
+                "app/document_review_demo_flow.py",
+                "tests/test_document_review_demo_flow_128p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic document-review product-demo baseline. 128P is closed committed after implementation, validation, and closeout review. It composes existing 118P through 127P local primitives into a deterministic local document-review demo flow, preserves normalized_intent_kind=review_document as product lineage, reuses the existing governed human_review_checklist / FOLLOWUP_HUMAN_REVIEW_CHECKLIST task class for deterministic local execution, classifies the work under documents_pack, and stops at local demo artifacts and local owner-facing presentation only. 129P later added a runnable local Hermes runtime bootstrap shell only. 130P later added a runnable owner-gated Telegram robot with deterministic replies only. Do not infer live document reads, OCR, legal advice, signature creation, new task classes, new authority paths, Telegram delivery beyond the closed command replies, model/tool calls, worker dispatch, Memory Center mutation, billing, entitlement enforcement, external writes, 131P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["128P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_129p_is_hermes_runtime_bootstrap_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["129P"] == {
+        "stage_id": "129P",
+        "stage_name": "Hermes Runtime Bootstrap v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_129P_closeout",
+            "commit_message": "feat: add hermes runtime bootstrap",
+            "paths": [
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the runnable local Hermes runtime bootstrap baseline. 129P is closed committed after implementation, validation, and closeout review. It loads deterministic local config, validates robot and owner identity, reports runtime health, local feature availability, and disabled live integrations, and stops before Telegram startup, connector reads, model/tool calls, worker dispatch, Memory Center mutation, billing, entitlement enforcement, or external writes. 130P later added a runnable owner-gated Telegram robot with deterministic /start, /help, and /status replies only. Do not infer 131P+, NEXT_ELIGIBLE, live runtime integrations beyond the closed Telegram command surface, or any new execution authority from this status.",
+    }
+    for path in stages_by_id["129P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_130p_is_runnable_telegram_robot_mvp_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["130P"] == {
+        "stage_id": "130P",
+        "stage_name": "Runnable Telegram Robot MVP v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_130P_closeout",
+            "commit_message": "feat: add runnable telegram robot mvp",
+            "paths": [
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the runnable owner-gated Telegram robot baseline. 130P is closed committed after implementation, validation, and closeout review. It runs a live/dev Telegram bot with deterministic /start, /help, and /status replies, owner gating by Telegram user id, bounded polling helpers, and Telegram sendMessage replies only. 131P later added deterministic owner-gated /miss replies backed by the existing 124P local daily brief path only. 132P later added deterministic owner-gated /brief replies backed by the existing 126P local meeting brief path only. 133P later added a local manual Google Calendar read-only connector only. Do not infer live connector-backed Telegram behavior, model/tool calls, workers, Memory Center mutation, async delegation, billing, entitlement enforcement, external writes beyond Telegram replies, 138P+, or NEXT_ELIGIBLE from this status.",
+    }
+    for path in stages_by_id["130P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_131p_is_telegram_what_did_i_miss_command_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["131P"] == {
+        "stage_id": "131P",
+        "stage_name": "Telegram What Did I Miss Command v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_131P_closeout",
+            "commit_message": "feat: add telegram what did i miss command",
+            "paths": [
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_telegram_what_did_i_miss_131p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the runnable owner-gated Telegram what did i miss baseline. 131P is closed committed after implementation, validation, and closeout review. It adds deterministic owner-gated /miss replies backed by the existing 124P local daily brief path and preserves Telegram sendMessage replies as the only external write. 132P later added deterministic owner-gated /brief replies backed by the existing 126P local meeting brief path only. 133P later added a local manual Google Calendar read-only connector only. Do not infer 138P+, NEXT_ELIGIBLE, live connector-backed Telegram behavior, model/tool calls, worker dispatch, Memory Center mutation, async delegation, billing, entitlement enforcement, or external writes beyond Telegram replies from this status.",
+    }
+    for path in stages_by_id["131P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_132p_is_telegram_meeting_brief_command_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["132P"] == {
+        "stage_id": "132P",
+        "stage_name": "Telegram Meeting Brief Command v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_132P_closeout",
+            "commit_message": "feat: add telegram meeting brief command",
+            "paths": [
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_telegram_what_did_i_miss_131p.py",
+                "tests/test_telegram_meeting_brief_132p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the runnable owner-gated Telegram meeting brief baseline. 132P is closed committed after implementation, validation, and closeout review. It adds deterministic owner-gated /brief replies backed by the existing 126P local meeting brief path, keeps /miss enabled, and preserves Telegram sendMessage replies as the only external write. 133P later added a local manual Google Calendar read-only connector only and did not change Telegram /brief behavior. Do not infer 138P+, NEXT_ELIGIBLE, live connector-backed Telegram behavior, model/tool calls, worker dispatch, Memory Center mutation, async delegation, billing, entitlement enforcement, or external writes beyond Telegram replies from this status.",
+    }
+    for path in stages_by_id["132P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_133p_is_read_only_google_calendar_connector_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["133P"] == {
+        "stage_id": "133P",
+        "stage_name": "Read-Only Google Calendar Connector v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_133P_closeout",
+            "commit_message": "feat: add read-only google calendar connector",
+            "paths": [
+                "app/google_calendar_readonly_connector.py",
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_google_calendar_readonly_connector_133p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local manual Google Calendar read-only connector baseline. 133P is closed committed after implementation, validation, and closeout review. It reads upcoming events from Google Calendar through a read-only bearer token, normalizes them into a deterministic local snapshot, renders a local CLI smoke output, and keeps read_only=true, external_writes=false, and memory_mutation=false. 134P later added bounded owner-gated Telegram /brief read-only Calendar backing only. It does not authorize Calendar writes, Memory Center mutation, model/tool calls, worker dispatch, billing, entitlement enforcement, or 143P+ behavior.",
+    }
+    for path in stages_by_id["133P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_134p_is_calendar_backed_telegram_meeting_brief_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["134P"] == {
+        "stage_id": "134P",
+        "stage_name": "Calendar-backed Telegram Meeting Brief v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_134P_closeout",
+            "commit_message": "feat: add calendar-backed telegram meeting brief",
+            "paths": [
+                "app/runnable_telegram_robot_mvp.py",
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_telegram_calendar_brief_134p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_telegram_what_did_i_miss_131p.py",
+                "tests/test_telegram_meeting_brief_132p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the bounded owner-gated Telegram /brief Calendar backing baseline. 134P is closed committed after implementation, validation, and closeout review. It lets authorized /brief replies include a read-only Google Calendar snapshot through the existing 133P connector, fails closed to deterministic local meeting context when Calendar config or upstream access is unavailable, keeps Telegram sendMessage replies as the only external write, and preserves Calendar writes=false, Memory Center mutation=false, LLM/model calls=false, tools=false, workers=false, billing=false, and entitlement enforcement=false. 135P later added a reusable local real Calendar meeting brief composer/CLI only. It does not authorize Calendar create/update/delete, Memory Center mutation, model/tool calls, worker dispatch, async delegation, billing, entitlement enforcement, or 143P+ behavior.",
+    }
+    for path in stages_by_id["134P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_135p_is_real_calendar_meeting_brief_composer_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["135P"] == {
+        "stage_id": "135P",
+        "stage_name": "Real Calendar Meeting Brief Composer v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_135P_closeout",
+            "commit_message": "feat: add real calendar meeting brief composer",
+            "paths": [
+                "app/real_calendar_meeting_brief.py",
+                "tests/test_real_calendar_meeting_brief_135p.py",
+                "app/hermes_runtime_bootstrap.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the reusable local real Calendar meeting brief composer baseline. 135P is closed committed after implementation, validation, and closeout review. It composes deterministic local meeting brief records and CLI output from the existing 133P Google Calendar read-only snapshot, fails closed when Calendar is unavailable, and preserves read_only=true, Calendar writes=false, external_writes=false, Memory Center mutation=false, LLM/model calls=false, tools=false, workers=false, billing=false, and entitlement enforcement=false. It does not change Telegram behavior beyond the existing 134P surface, and it does not authorize Calendar create/update/delete, Memory Center mutation, model/tool calls, worker dispatch, async delegation, billing, entitlement enforcement, or 143P+ behavior.",
+    }
+    for path in stages_by_id["135P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_138p_is_proactive_meeting_suggestion_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["138P"] == {
+        "stage_id": "138P",
+        "stage_name": "Proactive Meeting Suggestion v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_138P_closeout",
+            "commit_message": "feat: add proactive meeting suggestion",
+            "paths": [
+                "docs/reference/PROACTIVE_MEETING_SUGGESTION_v0_1.md",
+                "app/proactive_meeting_suggestion.py",
+                "tests/test_proactive_meeting_suggestion_138p.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+                "tests/test_calendar_context_scan_137p.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the owner-gated proactive meeting suggestion baseline. 138P detects upcoming Calendar meetings that deserve a brief from the existing 137P read-only Calendar context scan and suggests an action only. It does not execute /brief automatically, does not bind callbacks, does not create follow-up intents, does not delegate or dispatch workers, does not mutate Memory Center or ProposedMemory, does not call models or tools, does not write Calendar, and does not write externally beyond approved Telegram replies. 139P later added owner-requested suggested meeting brief rendering only. It does not authorize automatic /brief execution, callbacks, follow-up intents, async delegation, worker dispatch, Memory Center mutation, ProposedMemory writes, Calendar writes, model/tool calls, billing, entitlement enforcement, or 143P+ behavior.",
+    }
+    for path in stages_by_id["138P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_139p_is_owner_requested_suggested_meeting_brief_closed_committed():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["139P"] == {
+        "stage_id": "139P",
+        "stage_name": "Owner-Requested Suggested Meeting Brief v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_139P_closeout",
+            "commit_message": "feat: add owner requested suggested meeting brief",
+            "paths": [
+                "docs/reference/SUGGESTED_MEETING_BRIEF_REQUEST_139P_v0_1.md",
+                "app/suggested_meeting_brief_request.py",
+                "tests/test_suggested_meeting_brief_request_139p.py",
+                "app/proactive_meeting_suggestion.py",
+                "tests/test_proactive_meeting_suggestion_138p.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the owner-requested suggested meeting brief baseline. 139P lets the owner request /brief <suggestion_id> from a current 138P proactive meeting suggestion, revalidates the suggestion against the current Calendar context scan, and renders a deterministic read-only selected meeting brief only. It preserves /suggest_brief as action-only, keeps bare /brief behavior unchanged, and does not authorize automatic /brief execution, callbacks, follow-up intents, async delegation, worker dispatch, Memory Center mutation, ProposedMemory writes, Calendar writes, model/tool calls, billing, entitlement enforcement, or external writes beyond approved Telegram replies. 140P later added a DeerFlow docs/test-only pattern review only. It does not authorize DeerFlow runtime integration, dependency installation, sandbox execution, Telegram replacement, memory mutation, model/tool calls, worker dispatch, or 143P+ behavior.",
+    }
+    for path in stages_by_id["139P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_140p_is_deerflow_pattern_review_closed_committed_docs_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["140P"] == {
+        "stage_id": "140P",
+        "stage_name": "DeerFlow Pattern Review / Sandbox Boundary Spike v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_140P_closeout",
+            "commit_message": "docs: add deerflow pattern review",
+            "paths": [
+                "docs/reference/DEERFLOW_PATTERN_REVIEW_140P_v0_1.md",
+                "tests/test_deerflow_pattern_review_140p.py",
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the docs/test-only DeerFlow pattern review baseline. 140P evaluates DeerFlow as a reference for skills, sub-agents, sandbox execution, IM channels, memory, embedded-client experiments, and model-provider ergonomics. Hermes remains the Roboticxs runtime. DeerFlow is not a production dependency, is not installed, is not cloned, and is not integrated into runtime. 140P does not authorize sandbox execution, filesystem write authority, Telegram or IM channel replacement, owner-gate relaxation, connector config, Memory Center mutation, ProposedMemory writes, model/tool calls, worker dispatch, async delegation, external network behavior, billing, entitlement enforcement, or 143P+ behavior. 141P later added an owner-requested read-only Today command only. 142P later added an owner-requested read-only Open Loops command only. 143P and later remain unauthorized.",
+    }
+    for path in stages_by_id["140P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_141p_is_today_command_closed_committed_owner_gated_read_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["141P"] == {
+        "stage_id": "141P",
+        "stage_name": "Today Command v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_141P_closeout",
+            "commit_message": "feat: add today command",
+            "paths": [
+                "docs/reference/TODAY_COMMAND_141P_v0_1.md",
+                "app/today_command.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_today_command_141p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the owner-requested read-only Today command baseline. 141P adds /today to the owner-gated Telegram command surface and composes existing 138P proactive meeting suggestions with existing 136P Memory Center visibility only. It fails closed for unavailable Calendar context, keeps Memory Center read-only, and preserves Telegram sendMessage replies as the only external write. It does not authorize proactive outbound daily pushes, scheduler, reminders, callbacks, buttons, follow-up intents, Memory Center mutation, ProposedMemory writes, Calendar writes, model/tool calls, worker dispatch, DeerFlow runtime integration, dependencies, billing, entitlement enforcement, or external writes beyond approved Telegram replies. 142P later added an owner-requested read-only Open Loops command only. 143P and later remain unauthorized.",
+    }
+    for path in stages_by_id["141P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_142p_is_open_loops_command_closed_committed_owner_gated_read_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["142P"] == {
+        "stage_id": "142P",
+        "stage_name": "Open Loops Command v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_142P_closeout",
+            "commit_message": "feat: add open loops command",
+            "paths": [
+                "docs/reference/OPEN_LOOPS_COMMAND_142P_v0_1.md",
+                "app/open_loops_command.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_open_loops_command_142p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the owner-requested read-only Open Loops command baseline. 142P adds /loops to the owner-gated Telegram command surface and composes existing 136P pending Memory Center proposal visibility with existing 138P proactive meeting suggestions only. It fails closed for unavailable Calendar context, keeps pending memory proposals marked as not facts, and preserves Telegram sendMessage replies as the only external write. It does not authorize task persistence, follow-up intents, reminders, scheduler, callbacks, buttons, Memory Center mutation, ProposedMemory writes, Calendar writes, model/tool calls, worker dispatch, DeerFlow runtime integration, dependencies, billing, entitlement enforcement, or external writes beyond approved Telegram replies. 143P later added an owner-requested read-only Meeting Prep Pack command only. 144P and later remain unauthorized.",
+    }
+    for path in stages_by_id["142P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_143p_is_meeting_prep_pack_closed_committed_owner_gated_read_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["143P"] == {
+        "stage_id": "143P",
+        "stage_name": "Meeting Prep Pack v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_143P_closeout",
+            "commit_message": "feat: add meeting prep pack",
+            "paths": [
+                "docs/reference/MEETING_PREP_PACK_143P_v0_1.md",
+                "app/meeting_prep_pack.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_meeting_prep_pack_143p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the owner-requested read-only Meeting Prep Pack baseline. 143P adds /prep <suggestion_id> to the owner-gated Telegram command surface and composes existing 138P meeting suggestions, existing 139P selected suggested brief validation, and existing 136P Memory Center visibility only. It fails closed for unavailable Calendar context or stale suggestion ids, keeps pending memory proposals out of facts, and preserves Telegram sendMessage replies as the only external write. It does not authorize task persistence, follow-up intents, reminders, scheduler, callbacks, buttons, Memory Center mutation, ProposedMemory writes, Calendar writes, model/tool calls, worker dispatch, DeerFlow runtime integration, dependencies, billing, entitlement enforcement, or external writes beyond approved Telegram replies. 144P later added brief-derived pending memory candidates only. 151P later added customer-facing Meeting Prep Pack product flow only. 152P later added customer-facing Today / Brief product flow only. 153P later added customer-facing Setup & Capability Status only. 154P later added customer-facing Task Inbox Flow only. 155P later added customer-facing Memory Review Flow only. 156P later added customer-facing First-Run Onboarding only. 157P later added local deterministic Telegram Demo Loop only. 158P later added draft-only Telegram document metadata intake only. 159P later added customer-facing Telegram Product Copy Consolidation only. 160P later added local Customer MVP Baseline verification only. 161P later added shared Setup Capability Status Component copy only. 162P later added read-only Calendar-backed Today / Prep only. 163P later added Gmail Read-Only Context Scan only. 164P later added context-derived proposed memory candidates only. 165P later added local Memory Store only. 166P later added local Document Review Pack only. 167P later added local Action Boundary Confirmation Gate only. 168P later added local Token Usage + Cost Meter only. 169P later added local Model Router Runtime only. 170P later added local Proactive Suggestion Loop only. 171P later added local Suggestion Inbox only. 172P later added local Suggestion Decision Flow only. 173P later added local Memory Approval Telegram Flow only. 174P later added local Cross-Source Daily Brief only. 175P later added local Meeting Prep Pack v1 only. 176P later added local Gmail Thread Drilldown only. 177P later added local Action Draft Queue only. 178P later added local User Confirmation Runtime only. 179P later added local Approved Output Export only. 180P later added local Customer MVP Demo Pack v1 only. 227P and later remain unauthorized.",
+    }
+    for path in stages_by_id["143P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_144p_is_brief_memory_proposal_closed_committed_pending_owner_review_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["144P"] == {
+        "stage_id": "144P",
+        "stage_name": "Brief-Derived Memory Proposal v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_144P_closeout",
+            "commit_message": "feat: add brief memory proposals",
+            "paths": [
+                "docs/reference/BRIEF_MEMORY_PROPOSAL_144P_v0_1.md",
+                "app/brief_memory_proposal.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_brief_memory_proposal_144p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the brief-derived pending memory proposal baseline. 144P adds deterministic memory candidates to owner-requested /prep replies from the existing 143P Meeting Prep Pack only. Candidates are marked pending owner review and are not treated as facts. It does not authorize approval decisions, Memory Center mutation, ProposedMemory writes, task persistence, follow-up intents, reminders, scheduler, callbacks, buttons, Calendar writes, model/tool calls, worker dispatch, DeerFlow runtime integration, dependencies, billing, entitlement enforcement, or external writes beyond approved Telegram replies. 145P later added explicit owner decision receipts only. 146P and later remain unauthorized.",
+    }
+    for path in stages_by_id["144P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_145p_is_brief_memory_approval_closed_committed_local_decision_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["145P"] == {
+        "stage_id": "145P",
+        "stage_name": "Telegram Memory Approval for Brief Proposals v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_145P_closeout",
+            "commit_message": "feat: add brief memory approval commands",
+            "paths": [
+                "docs/reference/BRIEF_MEMORY_APPROVAL_145P_v0_1.md",
+                "app/brief_memory_approval.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_brief_memory_approval_145p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the owner-requested brief memory decision baseline. 145P adds /memory_approve <candidate_id> and /memory_reject <candidate_id> to create deterministic local decision receipts for 144P candidates only. Approval status remains approved_pending_writeback and does not execute writeback. It does not authorize Memory Center mutation, ProposedMemory writes, task persistence, follow-up intents, reminders, scheduler, callbacks, buttons, Calendar writes, model/tool calls, worker dispatch, DeerFlow runtime integration, dependencies, billing, entitlement enforcement, or external writes beyond approved Telegram replies. 146P later added read-only personal inbox visibility only. 147P and later remain unauthorized.",
+    }
+    for path in stages_by_id["145P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_148p_is_factory_loop_handoff_harness_closed_committed_non_authority_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["148P"] == {
+        "stage_id": "148P",
+        "stage_name": "Factory Loop Handoff Harness v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_148P_closeout",
+            "commit_message": "feat: add factory loop handoff harness",
+            "paths": [
+                "docs/reference/ROBOTICXS_LOOP_HANDOFF_TARGET_v0_1.md",
+                "app/roboticxs_loop_handoff.py",
+                "app/roboticxs_loop_cli.py",
+                "tests/test_roboticxs_loop_handoff_target.py",
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local factory loop handoff harness baseline. 148P adds a non-authority local loop target that creates isolated worktrees, runs pytest and Open Loops checks, emits evidence.json, handoff.md, and risk_diff.md, labels output non_authority_candidate, and requires human review for promotion. It does not authorize merge, commit, deploy, live retrieval, external writes, Telegram live sends, Memory Center mutation, provider execution, billing, or secret access. 149P later added local read-only runtime doctor diagnostics only. 150P later added customer-facing Telegram product shell copy only. 151P later added customer-facing Meeting Prep Pack product flow only. 152P later added customer-facing Today / Brief product flow only. 153P later added customer-facing Setup & Capability Status only. 154P later added customer-facing Task Inbox Flow only. 155P later added customer-facing Memory Review Flow only. 156P later added customer-facing First-Run Onboarding only. 157P later added local deterministic Telegram Demo Loop only. 158P later added draft-only Telegram document metadata intake only. 159P later added customer-facing Telegram Product Copy Consolidation only. 160P later added local Customer MVP Baseline verification only. 161P later added shared Setup Capability Status Component copy only. 162P later added read-only Calendar-backed Today / Prep only. 163P later added Gmail Read-Only Context Scan only. 164P later added context-derived proposed memory candidates only. 165P later added local Memory Store only. 166P later added local Document Review Pack only. 167P later added local Action Boundary Confirmation Gate only. 168P later added local Token Usage + Cost Meter only. 169P later added local Model Router Runtime only. 170P later added local Proactive Suggestion Loop only. 171P later added local Suggestion Inbox only. 172P later added local Suggestion Decision Flow only. 173P later added local Memory Approval Telegram Flow only. 174P later added local Cross-Source Daily Brief only. 175P later added local Meeting Prep Pack v1 only. 176P later added local Gmail Thread Drilldown only. 177P later added local Action Draft Queue only. 178P later added local User Confirmation Runtime only. 179P later added local Approved Output Export only. 180P later added local Customer MVP Demo Pack v1 only. 227P and later remain unauthorized.",
+    }
+    for path in stages_by_id["148P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_149p_runtime_doctor_helper_manager_is_closed_committed_read_only_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["149P"] == {
+        "stage_id": "149P",
+        "stage_name": "Runtime Doctor / Helper Manager v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_149P_closeout",
+            "commit_message": "feat: add runtime doctor helper manager",
+            "paths": [
+                "docs/reference/RUNTIME_DOCTOR_HELPER_MANAGER_149P_v0_1.md",
+                "app/runtime_doctor.py",
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local read-only Runtime Doctor / Helper Manager baseline. 149P checks runtime config, env presence, .secrets path presence, OAuth JSON shape, Calendar readiness, Gmail readiness, and explicit authority boundaries without printing secrets or activating connectors. It does not authorize OAuth URL generation, token exchange, token refresh, Calendar reads or writes, Gmail reads or writes, Telegram live sends, Memory Center mutation, model/tool calls, worker dispatch, persistence, scheduler, billing, deployment, push, merge, PR creation, or 150P behavior beyond customer-facing Telegram product shell copy.",
+    }
+    for path in stages_by_id["149P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_150p_telegram_product_shell_is_closed_committed_customer_facing_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["150P"] == {
+        "stage_id": "150P",
+        "stage_name": "Telegram Product Shell v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_150P_closeout",
+            "commit_message": "feat: add telegram product shell",
+            "paths": [
+                "docs/reference/TELEGRAM_PRODUCT_SHELL_150P_v0_1.md",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_telegram_product_shell_150p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the customer-facing Telegram Product Shell baseline. 150P unifies /start, /help, /status, and unknown-command replies into a product menu with Today, Brief, Prep, Tasks, Memory, and Setup Check areas. It clarifies that /inbox is a robot task inbox, not Gmail, and keeps Checkup/Setup language customer-facing. It does not authorize new commands, connector activation, OAuth generation, OAuth token exchange, Calendar writes, Gmail reads or writes, Memory Center mutation, model/tool calls, worker dispatch, persistence, scheduler, billing, deployment, push, merge, PR creation, or 151P behavior beyond customer-facing Meeting Prep Pack product flow.",
+    }
+    for path in stages_by_id["150P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_151p_meeting_prep_pack_product_flow_is_closed_committed_customer_facing_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["151P"] == {
+        "stage_id": "151P",
+        "stage_name": "Meeting Prep Pack Product Flow v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_151P_closeout",
+            "commit_message": "feat: improve meeting prep product flow",
+            "paths": [
+                "docs/reference/MEETING_PREP_PACK_PRODUCT_FLOW_151P_v0_1.md",
+                "app/meeting_prep_pack.py",
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_meeting_prep_pack_product_flow_151p.py",
+                "tests/test_meeting_prep_pack_143p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the customer-facing Meeting Prep Pack Product Flow baseline. 151P improves /prep output with meeting context, agenda, known memory, open loops, missing inputs, suggested actions, safe next step, and boundaries. It does not authorize new commands, Calendar writes, Gmail reads or writes, Memory Center mutation, ProposedMemory writes, follow-up intents, scheduler, model/tool calls, worker dispatch, persistence, proactive outbound sends, billing, deployment, push, merge, PR creation, or 152P behavior beyond customer-facing Today / Brief product flow.",
+    }
+    for path in stages_by_id["151P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_152p_today_brief_product_flow_is_closed_committed_customer_facing_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["152P"] == {
+        "stage_id": "152P",
+        "stage_name": "Today / Brief Product Flow v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_152P_closeout",
+            "commit_message": "feat: improve today brief product flow",
+            "paths": [
+                "docs/reference/TODAY_BRIEF_PRODUCT_FLOW_152P_v0_1.md",
+                "app/today_command.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/hermes_runtime_bootstrap.py",
+                "tests/test_today_brief_product_flow_152p.py",
+                "tests/test_today_command_141p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_telegram_calendar_brief_134p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the customer-facing Today / Brief Product Flow baseline. 152P improves /today and /brief output with meetings, open loops, things waiting for the owner, suggested next action, blocked or unavailable sources, meeting context, agenda, watchpoints, safe next step, and boundaries. It does not authorize new commands, Calendar writes, Gmail reads or writes, Memory Center mutation, ProposedMemory writes, follow-up intents, scheduler, model/tool calls, worker dispatch, persistence, proactive outbound sends, billing, deployment, push, merge, PR creation, or 153P behavior beyond customer-facing Setup & Capability Status.",
+    }
+    for path in stages_by_id["152P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_153p_setup_capability_status_is_closed_committed_customer_facing_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["153P"] == {
+        "stage_id": "153P",
+        "stage_name": "Setup & Capability Status v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_153P_closeout",
+            "commit_message": "feat: improve setup capability status",
+            "paths": [
+                "docs/reference/SETUP_CAPABILITY_STATUS_153P_v0_1.md",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_setup_capability_status_153p.py",
+                "tests/test_telegram_product_shell_150p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_telegram_calendar_brief_134p.py",
+                "tests/test_telegram_what_did_i_miss_131p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the customer-facing Setup & Capability Status baseline. 153P improves /status with active capabilities, setup needs, unavailable capabilities, intentionally disabled surfaces, approval boundaries, and suggested next action. It does not authorize new commands, secret reads or prints, connector activation, OAuth generation, token exchange, Calendar reads or writes, Gmail reads or writes, Memory Center mutation, ProposedMemory writes, follow-up intents, scheduler, model/tool calls, worker dispatch, persistence, proactive outbound sends, billing, deployment, push, merge, PR creation, or 154P behavior beyond customer-facing Task Inbox Flow.",
+    }
+    for path in stages_by_id["153P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_154p_task_inbox_flow_is_closed_committed_customer_facing_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["154P"] == {
+        "stage_id": "154P",
+        "stage_name": "Task Inbox Flow v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_154P_closeout",
+            "commit_message": "feat: improve task inbox flow",
+            "paths": [
+                "docs/reference/TASK_INBOX_FLOW_154P_v0_1.md",
+                "app/personal_admin_inbox.py",
+                "app/inbox_item_decision.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_task_inbox_flow_154p.py",
+                "tests/test_personal_admin_inbox_146p.py",
+                "tests/test_inbox_item_decision_147p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the customer-facing Task Inbox Flow baseline. 154P improves /inbox, /inbox_done, and /inbox_dismiss with task inbox naming, pending, done, dismissed, needs approval, blocked, useful empty state, and local receipt boundaries. It does not authorize new commands, inbox persistence, evidence deletion, Gmail reads or writes, Calendar reads or writes, Memory Center mutation, ProposedMemory writes, follow-up intents, scheduler, model/tool calls, worker dispatch, proactive outbound sends, billing, deployment, push, merge, PR creation, or 155P behavior beyond customer-facing Memory Review Flow.",
+    }
+    for path in stages_by_id["154P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_155p_memory_review_flow_is_closed_committed_customer_facing_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["155P"] == {
+        "stage_id": "155P",
+        "stage_name": "Memory Review Flow v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_155P_closeout",
+            "commit_message": "feat: improve memory review flow",
+            "paths": [
+                "docs/reference/MEMORY_REVIEW_FLOW_155P_v0_1.md",
+                "app/telegram_memory_center_commands.py",
+                "app/brief_memory_approval.py",
+                "app/brief_memory_proposal.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "docs/reference/BRIEF_MEMORY_PROPOSAL_144P_v0_1.md",
+                "tests/test_memory_review_flow_155p.py",
+                "tests/test_telegram_memory_center_commands_136p.py",
+                "tests/test_brief_memory_approval_145p.py",
+                "tests/test_brief_memory_proposal_144p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_task_inbox_flow_154p.py",
+                "tests/test_setup_capability_status_153p.py",
+                "tests/test_telegram_product_shell_150p.py",
+                "tests/test_telegram_calendar_brief_134p.py",
+                "tests/test_telegram_what_did_i_miss_131p.py",
+                "tests/test_personal_admin_inbox_146p.py",
+                "tests/test_inbox_item_decision_147p.py",
+                "tests/test_meeting_prep_pack_product_flow_151p.py",
+                "tests/test_today_brief_product_flow_152p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the customer-facing Memory Review Flow baseline. 155P improves /memory_pending, /memory_approve, and /memory_reject with pending, approved pending writeback, rejected, not-a-fact-yet copy, useful empty state, and local receipt boundaries. It does not authorize new commands, memory review persistence, Memory Center mutation, ProposedMemory writes, writeback execution, Gmail reads or writes, Calendar reads or writes, scheduler, model/tool calls, worker dispatch, proactive outbound sends, billing, deployment, push, merge, PR creation, or 156P behavior beyond customer-facing First-Run Onboarding.",
+    }
+    for path in stages_by_id["155P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_156p_first_run_onboarding_is_closed_committed_customer_facing_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["156P"] == {
+        "stage_id": "156P",
+        "stage_name": "First-Run Onboarding v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_156P_closeout",
+            "commit_message": "feat: improve first run onboarding",
+            "paths": [
+                "docs/reference/FIRST_RUN_ONBOARDING_156P_v0_1.md",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_first_run_onboarding_156p.py",
+                "tests/test_telegram_product_shell_150p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_telegram_meeting_brief_132p.py",
+                "tests/test_setup_capability_status_153p.py",
+                "tests/test_telegram_calendar_brief_134p.py",
+                "tests/test_telegram_what_did_i_miss_131p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the customer-facing First-Run Onboarding baseline. 156P improves /start with welcome, current capabilities, setup needs, approval boundaries, and first useful action routing. It does not authorize new commands, onboarding persistence, profile writes, connector activation, OAuth generation, token exchange, Calendar reads or writes, Gmail reads or writes, Memory Center mutation, ProposedMemory writes, scheduler, model/tool calls, worker dispatch, proactive outbound sends, billing, deployment, push, merge, PR creation, or 157P behavior beyond local deterministic Telegram Demo Loop.",
+    }
+    for path in stages_by_id["156P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_157p_telegram_demo_loop_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["157P"] == {
+        "stage_id": "157P",
+        "stage_name": "Telegram Demo Loop v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_157P_closeout",
+            "commit_message": "feat: add telegram demo loop",
+            "paths": [
+                "docs/reference/TELEGRAM_DEMO_LOOP_157P_v0_1.md",
+                "app/telegram_demo_loop.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_telegram_demo_loop_157p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_setup_capability_status_153p.py",
+                "tests/test_telegram_calendar_brief_134p.py",
+                "tests/test_telegram_what_did_i_miss_131p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local deterministic Telegram Demo Loop baseline. 157P renders a local transcript for /start, /status, /today, /prep, /memory_pending, and /inbox_done using fixtures and existing product renderers. It does not authorize Telegram live sends, connector activation, live Calendar or Gmail reads, Calendar writes, Gmail writes, Memory Center mutation, ProposedMemory writes, persistence, scheduler, model/tool calls, worker dispatch, billing, deployment, push, merge, PR creation, or 158P behavior beyond draft-only Telegram Document Intake Stub.",
+    }
+    for path in stages_by_id["157P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_158p_telegram_document_intake_stub_is_closed_committed_draft_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["158P"] == {
+        "stage_id": "158P",
+        "stage_name": "Telegram Document Intake Stub v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_158P_closeout",
+            "commit_message": "feat: add telegram document intake stub",
+            "paths": [
+                "docs/reference/TELEGRAM_DOCUMENT_INTAKE_STUB_158P_v0_1.md",
+                "app/telegram_document_intake_stub.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_telegram_document_intake_stub_158p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_telegram_product_shell_150p.py",
+                "tests/test_setup_capability_status_153p.py",
+                "tests/test_telegram_calendar_brief_134p.py",
+                "tests/test_telegram_what_did_i_miss_131p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the draft-only Telegram Document Intake Stub baseline. 158P recognizes Telegram document metadata and replies with document intake status, later-capability options, and no-download/no-parse boundaries. It does not authorize file download, content parsing, OCR, summarization, risk review, document persistence, Memory Center mutation, ProposedMemory writes, connector activation, Calendar reads or writes, Gmail reads or writes, model/tool calls, worker dispatch, billing, deployment, push, merge, PR creation, or 159P behavior beyond customer-facing Telegram Product Copy Consolidation.",
+    }
+    for path in stages_by_id["158P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_159p_telegram_product_copy_consolidation_is_closed_committed_copy_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["159P"] == {
+        "stage_id": "159P",
+        "stage_name": "Telegram Product Copy Consolidation v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_159P_closeout",
+            "commit_message": "feat: consolidate telegram product copy",
+            "paths": [
+                "docs/reference/TELEGRAM_PRODUCT_COPY_CONSOLIDATION_159P_v0_1.md",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_telegram_product_copy_consolidation_159p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_telegram_product_shell_150p.py",
+                "tests/test_setup_capability_status_153p.py",
+                "tests/test_telegram_calendar_brief_134p.py",
+                "tests/test_telegram_what_did_i_miss_131p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the customer-facing Telegram Product Copy Consolidation baseline. 159P centralizes shared approval boundary copy and aligns main product surfaces around setup, memory approval, document draft-only limits, and no-external-action language. It does not authorize new commands, persistence, connector activation, OAuth generation, token exchange, Calendar reads or writes, Gmail reads or writes, Memory Center mutation, ProposedMemory writes, scheduler, model/tool calls, worker dispatch, billing, deployment, push, merge, PR creation, or 160P behavior beyond local Customer MVP Baseline verification.",
+    }
+    for path in stages_by_id["159P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_160p_customer_mvp_baseline_is_closed_committed_local_verification_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["160P"] == {
+        "stage_id": "160P",
+        "stage_name": "Customer MVP Baseline v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_160P_closeout",
+            "commit_message": "feat: add customer mvp baseline",
+            "paths": [
+                "docs/reference/CUSTOMER_MVP_BASELINE_160P_v0_1.md",
+                "app/customer_mvp_baseline.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_customer_mvp_baseline_160p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_telegram_product_shell_150p.py",
+                "tests/test_telegram_what_did_i_miss_131p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Customer MVP Baseline. 160P verifies the customer-facing Telegram product surface, deterministic demo loop, setup clarity, memory review, task inbox, meeting prep, draft-only document intake, safety language, no-secret output, and no-authority-expansion boundaries. It does not authorize new commands, persistence, connector activation, OAuth generation, token exchange, Calendar reads or writes, Gmail reads or writes, Memory Center mutation, ProposedMemory writes, scheduler, model/tool calls, worker dispatch, billing, deployment, push, merge, PR creation, or 161P behavior beyond shared Setup Capability Status Component copy.",
+    }
+    for path in stages_by_id["160P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_161p_setup_capability_status_component_is_closed_committed_shared_copy_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["161P"] == {
+        "stage_id": "161P",
+        "stage_name": "Setup Capability Status Component v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_161P_closeout",
+            "commit_message": "feat: share setup capability status copy",
+            "paths": [
+                "docs/reference/SETUP_CAPABILITY_STATUS_COMPONENT_161P_v0_1.md",
+                "app/setup_capability_status_component.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/today_command.py",
+                "app/meeting_prep_pack.py",
+                "app/personal_admin_inbox.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_setup_capability_status_component_161p.py",
+                "tests/test_telegram_product_shell_150p.py",
+                "tests/test_setup_capability_status_153p.py",
+                "tests/test_today_brief_product_flow_152p.py",
+                "tests/test_meeting_prep_pack_product_flow_151p.py",
+                "tests/test_task_inbox_flow_154p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the shared Setup Capability Status Component baseline. 161P centralizes full and compact setup/capability copy for /status, /start, /today, /prep, and /inbox surfaces. It does not authorize new commands, persistence, connector activation, OAuth generation, token exchange, Calendar reads or writes, Gmail reads or writes, Memory Center mutation, ProposedMemory writes, scheduler, model/tool calls, worker dispatch, billing, deployment, push, merge, PR creation, or 162P behavior beyond read-only Calendar-backed Today / Prep.",
+    }
+    for path in stages_by_id["161P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_162p_calendar_backed_today_prep_is_closed_committed_read_only_calendar_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["162P"] == {
+        "stage_id": "162P",
+        "stage_name": "Calendar-Backed Today / Prep v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_162P_closeout",
+            "commit_message": "feat: add calendar backed today prep",
+            "paths": [
+                "docs/reference/CALENDAR_BACKED_TODAY_PREP_162P_v0_1.md",
+                "app/calendar_backed_today_prep.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_calendar_backed_today_prep_162p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_setup_capability_status_153p.py",
+                "tests/test_telegram_calendar_brief_134p.py",
+                "tests/test_telegram_what_did_i_miss_131p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the read-only Calendar-Backed Today / Prep baseline. 162P connects Today and Prep product composition to authorized Google Calendar read-only results, surfaces sources used and unavailable sources, and fails closed with setup guidance when Calendar is unavailable. It does not authorize Calendar writes, Gmail reads or writes, OAuth generation, token exchange, token refresh, Memory Center mutation, ProposedMemory writes, model/tool calls, worker dispatch, scheduler, billing, deployment, push, merge, PR creation, or 163P behavior beyond Gmail Read-Only Context Scan.",
+    }
+    for path in stages_by_id["162P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_163p_gmail_readonly_context_scan_is_closed_committed_read_only_gmail_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["163P"] == {
+        "stage_id": "163P",
+        "stage_name": "Gmail Read-Only Context Scan v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_163P_closeout",
+            "commit_message": "feat: add gmail readonly context scan",
+            "paths": [
+                "docs/reference/GMAIL_READONLY_CONTEXT_SCAN_163P_v0_1.md",
+                "app/gmail_readonly_context_scan.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_gmail_readonly_context_scan_163p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the Gmail Read-Only Context Scan baseline. 163P reads authorized Gmail metadata/snippets, detects meeting, prep, follow-up, proposal, review, and attachment signals, and keeps Gmail distinct from the robot task inbox. It does not authorize Gmail send, archive, label, modify, delete, Calendar writes, Memory Center mutation, ProposedMemory writes, model/tool calls, worker dispatch, scheduler, billing, deployment, push, merge, PR creation, or 164P behavior beyond Context Scan -> Proposed Memories.",
+    }
+    for path in stages_by_id["163P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_164p_context_scan_proposed_memories_is_closed_committed_review_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["164P"] == {
+        "stage_id": "164P",
+        "stage_name": "Context Scan -> Proposed Memories v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_164P_closeout",
+            "commit_message": "feat: add context scan proposed memories",
+            "paths": [
+                "docs/reference/CONTEXT_SCAN_PROPOSED_MEMORY_164P_v0_1.md",
+                "app/context_scan_proposed_memory.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_context_scan_proposed_memory_164p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the Context Scan -> Proposed Memories baseline. 164P converts existing read-only Calendar context candidates and Gmail context signals into local pending owner-review memory candidates. It does not authorize Memory Center mutation, durable memory writes, ProposedMemory writes, approval decision creation, Calendar writes, Gmail send or modify, model/tool calls, worker dispatch, scheduler, billing, deployment, push, merge, PR creation, or 165P behavior beyond Memory Store.",
+    }
+    for path in stages_by_id["164P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_165p_memory_store_is_closed_committed_local_store_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["165P"] == {
+        "stage_id": "165P",
+        "stage_name": "Memory Store v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_165P_closeout",
+            "commit_message": "feat: add local memory store",
+            "paths": [
+                "docs/reference/MEMORY_STORE_165P_v0_1.md",
+                "app/memory_store.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_memory_store_165p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Memory Store baseline. 165P stores owner-approved memory locally, supports add/edit/forget/pin receipts, and exports active local memory to existing Telegram Memory Center visibility. It does not authorize Memory Center mutation, database migrations, remote persistence, ProposedMemory writes, Calendar writes, Gmail writes, connector activation, model/tool calls, worker dispatch, scheduler, billing, deployment, push, merge, PR creation, or 166P behavior beyond Document Review Pack.",
+    }
+    for path in stages_by_id["165P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_166p_document_review_pack_is_closed_committed_draft_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["166P"] == {
+        "stage_id": "166P",
+        "stage_name": "Document Review Pack v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_166P_closeout",
+            "commit_message": "feat: add document review pack",
+            "paths": [
+                "docs/reference/DOCUMENT_REVIEW_PACK_166P_v0_1.md",
+                "app/document_review_pack.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_document_review_pack_166p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Document Review Pack baseline. 166P creates draft review packs from already available document text and fails closed when Telegram metadata has no extracted text. It does not authorize live file download, PDF binary parsing, OCR, model/tool calls, worker dispatch, persistence, Memory Center mutation, ProposedMemory writes, Calendar writes, Gmail writes, professional advice, signature or acceptance, deployment, push, merge, PR creation, or 167P behavior beyond Action Boundary Confirmation Gate.",
+    }
+    for path in stages_by_id["166P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_167p_action_boundary_confirmation_gate_is_closed_committed_no_execution_authority():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["167P"] == {
+        "stage_id": "167P",
+        "stage_name": "Action Boundary Confirmation Gate v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_167P_closeout",
+            "commit_message": "feat: add action boundary confirmation gate",
+            "paths": [
+                "docs/reference/ACTION_BOUNDARY_CONFIRMATION_GATE_167P_v0_1.md",
+                "app/action_boundary_confirmation_gate.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_action_boundary_confirmation_gate_167p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Action Boundary Confirmation Gate baseline. 167P classifies proposed actions as ALLOW, DRAFT_ONLY, ASK_CONFIRMATION, ESCALATE, or BLOCK, requires confirmation/action packets for external changes, escalates professional review, and blocks payment, destructive, deployment, signature, and professional-decision actions. It does not authorize action execution, external writes, connector activation, model/tool calls, worker dispatch, Memory Center mutation, Calendar writes, Gmail writes, payments, destructive actions, professional decisions, deployment, push, merge, PR creation, or 168P behavior beyond Token Usage + Cost Meter.",
+    }
+    for path in stages_by_id["167P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_168p_token_usage_cost_meter_is_closed_committed_local_estimates_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["168P"] == {
+        "stage_id": "168P",
+        "stage_name": "Token Usage + Cost Meter v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_168P_closeout",
+            "commit_message": "feat: add token usage cost meter",
+            "paths": [
+                "docs/reference/TOKEN_USAGE_COST_METER_168P_v0_1.md",
+                "app/token_usage_cost_meter.py",
+                "app/usage_reporting.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_token_usage_cost_meter_168p.py",
+                "tests/test_usage_reporting.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Token Usage + Cost Meter baseline. 168P records local estimated task usage with provider, model, task class, input tokens, output tokens, estimated cost, latency, status, and failure reason, and exposes local /usage-style reporting. It does not authorize live billing, provider reconciliation, provider calls, connector activation, model routing changes, database migrations, remote persistence, external writes, payment enforcement, deployment, push, merge, PR creation, or 169P behavior beyond Model Router Runtime.",
+    }
+    for path in stages_by_id["168P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_169p_model_router_runtime_is_closed_committed_local_router_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["169P"] == {
+        "stage_id": "169P",
+        "stage_name": "Model Router Runtime v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_169P_closeout",
+            "commit_message": "feat: add model router runtime",
+            "paths": [
+                "docs/reference/MODEL_ROUTER_RUNTIME_169P_v0_1.md",
+                "app/model_router_runtime.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_model_router_runtime_169p.py",
+                "tests/test_model_routing.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Model Router Runtime baseline. 169P routes supported task classes to Economy, Balanced, or Premium modes with a human-readable selection reason, local token/cost estimates, and no provider execution. It does not authorize provider calls, raw provider switching, connector activation, model provider credentials, BYOK setup, billing reconciliation, model catalog expansion beyond local stubs, external writes, deployment, push, merge, PR creation, or 170P behavior beyond Proactive Suggestion Loop.",
+    }
+    for path in stages_by_id["169P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_170p_proactive_suggestion_loop_is_closed_committed_suggestions_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["170P"] == {
+        "stage_id": "170P",
+        "stage_name": "Proactive Suggestion Loop v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_170P_closeout",
+            "commit_message": "feat: add proactive suggestion loop",
+            "paths": [
+                "docs/reference/PROACTIVE_SUGGESTION_LOOP_170P_v0_1.md",
+                "app/proactive_suggestion_loop.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_proactive_suggestion_loop_170p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Proactive Suggestion Loop baseline. 170P turns authorized read-only local signals into deterministic suggestions and always states that no action has been taken. It does not authorize live Telegram sends, callbacks, execution, connector activation, Memory Center writes, worker dispatch, external writes, scheduler work, provider calls, deployment, push, merge, PR creation, or 171P behavior beyond Suggestion Inbox.",
+    }
+    for path in stages_by_id["170P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_171p_suggestion_inbox_is_closed_committed_review_surface_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["171P"] == {
+        "stage_id": "171P",
+        "stage_name": "Suggestion Inbox v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_171P_closeout",
+            "commit_message": "feat: add suggestion inbox",
+            "paths": [
+                "docs/reference/SUGGESTION_INBOX_171P_v0_1.md",
+                "app/suggestion_inbox.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_suggestion_inbox_171p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Suggestion Inbox baseline. 171P shows pending 170P suggestions in an owner-requested Telegram review surface and always states that no action has been taken. It does not authorize suggestion decisions, dismiss, snooze, save memory, create draft, follow-up questions, callbacks, live Telegram sends beyond owner-requested command replies, execution, connector activation, Memory Center writes, worker dispatch, external writes, scheduler work, provider calls, deployment, push, merge, PR creation, or 172P behavior beyond Suggestion Decision Flow.",
+    }
+    for path in stages_by_id["171P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_172p_suggestion_decision_flow_is_closed_committed_receipts_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["172P"] == {
+        "stage_id": "172P",
+        "stage_name": "Suggestion Decision Flow v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_172P_closeout",
+            "commit_message": "feat: add suggestion decision flow",
+            "paths": [
+                "docs/reference/SUGGESTION_DECISION_FLOW_172P_v0_1.md",
+                "app/suggestion_decision_flow.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_suggestion_decision_flow_172p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Suggestion Decision Flow baseline. 172P records owner-requested local receipts for suggestion decisions and always states that no action has been taken. It does not authorize drafts, memory writes, scheduler snoozes, follow-up messages, callbacks, live Telegram sends beyond owner-requested command replies, execution, connector activation, Memory Center writes, worker dispatch, external writes, provider calls, deployment, push, merge, PR creation, or 173P behavior beyond Memory Approval Telegram Flow.",
+    }
+    for path in stages_by_id["172P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_173p_memory_approval_telegram_flow_is_closed_committed_receipts_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["173P"] == {
+        "stage_id": "173P",
+        "stage_name": "Memory Approval Telegram Flow v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_173P_closeout",
+            "commit_message": "feat: add memory approval telegram flow",
+            "paths": [
+                "docs/reference/MEMORY_APPROVAL_TELEGRAM_FLOW_173P_v0_1.md",
+                "app/memory_approval_telegram_flow.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_memory_approval_telegram_flow_173p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Memory Approval Telegram Flow baseline. 173P shows visible pending memory proposals and records owner-requested local approve, reject, and edit receipts. It does not authorize Memory Store writes, Memory Center mutation, ProposedMemory writes, source evidence deletion, model-assisted editing, callbacks, scheduler work, connector activation, worker dispatch, external writes, deployment, push, merge, PR creation, or 174P behavior beyond Cross-Source Daily Brief.",
+    }
+    for path in stages_by_id["173P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_174p_cross_source_daily_brief_is_closed_committed_read_only_brief_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["174P"] == {
+        "stage_id": "174P",
+        "stage_name": "Cross-Source Daily Brief v1",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_174P_closeout",
+            "commit_message": "feat: add cross-source daily brief",
+            "paths": [
+                "docs/reference/CROSS_SOURCE_DAILY_BRIEF_174P_v0_1.md",
+                "app/cross_source_daily_brief.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_cross_source_daily_brief_174p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Cross-Source Daily Brief baseline. 174P renders an owner-requested read-only /daily_brief from Calendar read-only results, Gmail read-only context signals, approved local memory context, and local document review signals. It does not replace /brief and does not authorize Calendar writes, Gmail send/modify, Memory Store writes, Memory Center mutation, draft creation, model calls, tool calls, worker dispatch, scheduler/proactive sends, external writes, deployment, push, merge, PR creation, or 175P behavior beyond Meeting Prep Pack v1.",
+    }
+    for path in stages_by_id["174P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_175p_meeting_prep_pack_v1_is_closed_committed_read_only_prep_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["175P"] == {
+        "stage_id": "175P",
+        "stage_name": "Meeting Prep Pack v1",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_175P_closeout",
+            "commit_message": "feat: add meeting prep pack v1",
+            "paths": [
+                "docs/reference/MEETING_PREP_PACK_V1_175P_v0_1.md",
+                "app/meeting_prep_pack_v1.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_meeting_prep_pack_v1_175p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Meeting Prep Pack v1 baseline. 175P upgrades owner-requested /prep rendering with read-only agenda, people, approved memory, Gmail context signals, local document review signals, risks, next steps, and blocked sources. It does not authorize Calendar writes, Gmail send/modify/delete, Memory Store writes, Memory Center mutation, draft creation, model calls, tool calls, worker dispatch, scheduler/proactive sends, external writes, deployment, push, merge, PR creation, or 176P behavior beyond Gmail Thread Drilldown.",
+    }
+    for path in stages_by_id["175P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_176p_gmail_thread_drilldown_is_closed_committed_read_only_thread_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["176P"] == {
+        "stage_id": "176P",
+        "stage_name": "Gmail Thread Drilldown v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_176P_closeout",
+            "commit_message": "feat: add gmail thread drilldown",
+            "paths": [
+                "docs/reference/GMAIL_THREAD_DRILLDOWN_176P_v0_1.md",
+                "app/gmail_thread_drilldown.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_gmail_thread_drilldown_176p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Gmail Thread Drilldown baseline. 176P adds owner-requested /gmail_thread <thread_id> read-only thread metadata and snippet visibility. It does not authorize Gmail send, Gmail modify/archive/label, Gmail delete, Calendar writes, Memory Store writes, Memory Center mutation, draft creation, model calls, tool calls, worker dispatch, scheduler/proactive sends, external writes, deployment, push, merge, PR creation, or 177P behavior beyond Action Draft Queue.",
+    }
+    for path in stages_by_id["176P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_177p_action_draft_queue_is_closed_committed_local_drafts_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["177P"] == {
+        "stage_id": "177P",
+        "stage_name": "Action Draft Queue v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_177P_closeout",
+            "commit_message": "feat: add action draft queue",
+            "paths": [
+                "docs/reference/ACTION_DRAFT_QUEUE_177P_v0_1.md",
+                "app/action_draft_queue.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_action_draft_queue_177p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Action Draft Queue baseline. 177P adds owner-requested /drafts local approval candidates from create_draft suggestion decisions only. It does not authorize Gmail draft creation, Gmail send/modify/archive/label/delete, Calendar writes, task persistence, Memory Store writes, Memory Center mutation, model calls, tool calls, worker dispatch, scheduler/proactive sends, external writes, deployment, push, merge, PR creation, or 178P behavior beyond User Confirmation Runtime.",
+    }
+    for path in stages_by_id["177P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_178p_user_confirmation_runtime_is_closed_committed_local_receipts_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["178P"] == {
+        "stage_id": "178P",
+        "stage_name": "User Confirmation Runtime v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_178P_closeout",
+            "commit_message": "feat: add user confirmation runtime",
+            "paths": [
+                "docs/reference/USER_CONFIRMATION_RUNTIME_178P_v0_1.md",
+                "app/user_confirmation_runtime.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_user_confirmation_runtime_178p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local User Confirmation Runtime baseline. 178P records owner-requested approve, reject, edit, and expire receipts for local action drafts only. It does not authorize approved output export, Gmail draft creation, Gmail send/modify/archive/label/delete, Calendar writes, task persistence, Memory Store writes, Memory Center mutation, model calls, tool calls, worker dispatch, scheduler/proactive sends, external writes, deployment, push, merge, PR creation, or 179P behavior beyond Approved Output Export.",
+    }
+    for path in stages_by_id["178P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_179p_approved_output_export_is_closed_committed_local_payloads_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["179P"] == {
+        "stage_id": "179P",
+        "stage_name": "Approved Output Export v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_179P_closeout",
+            "commit_message": "feat: add approved output export",
+            "paths": [
+                "docs/reference/APPROVED_OUTPUT_EXPORT_179P_v0_1.md",
+                "app/approved_output_export.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_approved_output_export_179p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Approved Output Export baseline. 179P creates owner-requested local export payloads from approved confirmation receipts only. It does not authorize Gmail draft creation, Gmail send/modify/archive/label/delete, Calendar writes, local file writes, task persistence, Memory Store writes, Memory Center mutation, model calls, tool calls, worker dispatch, scheduler/proactive sends, external writes, deployment, push, merge, PR creation, or 180P behavior beyond Customer MVP Demo Pack v1.",
+    }
+    for path in stages_by_id["179P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_180p_customer_mvp_demo_pack_v1_is_closed_committed_local_demo_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["180P"] == {
+        "stage_id": "180P",
+        "stage_name": "Customer MVP Demo Pack v1",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_180P_closeout",
+            "commit_message": "feat: add customer mvp demo pack v1",
+            "paths": [
+                "docs/reference/CUSTOMER_MVP_DEMO_PACK_V1_180P_v0_1.md",
+                "app/customer_mvp_demo_pack_v1.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_customer_mvp_demo_pack_v1_180p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Customer MVP Demo Pack v1 baseline. 180P proves a deterministic local customer demo across start, status, today, prep, suggestions, draft queue, confirmation, and approved output export. It does not authorize live Telegram sends, connector activation, Gmail draft creation, Gmail send/modify/archive/label/delete, Calendar writes, local file writes, task persistence, Memory Store writes, Memory Center mutation, model calls, tool calls, worker dispatch, scheduler/proactive sends, external writes, deployment, push, merge, PR creation, or 181P behavior beyond Live Connector Readiness Check v0.",
+    }
+    for path in stages_by_id["180P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_181p_live_connector_readiness_check_is_closed_committed_read_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["181P"] == {
+        "stage_id": "181P",
+        "stage_name": "Live Connector Readiness Check v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_181P_closeout",
+            "commit_message": "feat: add live connector readiness check",
+            "paths": [
+                "docs/reference/LIVE_CONNECTOR_READINESS_CHECK_181P_v0_1.md",
+                "app/live_connector_readiness_check.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_live_connector_readiness_check_181p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Live Connector Readiness Check baseline. 181P adds owner-requested /checkup and /setup readiness output for Calendar, Gmail, Documents, Memory, and action boundaries without printing secrets or activating connectors. It does not authorize OAuth URL generation, token exchange, token refresh, Calendar event binding beyond 182P read-only source trace, Gmail context retrieval, Gmail draft creation, Gmail send/modify/archive/label/delete, Calendar writes, document parsing, local file writes, Memory Store writes, Memory Center mutation, model calls, tool calls, worker dispatch, scheduler/proactive sends, external writes, deployment, push, merge, PR creation, or 183P behavior.",
+    }
+    for path in stages_by_id["181P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_182p_calendar_context_binding_v1_is_closed_committed_read_only_trace_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["182P"] == {
+        "stage_id": "182P",
+        "stage_name": "Calendar Context Binding v1",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_182P_closeout",
+            "commit_message": "feat: add calendar context binding v1",
+            "paths": [
+                "docs/reference/CALENDAR_CONTEXT_BINDING_V1_182P_v0_1.md",
+                "app/calendar_context_binding_v1.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_calendar_context_binding_v1_182p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Calendar Context Binding v1 baseline. 182P attaches read-only Calendar source trace to owner-requested /today, /daily_brief, and /prep outputs using the existing Calendar read-only connector. It does not authorize Gmail context binding beyond 183P read-only source trace, Gmail draft creation, Gmail send/modify/archive/label/delete, Calendar create/update/delete, OAuth URL generation, token exchange, token refresh, document parsing, local file writes, Memory Store writes, Memory Center mutation, model calls, tool calls, worker dispatch, scheduler/proactive sends, external writes, deployment, push, merge, PR creation, or 184P behavior.",
+    }
+    for path in stages_by_id["182P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_183p_gmail_context_binding_v1_is_closed_committed_read_only_trace_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["183P"] == {
+        "stage_id": "183P",
+        "stage_name": "Gmail Context Binding v1",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_183P_closeout",
+            "commit_message": "feat: add gmail context binding v1",
+            "paths": [
+                "docs/reference/GMAIL_CONTEXT_BINDING_V1_183P_v0_1.md",
+                "app/gmail_context_binding_v1.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_gmail_context_binding_v1_183p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Gmail Context Binding v1 baseline. 183P attaches read-only Gmail source trace to owner-requested /daily_brief and /prep outputs using the existing Gmail read-only context scan. It does not authorize Gmail draft creation, Gmail send/modify/archive/label/delete, OAuth URL generation, token exchange, token refresh, Calendar writes, document parsing, local file writes, Memory Store writes, Memory Center mutation, model calls, tool calls, worker dispatch, scheduler/proactive sends, external writes, deployment, push, merge, PR creation, or 184P behavior.",
+    }
+    for path in stages_by_id["183P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_184p_source_trace_receipts_is_closed_committed_read_only_receipts_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["184P"] == {
+        "stage_id": "184P",
+        "stage_name": "Source Trace Receipts v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_184P_closeout",
+            "commit_message": "feat: add source trace receipts",
+            "paths": [
+                "docs/reference/SOURCE_TRACE_RECEIPTS_184P_v0_1.md",
+                "app/source_trace_receipts.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_source_trace_receipts_184p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Source Trace Receipts baseline. 184P renders unified read-only source trace receipts for owner-requested /daily_brief and /prep outputs using already-created Calendar source traces, Gmail source traces, local Memory snapshots, document review placeholders, draft queue placeholders, and usage/cost placeholders. It does not authorize Gmail draft creation, Gmail send/modify/archive/label/delete, OAuth URL generation, token exchange, token refresh, new connector reads, Calendar writes, document parsing, local file writes, Memory Store writes, Memory Center mutation, model calls, tool calls, worker dispatch, scheduler/proactive sends, external writes, deployment, push, merge, PR creation, or 185P behavior.",
+    }
+    for path in stages_by_id["184P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_185p_approved_gmail_draft_creation_is_closed_committed_draft_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["185P"] == {
+        "stage_id": "185P",
+        "stage_name": "Approved Gmail Draft Creation v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_185P_closeout",
+            "commit_message": "feat: add approved gmail draft creation",
+            "paths": [
+                "docs/reference/APPROVED_GMAIL_DRAFT_CREATION_185P_v0_1.md",
+                "app/approved_gmail_draft_creation.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_approved_gmail_draft_creation_185p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Approved Gmail Draft Creation baseline. 185P creates Gmail drafts only after explicit owner-approved 178P confirmations and renders a receipt that states no email was sent. It does not authorize Gmail send, Gmail modify/archive/label/delete, Calendar writes, OAuth URL generation, token exchange, token refresh, scheduler/proactive sends, Memory Store writes, Memory Center mutation, model calls, tool calls, worker dispatch, deployment, push, merge, PR creation, or 186P behavior.",
+    }
+    for path in stages_by_id["185P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_186p_document_review_pack_v1_is_closed_committed_draft_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["186P"] == {
+        "stage_id": "186P",
+        "stage_name": "Document Review Pack v1",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_186P_closeout",
+            "commit_message": "feat: add document review pack v1",
+            "paths": [
+                "docs/reference/DOCUMENT_REVIEW_PACK_V1_186P_v0_1.md",
+                "app/document_review_pack_v1.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_document_review_pack_v1_186p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Document Review Pack v1 baseline. 186P renders customer-facing draft-only document review packs from explicitly supplied local text and keeps Telegram document metadata-only intake when no local text is supplied. It does not authorize Telegram file download, live PDF parsing, OCR, file persistence, Memory Store writes, Memory Center mutation, ProposedMemory writes, Calendar writes, Gmail writes, professional advice, signature or acceptance, model calls, tool calls, worker dispatch, deployment, push, merge, PR creation, or 187P behavior.",
+    }
+    for path in stages_by_id["186P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_187p_memory_source_forget_receipts_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["187P"] == {
+        "stage_id": "187P",
+        "stage_name": "Memory Source & Forget Receipts v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_187P_closeout",
+            "commit_message": "feat: add memory source forget receipts",
+            "paths": [
+                "docs/reference/MEMORY_SOURCE_FORGET_RECEIPTS_187P_v0_1.md",
+                "app/memory_source_forget_receipts.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_memory_source_forget_receipts_187p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Memory Source & Forget Receipts baseline. 187P shows approved memory provenance in /memory and creates local /memory_forget and approved-memory /memory_edit receipts without mutating Memory Store, Memory Center, ProposedMemory, or source evidence. It keeps pending proposal /memory_edit behavior intact when the id is not a visible approved memory. It does not authorize remote persistence, database migrations, vector or graph memory, source evidence deletion, automatic extraction, model-assisted editing, connector activation, Calendar writes, Gmail writes, Telegram live sends beyond approved command replies, model calls, tool calls, worker dispatch, scheduler/proactive sends, deployment, push, merge, PR creation, or 188P behavior.",
+    }
+    for path in stages_by_id["187P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_188p_usage_cost_ledger_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["188P"] == {
+        "stage_id": "188P",
+        "stage_name": "Usage & Cost Ledger v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_188P_closeout",
+            "commit_message": "feat: add usage cost ledger",
+            "paths": [
+                "docs/reference/USAGE_COST_LEDGER_188P_v0_1.md",
+                "app/usage_cost_ledger.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_usage_cost_ledger_188p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Usage & Cost Ledger baseline. 188P renders /usage from injected local estimated ledger entries and summarizes command, task class, model mode, token, cost, document, failure, and most-expensive-task counts without provider calls, live billing checks, provider reconciliation, persistence, connector activation, external writes, payment enforcement, deployment, push, merge, PR creation, or 189P behavior.",
+    }
+    for path in stages_by_id["188P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_189p_skill_manifest_runtime_gates_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["189P"] == {
+        "stage_id": "189P",
+        "stage_name": "Skill Manifest Runtime Gates v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_189P_closeout",
+            "commit_message": "feat: add skill manifest runtime gates",
+            "paths": [
+                "docs/reference/SKILL_MANIFEST_RUNTIME_GATES_189P_v0_1.md",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Skill Manifest Runtime Gates baseline. 189P maps customer-facing Telegram commands to explicit product skills, classifies local scope decisions as ANSWER, CLARIFY, REDIRECT, OFFER_UPGRADE, REFUSE_SCOPE, or BLOCK, and exposes skill boundaries in /help, /status, and unknown-command fallback without authorizing connector activation, external writes, Gmail send/modify, Calendar writes, Memory Center mutation, model/tool calls, persistence, billing, deployment, push, merge, PR creation, or 190P behavior.",
+    }
+    for path in stages_by_id["189P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_190p_controlled_live_pilot_baseline_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["190P"] == {
+        "stage_id": "190P",
+        "stage_name": "Controlled Live Pilot Baseline v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_190P_closeout",
+            "commit_message": "feat: add controlled live pilot baseline",
+            "paths": [
+                "docs/reference/CONTROLLED_LIVE_PILOT_BASELINE_190P_v0_1.md",
+                "app/controlled_live_pilot_baseline.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "tests/test_controlled_live_pilot_baseline_190p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Controlled Live Pilot Baseline. 190P renders an owner-requested /pilot receipt across daily brief, prep, suggestion, draft, approval, Gmail draft creation, source receipt, and usage receipt using existing closed-stage capabilities only. It does not authorize Gmail send, Gmail modify/archive/label/delete, Calendar writes, OAuth URL generation, token exchange, token refresh, connector activation, Memory Center mutation, model/tool calls, workers, scheduler, billing, payments, deployment, push, merge, PR creation, or 191P behavior.",
+    }
+    for path in stages_by_id["190P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_191p_premium_telegram_ux_shell_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["191P"] == {
+        "stage_id": "191P",
+        "stage_name": "Premium Telegram UX Shell v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_191P_closeout",
+            "commit_message": "feat: add premium telegram ux shell",
+            "paths": [
+                "docs/reference/PREMIUM_TELEGRAM_UX_SHELL_191P_v0_1.md",
+                "app/premium_telegram_ux_shell.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_premium_telegram_ux_shell_191p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Premium Telegram UX Shell baseline. 191P groups /start, /help, and /status into customer-facing textual cards with ready, needs setup, blocked, draft-only, and approval-required states without changing command execution behavior or authorizing Gmail send, Gmail modify/archive/label/delete, Calendar writes, connector activation, Memory Center mutation, model/tool calls, workers, scheduler, billing, payments, deployment, push, merge, PR creation, or 192P behavior.",
+    }
+    for path in stages_by_id["191P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_192p_fast_path_cache_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["192P"] == {
+        "stage_id": "192P",
+        "stage_name": "Fast Path Cache v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_192P_closeout",
+            "commit_message": "feat: add fast path cache",
+            "paths": [
+                "docs/reference/FAST_PATH_CACHE_192P_v0_1.md",
+                "app/fast_path_cache.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_fast_path_cache_192p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Fast Path Cache baseline. 192P allows owner-gated quick commands to render injected local TTL cache hits with freshness and source trace indicators for /status, /today, /usage, and /memory without connector reads for cached replies, persistence, background refresh, Calendar writes, Gmail send/modify/archive/label/delete, Memory Center mutation, model/tool calls, workers, scheduler, billing, payments, deployment, push, merge, PR creation, or 193P behavior.",
+    }
+    for path in stages_by_id["192P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_193p_smart_context_ranking_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["193P"] == {
+        "stage_id": "193P",
+        "stage_name": "Smart Context Ranking v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_193P_closeout",
+            "commit_message": "feat: add smart context ranking",
+            "paths": [
+                "docs/reference/SMART_CONTEXT_RANKING_193P_v0_1.md",
+                "app/smart_context_ranking.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_smart_context_ranking_193p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Smart Context Ranking baseline. 193P ranks Calendar, Gmail, Memory, and Document context with deterministic scores, reason codes, source traces, and safe next actions for /daily_brief and /prep without new connector reads beyond existing read-only command paths, Calendar writes, Gmail send/modify/archive/label/delete, Memory Center mutation, model/tool calls, workers, scheduler, billing, payments, deployment, push, merge, PR creation, or 194P behavior.",
+    }
+    for path in stages_by_id["193P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_194p_proactive_priority_engine_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["194P"] == {
+        "stage_id": "194P",
+        "stage_name": "Proactive Priority Engine v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_194P_closeout",
+            "commit_message": "feat: add proactive priority engine",
+            "paths": [
+                "docs/reference/PROACTIVE_PRIORITY_ENGINE_194P_v0_1.md",
+                "app/proactive_priority_engine.py",
+                "app/suggestion_inbox.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_proactive_priority_engine_194p.py",
+                "tests/test_suggestion_inbox_171p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Proactive Priority Engine baseline. 194P renders P0/P1/P2/P3 priority, confidence, reason codes, safe next action, and source trace in the suggestion inbox without proactive sends, scheduler, callbacks, worker dispatch, connector activation, Calendar writes, Gmail send/modify/archive/label/delete, Memory Center mutation, model/tool calls, external writes, deployment, push, merge, PR creation, or 195P behavior.",
+    }
+    for path in stages_by_id["194P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_195p_draft_quality_engine_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["195P"] == {
+        "stage_id": "195P",
+        "stage_name": "Draft Quality Engine v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_195P_closeout",
+            "commit_message": "feat: add draft quality engine",
+            "paths": [
+                "docs/reference/DRAFT_QUALITY_ENGINE_195P_v0_1.md",
+                "app/draft_quality_engine.py",
+                "app/action_draft_queue.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "tests/test_draft_quality_engine_195p.py",
+                "tests/test_action_draft_queue_177p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Draft Quality Engine baseline. 195P adds intent, audience, tone, source basis, risk note, approval state, expiry, and editable body metadata to local draft queue rendering without Gmail draft creation, Gmail send/modify/archive/label/delete, Calendar writes, Memory Center mutation, model/tool calls, worker dispatch, external writes, deployment, push, merge, PR creation, or 196P behavior.",
+    }
+    for path in stages_by_id["195P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_196p_memory_intelligence_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["196P"] == {
+        "stage_id": "196P",
+        "stage_name": "Memory Intelligence v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_196P_closeout",
+            "commit_message": "feat: add memory intelligence",
+            "paths": [
+                "docs/reference/MEMORY_INTELLIGENCE_196P_v0_1.md",
+                "app/memory_intelligence.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_memory_intelligence_196p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Memory Intelligence baseline. 196P renders duplicate, stale, conflict, high-impact, and used-memory findings in /memory with suggested owner review actions only, without automatic merge/edit/forget, Memory Center mutation, Memory Store mutation, model/tool calls, connector activation, external writes, deployment, push, merge, PR creation, or 197P behavior.",
+    }
+    for path in stages_by_id["196P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_197p_document_to_action_flow_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["197P"] == {
+        "stage_id": "197P",
+        "stage_name": "Document-to-Action Flow v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_197P_closeout",
+            "commit_message": "feat: add document to action flow",
+            "paths": [
+                "docs/reference/DOCUMENT_TO_ACTION_FLOW_197P_v0_1.md",
+                "app/document_to_action_flow.py",
+                "app/document_review_pack_v1.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_document_to_action_flow_197p.py",
+                "tests/test_document_review_pack_v1_186p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Document-to-Action Flow baseline. 197P renders safe downstream action candidates from completed draft-only document reviews for save memory, questions, prep, draft, and export review without automatic memory writes, draft creation, export creation, Calendar writes, Gmail writes, model/tool calls, professional advice, signature/acceptance, external writes, deployment, push, merge, PR creation, or 198P behavior.",
+    }
+    for path in stages_by_id["197P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_198p_cost_aware_model_routing_v1_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["198P"] == {
+        "stage_id": "198P",
+        "stage_name": "Cost-Aware Model Routing v1",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_198P_closeout",
+            "commit_message": "feat: add cost aware model routing v1",
+            "paths": [
+                "docs/reference/COST_AWARE_MODEL_ROUTING_198P_v0_1.md",
+                "app/cost_aware_model_routing_v1.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_cost_aware_model_routing_v1_198p.py",
+                "tests/test_model_router_runtime_169p.py",
+                "tests/test_usage_cost_ledger_188p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Cost-Aware Model Routing v1 baseline. 198P renders Economy, Balanced, and Premium mode receipts with estimated tokens, estimated cost before run, confirmation requirement, source trace, and usage ledger binding without provider calls, live billing reconciliation, BYOK activation, connector activation, Gmail send/modify/archive/delete, Calendar writes, CRM writes, WhatsApp, external writes, deployment, push, merge, PR creation, or 199P behavior.",
+    }
+    for path in stages_by_id["198P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_199p_customer_pilot_readiness_pack_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["199P"] == {
+        "stage_id": "199P",
+        "stage_name": "Customer Pilot Readiness Pack v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_199P_closeout",
+            "commit_message": "feat: add customer pilot readiness pack",
+            "paths": [
+                "docs/reference/CUSTOMER_PILOT_READINESS_PACK_199P_v0_1.md",
+                "app/customer_pilot_readiness_pack.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_customer_pilot_readiness_pack_199p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Customer Pilot Readiness Pack baseline. 199P renders /pilot_pack with setup checklist, supported commands, blocked actions, demo script, failure modes, source trace examples, usage report expectations, safety receipts, and onboarding copy for a controlled 1-3 user pilot without Gmail send/modify/archive/delete, Calendar writes, CRM writes, WhatsApp, external destructive actions, connector activation, live billing reconciliation, Memory Center mutation, external writes, deployment, push, merge, PR creation, or 200P behavior.",
+    }
+    for path in stages_by_id["199P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_200p_customer_pilot_audit_gate_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["200P"] == {
+        "stage_id": "200P",
+        "stage_name": "Customer Pilot Audit Gate v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_200P_closeout",
+            "commit_message": "feat: add customer pilot audit gate",
+            "paths": [
+                "docs/reference/CUSTOMER_PILOT_AUDIT_GATE_200P_v0_1.md",
+                "app/customer_pilot_audit_gate.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                ".gitignore",
+                "tests/test_customer_pilot_audit_gate_200p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Customer Pilot Audit Gate baseline. 200P renders /pilot_audit with PASS criteria for /pilot_pack, /daily_brief context or explicit fallback, /prep Calendar/Gmail/Memory context, source trace, cost/routing receipts, suggestion priority, draft quality, document safe actions, Gmail draft-only behavior, blocked unsafe writes, and generated loop handoff residue policy without Gmail send/modify/archive/delete, Calendar writes, CRM writes, WhatsApp, connector activation, live billing reconciliation, Memory Center mutation, external writes, deployment, push, merge, PR creation, or 201P behavior.",
+    }
+    for path in stages_by_id["200P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_201p_live_smoke_script_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["201P"] == {
+        "stage_id": "201P",
+        "stage_name": "Live Smoke Script v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_201P_closeout",
+            "commit_message": "feat: add live smoke script",
+            "paths": [
+                "docs/reference/LIVE_SMOKE_SCRIPT_201P_v0_1.md",
+                "app/live_smoke_script.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_live_smoke_script_201p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Live Smoke Script baseline. 201P renders /live_smoke with manual Telegram smoke prerequisites, ordered commands, expected results, explicit source fallback rules, stop conditions, and pass condition for the controlled pilot without automated live smoke execution, connector activation, Gmail send/modify/archive/delete, Calendar writes, CRM writes, WhatsApp, live billing reconciliation, Memory Center mutation, external writes, deployment, push, merge, PR creation, or 202P behavior.",
+    }
+    for path in stages_by_id["201P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_202p_founder_daily_use_loop_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["202P"] == {
+        "stage_id": "202P",
+        "stage_name": "Founder Daily Use Loop v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_202P_closeout",
+            "commit_message": "feat: add founder daily use loop",
+            "paths": [
+                "docs/reference/FOUNDER_DAILY_USE_LOOP_202P_v0_1.md",
+                "app/founder_daily_use_loop.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_founder_daily_use_loop_202p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Founder Daily Use Loop baseline. 202P renders /founder_loop with today overview, next useful prep, pending suggestions, approvals, drafts, memory reviews, usage/cost snapshot, setup warnings, source trace status, and one recommended next action without Gmail send/modify/archive/delete, Calendar writes, CRM writes, WhatsApp, autonomous background actions, multi-user logic, billing, connector activation, live billing reconciliation, Memory Center mutation, external writes, deployment, push, merge, PR creation, or 203P behavior.",
+    }
+    for path in stages_by_id["202P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_203p_founder_feedback_capture_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["203P"] == {
+        "stage_id": "203P",
+        "stage_name": "Founder Feedback Capture v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_203P_closeout",
+            "commit_message": "feat: add founder feedback capture",
+            "paths": [
+                "docs/reference/FOUNDER_FEEDBACK_CAPTURE_203P_v0_1.md",
+                "app/founder_feedback_capture.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_founder_feedback_capture_203p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Founder Feedback Capture baseline. 203P renders /feedback with structured local feedback tags for founder loop, daily brief, prep, suggestions, drafts, approvals, memory, documents, and pilot outputs without persistence, feedback ledger storage, tuning automation, Gmail send/modify/archive/delete, Calendar writes, CRM writes, WhatsApp, autonomous background actions, multi-user logic, billing, connector activation, live billing reconciliation, Memory Center mutation, external writes, deployment, push, merge, PR creation, or 204P behavior.",
+    }
+    for path in stages_by_id["203P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_204p_feedback_ledger_tags_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["204P"] == {
+        "stage_id": "204P",
+        "stage_name": "Feedback Ledger & Tags v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_204P_closeout",
+            "commit_message": "feat: add feedback ledger tags",
+            "paths": [
+                "docs/reference/FEEDBACK_LEDGER_TAGS_204P_v0_1.md",
+                "app/feedback_ledger_tags.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_feedback_ledger_tags_204p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Feedback Ledger & Tags baseline. 204P renders /feedback_ledger with local structured entries, tag counts, item binding, source trace ids, owner/robot identity, comments, timestamps, and explicit empty state without suggestion tuning, prep tuning, outcome tracking, durable external storage, Gmail send/modify/archive/delete, Calendar writes, CRM writes, WhatsApp, autonomous background actions, billing, connector activation, Memory Center mutation, external writes, deployment, push, merge, PR creation, or 205P behavior.",
+    }
+    for path in stages_by_id["204P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_205p_daily_loop_outcome_tracker_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["205P"] == {
+        "stage_id": "205P",
+        "stage_name": "Daily Loop Outcome Tracker v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_205P_closeout",
+            "commit_message": "feat: add daily loop outcome tracker",
+            "paths": [
+                "docs/reference/DAILY_LOOP_OUTCOME_TRACKER_205P_v0_1.md",
+                "app/daily_loop_outcome_tracker.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_daily_loop_outcome_tracker_205p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Daily Loop Outcome Tracker baseline. 205P renders /founder_outcome with local outcome receipts for no_action, viewed, suggestion_opened, draft_created, draft_approved, memory_approved, document_reviewed, setup_issue_found, and blocked_by_missing_connector without pilot metrics aggregation, suggestion tuning, prep tuning, durable external storage, Gmail send/modify/archive/delete, Calendar writes, CRM writes, WhatsApp, autonomous background actions, billing, connector activation, Memory Center mutation, external writes, deployment, push, merge, PR creation, or 206P behavior.",
+    }
+    for path in stages_by_id["205P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_206p_suggestion_quality_tuning_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["206P"] == {
+        "stage_id": "206P",
+        "stage_name": "Suggestion Quality Tuning v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_206P_closeout",
+            "commit_message": "feat: add suggestion quality tuning",
+            "paths": [
+                "docs/reference/SUGGESTION_QUALITY_TUNING_206P_v0_1.md",
+                "app/suggestion_quality_tuning.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_suggestion_quality_tuning_206p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Suggestion Quality Tuning baseline. 206P renders /suggestion_quality with feedback-based promote, keep, downgrade, and suppress decisions for suggestions without automatic execution, proactive sends, scheduler, prep tuning, draft revision, Memory Center mutation, Gmail send/modify/archive/delete, Calendar writes, CRM writes, WhatsApp, billing, connector activation, external writes, deployment, push, merge, PR creation, or 207P behavior.",
+    }
+    for path in stages_by_id["206P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_207p_prep_quality_tuning_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["207P"] == {
+        "stage_id": "207P",
+        "stage_name": "Prep Quality Tuning v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_207P_closeout",
+            "commit_message": "feat: add prep quality tuning",
+            "paths": [
+                "docs/reference/PREP_QUALITY_TUNING_207P_v0_1.md",
+                "app/prep_quality_tuning.py",
+                "app/founder_feedback_capture.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_prep_quality_tuning_207p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Prep Quality Tuning baseline. 207P renders /prep_quality with local findings for missing_context, wrong_context, weak_agenda, bad_risk, bad_next_step, too_verbose, and not_actionable without automatic prep rewriting, draft revision, Memory Center mutation, Gmail send/modify/archive/delete, Calendar writes, CRM writes, WhatsApp, billing, connector activation, external writes, deployment, push, merge, PR creation, or 208P behavior.",
+    }
+    for path in stages_by_id["207P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_208p_draft_revision_loop_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["208P"] == {
+        "stage_id": "208P",
+        "stage_name": "Draft Revision Loop v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_208P_closeout",
+            "commit_message": "feat: add draft revision loop",
+            "paths": [
+                "docs/reference/DRAFT_REVISION_LOOP_208P_v0_1.md",
+                "app/draft_revision_loop.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_draft_revision_loop_208p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Draft Revision Loop baseline. 208P renders /draft_revise with safe local revision candidates for shorter, more_direct, warmer, spanish, add_context, and remove_claims while preserving pending approval state and source trace without Gmail send/modify/archive/delete, Calendar writes, CRM writes, WhatsApp, automatic approval/export, Memory Center mutation, billing, connector activation, external writes, deployment, push, merge, PR creation, or 209P behavior.",
+    }
+    for path in stages_by_id["208P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_209p_memory_correction_loop_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["209P"] == {
+        "stage_id": "209P",
+        "stage_name": "Memory Correction Loop v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_209P_closeout",
+            "commit_message": "feat: add memory correction loop",
+            "paths": [
+                "docs/reference/MEMORY_CORRECTION_LOOP_209P_v0_1.md",
+                "app/memory_correction_loop.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_memory_correction_loop_209p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Memory Correction Loop baseline. 209P renders /memory_wrong, /memory_stale, /memory_duplicate, /memory_merge, and /memory_never_use with local correction receipts for visible approved memories without Memory Store mutation, Memory Center mutation, source evidence deletion, Gmail send/modify/archive/delete, Calendar writes, CRM writes, WhatsApp, billing, connector activation, external writes, deployment, push, merge, PR creation, or 210P behavior.",
+    }
+    for path in stages_by_id["209P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_210p_pilot_metrics_snapshot_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["210P"] == {
+        "stage_id": "210P",
+        "stage_name": "Pilot Metrics Snapshot v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_210P_closeout",
+            "commit_message": "feat: add pilot metrics snapshot",
+            "paths": [
+                "docs/reference/PILOT_METRICS_SNAPSHOT_210P_v0_1.md",
+                "app/pilot_metrics_snapshot.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_pilot_metrics_snapshot_210p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Pilot Metrics Snapshot baseline. 210P renders /pilot_metrics with local daily loop, suggestion feedback, draft, memory, document, usage/cost, blocked action, and top feedback tag metrics from injected local records with explicit no_local_metrics_yet fallback without live analytics claims, Gmail send/modify/archive/delete, Calendar writes, CRM writes, WhatsApp, Memory Center mutation, connector activation, provider calls, live billing checks, external writes, deployment, push, merge, PR creation, or 211P behavior.",
+    }
+    for path in stages_by_id["210P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_211p_friendly_user_onboarding_pack_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["211P"] == {
+        "stage_id": "211P",
+        "stage_name": "Friendly User Onboarding Pack v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_211P_closeout",
+            "commit_message": "feat: add friendly user onboarding pack",
+            "paths": [
+                "docs/reference/FRIENDLY_USER_ONBOARDING_PACK_211P_v0_1.md",
+                "app/friendly_user_onboarding_pack.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_friendly_user_onboarding_pack_211p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Friendly User Onboarding Pack baseline. 211P renders /friendly_onboarding with setup checklist, allowed commands, blocked actions, privacy/source trace explanation, memory approval explanation, daily usage script, feedback commands, and stop conditions for a controlled 1-3 user pilot without inviting users, provisioning accounts, Gmail send/modify/archive/delete, Calendar writes, CRM writes, WhatsApp, Memory Center mutation, connector activation, background actions, external writes, deployment, push, merge, PR creation, or 212P behavior.",
+    }
+    for path in stages_by_id["211P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_212p_founder_to_friendly_pilot_baseline_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["212P"] == {
+        "stage_id": "212P",
+        "stage_name": "Founder-to-Friendly Pilot Baseline v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_212P_closeout",
+            "commit_message": "feat: add founder to friendly pilot baseline",
+            "paths": [
+                "docs/reference/FOUNDER_TO_FRIENDLY_PILOT_BASELINE_212P_v0_1.md",
+                "app/founder_to_friendly_pilot_baseline.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_founder_to_friendly_pilot_baseline_212p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Founder-to-Friendly Pilot Baseline. 212P renders /friendly_pilot with founder loop, feedback, draft revision, memory correction, pilot metrics, and friendly onboarding flow steps plus required receipts, readiness checks, and stop conditions without Gmail send/modify/archive/delete, Calendar writes, CRM writes, WhatsApp, Memory Center mutation, connector activation, user invites, account provisioning, background actions, external writes, deployment, push, merge, PR creation, or 213P behavior.",
+    }
+    for path in stages_by_id["212P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_213p_friendly_pilot_operator_console_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["213P"] == {
+        "stage_id": "213P",
+        "stage_name": "Friendly Pilot Operator Console v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_213P_closeout",
+            "commit_message": "feat: add friendly pilot operator console",
+            "paths": [
+                "docs/reference/FRIENDLY_PILOT_OPERATOR_CONSOLE_213P_v0_1.md",
+                "app/friendly_pilot_operator_console.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_friendly_pilot_operator_console_213p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Friendly Pilot Operator Console baseline. 213P renders /pilot_users, /pilot_user, and /pilot_health with local founder/friendly pilot visibility for alias, role, robot status, connector readiness, last activity, feedback count, blocked actions, setup issues, and usage/cost snapshot without web console creation, provisioning, invites, connector activation, Gmail send/modify/archive/delete, Calendar writes, CRM writes, WhatsApp, Memory Center mutation, external writes, deployment, push, merge, PR creation, or 214P behavior.",
+    }
+    for path in stages_by_id["213P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_214p_friendly_pilot_invite_consent_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["214P"] == {
+        "stage_id": "214P",
+        "stage_name": "Friendly Pilot Invite & Consent Flow v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_214P_closeout",
+            "commit_message": "feat: add friendly pilot invite consent flow",
+            "paths": [
+                "docs/reference/FRIENDLY_PILOT_INVITE_CONSENT_214P_v0_1.md",
+                "app/friendly_pilot_invite_consent.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_friendly_pilot_invite_consent_214p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Friendly Pilot Invite & Consent Flow baseline. 214P renders /pilot_invite and /pilot_consent with clear local text for what Roboticxs can read, what it cannot do, what requires approval, what is logged, how to stop, and how to correct or remove memory without sending invites, provisioning accounts, activating connectors, Gmail send/modify/archive/delete, Calendar writes, CRM writes, WhatsApp, Memory Center mutation, destructive actions, external writes, deployment, push, merge, PR creation, or 215P behavior.",
+    }
+    for path in stages_by_id["214P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_215p_pilot_user_provisioning_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["215P"] == {
+        "stage_id": "215P",
+        "stage_name": "Pilot User Provisioning v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_215P_closeout",
+            "commit_message": "feat: add pilot user provisioning",
+            "paths": [
+                "docs/reference/PILOT_USER_PROVISIONING_215P_v0_1.md",
+                "app/pilot_user_provisioning.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_pilot_user_provisioning_215p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Pilot User Provisioning baseline. 215P renders /pilot_provision and /pilot_allowlist with strict local allowlist receipts for role, robot id, allowed Telegram user id, enabled skill packages, connector status, pilot start date, and pilot status without modifying Telegram owner ids, open signup, sending invites, provisioning external accounts, activating connectors, Gmail send/modify/archive/delete, Calendar writes, CRM writes, WhatsApp, Memory Center mutation, destructive actions, external writes, deployment, push, merge, PR creation, or 216P behavior.",
+    }
+    for path in stages_by_id["215P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_216p_pilot_data_boundary_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["216P"] == {
+        "stage_id": "216P",
+        "stage_name": "Pilot Data Boundary v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_216P_closeout",
+            "commit_message": "feat: add pilot data boundary",
+            "paths": [
+                "docs/reference/PILOT_DATA_BOUNDARY_216P_v0_1.md",
+                "app/pilot_data_boundary.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_pilot_data_boundary_216p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Pilot Data Boundary baseline. 216P renders /pilot_boundary with owner/robot scope checks for memory, approvals, drafts, feedback, usage, source traces, Gmail traces, and document traces; cross-scope items are reported without data migration, data deletion, connector activation, Gmail send/modify/archive/delete, Calendar writes, CRM writes, WhatsApp, Memory Center mutation, destructive actions, external writes, deployment, push, merge, PR creation, or 217P behavior.",
+    }
+    for path in stages_by_id["216P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_217p_pilot_onboarding_runbook_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["217P"] == {
+        "stage_id": "217P",
+        "stage_name": "Pilot Onboarding Runbook v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_217P_closeout",
+            "commit_message": "feat: add pilot onboarding runbook",
+            "paths": [
+                "docs/reference/PILOT_ONBOARDING_RUNBOOK_217P_v0_1.md",
+                "app/pilot_onboarding_runbook.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_pilot_onboarding_runbook_217p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Pilot Onboarding Runbook baseline. 217P renders /pilot_runbook with Day 0 through Day 7 setup, consent, allowlist, first daily loop, memory review, meeting prep, document review, draft/revision/approval, feedback, issue capture readiness, weekly report readiness, fallback statuses, and stop conditions without external invites, provisioning writes, connector activation, Gmail send/modify/archive/delete, Calendar writes, CRM writes, WhatsApp, data migration, Memory Center mutation, destructive actions, external writes, deployment, push, merge, PR creation, or 218P behavior.",
+    }
+    for path in stages_by_id["217P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_218p_pilot_support_issue_capture_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["218P"] == {
+        "stage_id": "218P",
+        "stage_name": "Pilot Support & Issue Capture v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_218P_closeout",
+            "commit_message": "feat: add pilot support issue capture",
+            "paths": [
+                "docs/reference/PILOT_SUPPORT_ISSUE_CAPTURE_218P_v0_1.md",
+                "app/pilot_support_issue_capture.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_pilot_support_issue_capture_218p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Pilot Support & Issue Capture baseline. 218P renders /report_issue, /report_bug, /report_confusing, /report_wrong, /report_missing, and /report_slow with local issue receipts for pilot user id, command, item id, severity, category, comment, source trace, timestamp, and status without external tickets, CRM writes, Gmail send/modify/archive/delete, Calendar writes, WhatsApp, Memory Center mutation, destructive actions, external writes, deployment, push, merge, PR creation, or 219P behavior.",
+    }
+    for path in stages_by_id["218P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_219p_pilot_safety_incident_log_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["219P"] == {
+        "stage_id": "219P",
+        "stage_name": "Pilot Safety Incident Log v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_219P_closeout",
+            "commit_message": "feat: add pilot safety incident log",
+            "paths": [
+                "docs/reference/PILOT_SAFETY_INCIDENT_LOG_219P_v0_1.md",
+                "app/pilot_safety_incident_log.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_pilot_safety_incident_log_219p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Pilot Safety Incident Log baseline. 219P renders /pilot_safety with local safety incidents for attempted Gmail send, attempted Calendar write, owner mismatch, robot mismatch, stale approval blocked, missing consent, source scope mismatch, connector scope mismatch, secret-like output blocked, and destructive action blocked without external tickets, CRM writes, Gmail send/modify/archive/delete, Calendar writes, WhatsApp, Memory Center mutation, destructive actions, external writes, deployment, push, merge, PR creation, or 220P behavior.",
+    }
+    for path in stages_by_id["219P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_220p_pilot_weekly_report_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["220P"] == {
+        "stage_id": "220P",
+        "stage_name": "Pilot Weekly Report v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_220P_closeout",
+            "commit_message": "feat: add pilot weekly report",
+            "paths": [
+                "docs/reference/PILOT_WEEKLY_REPORT_220P_v0_1.md",
+                "app/pilot_weekly_report.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_pilot_weekly_report_220p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Pilot Weekly Report baseline. 220P renders /pilot_weekly_report with local active days, loops, prep packs, suggestion accept/dismiss counts, draft create/revise/approve counts, memory approve/correct/forget counts, documents reviewed, feedback tags, issue counts, safety incidents, estimated cost, and top 3 product learnings without live analytics claims, external tickets, CRM writes, Gmail send/modify/archive/delete, Calendar writes, WhatsApp, Memory Center mutation, destructive actions, external writes, deployment, push, merge, PR creation, or 221P behavior.",
+    }
+    for path in stages_by_id["220P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_221p_pilot_exit_data_removal_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["221P"] == {
+        "stage_id": "221P",
+        "stage_name": "Pilot Exit / Data Removal Flow v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_221P_closeout",
+            "commit_message": "feat: add pilot exit data removal flow",
+            "paths": [
+                "docs/reference/PILOT_EXIT_DATA_REMOVAL_221P_v0_1.md",
+                "app/pilot_exit_data_removal.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_pilot_exit_data_removal_221p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Pilot Exit / Data Removal Flow baseline. 221P renders /end_pilot, /export_pilot_data, /delete_pilot_memory, and /disable_pilot_connectors with local receipts for pilot exit intent, export manifest, local memory deletion request, and connector disable request without external deletion claims, external exports, live connector changes, Memory Store mutation, CRM writes, Gmail send/modify/archive/delete, Calendar writes, WhatsApp, destructive actions, external writes, deployment, push, merge, PR creation, or 222P behavior.",
+    }
+    for path in stages_by_id["221P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_222p_friendly_pilot_launch_baseline_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["222P"] == {
+        "stage_id": "222P",
+        "stage_name": "Friendly Pilot Launch Baseline v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_222P_closeout",
+            "commit_message": "feat: add friendly pilot launch baseline",
+            "paths": [
+                "docs/reference/FRIENDLY_PILOT_LAUNCH_BASELINE_222P_v0_1.md",
+                "app/friendly_pilot_launch_baseline.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_friendly_pilot_launch_baseline_222p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Friendly Pilot Launch Baseline. 222P renders /pilot_launch with the controlled launch checklist covering allowlist, consent, runbook, data boundary, daily loop, feedback, issue capture, safety log, weekly report, and exit flow without sending invites, activating connectors, claiming live data, CRM writes, Gmail send/modify/archive/delete, Calendar writes, WhatsApp, destructive actions, external writes, deployment, push, merge, PR creation, or 223P behavior.",
+    }
+    for path in stages_by_id["222P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_223p_first_friendly_user_activation_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["223P"] == {
+        "stage_id": "223P",
+        "stage_name": "First Friendly User Activation v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_223P_closeout",
+            "commit_message": "feat: add first friendly user activation",
+            "paths": [
+                "docs/reference/FIRST_FRIENDLY_USER_ACTIVATION_223P_v0_1.md",
+                "app/first_friendly_user_activation.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_first_friendly_user_activation_223p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local First Friendly User Activation baseline. 223P renders /pilot_activate with activation checklist, setup status, first successful command, first useful output, first feedback, first issue, and activation receipt without provisioning external accounts, sending invites, activating connectors, claiming live data, CRM writes, Gmail send/modify/archive/delete, Calendar writes, WhatsApp, destructive actions, external writes, deployment, push, merge, PR creation, or 224P behavior.",
+    }
+    for path in stages_by_id["223P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_224p_pilot_review_session_pack_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["224P"] == {
+        "stage_id": "224P",
+        "stage_name": "Pilot Review Session Pack v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_224P_closeout",
+            "commit_message": "feat: add pilot review session pack",
+            "paths": [
+                "docs/reference/PILOT_REVIEW_SESSION_PACK_224P_v0_1.md",
+                "app/pilot_review_session_pack.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_pilot_review_session_pack_224p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Pilot Review Session Pack baseline. 224P renders /pilot_review with what the user tried, what worked, where they got stuck, best output, worst output, missing connector/context, confusing command/copy, safety blocks, recommended product fixes, and estimated local cost without creating tickets, CRM writes, Gmail send/modify/archive/delete, Calendar writes, WhatsApp, destructive actions, external writes, connector activation, live data claims, deployment, push, merge, PR creation, or 225P behavior.",
+    }
+    for path in stages_by_id["224P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_225p_pilot_learning_queue_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["225P"] == {
+        "stage_id": "225P",
+        "stage_name": "Pilot Learning Queue v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_225P_closeout",
+            "commit_message": "feat: add pilot learning queue",
+            "paths": [
+                "docs/reference/PILOT_LEARNING_QUEUE_225P_v0_1.md",
+                "app/pilot_learning_queue.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_pilot_learning_queue_225p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Pilot Learning Queue baseline. 225P renders /pilot_learnings with prioritized P0-P3 product learnings from local feedback, issues, safety incidents, usage/cost, and review packs without creating external tickets, writing external backlog items, CRM writes, Gmail send/modify/archive/delete, Calendar writes, WhatsApp, destructive actions, external writes, connector activation, live data claims, deployment, push, merge, PR creation, or 226P behavior.",
+    }
+    for path in stages_by_id["225P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_226p_paid_pilot_readiness_gate_is_closed_committed_local_only():
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert stages_by_id["226P"] == {
+        "stage_id": "226P",
+        "stage_name": "Paid Pilot Readiness Gate v0",
+        "status": "CLOSED_COMMITTED",
+        "authority_source": "explicit_maintainer_authorization",
+        "local_evidence": {
+            "commit": "same_commit_as_226P_closeout",
+            "commit_message": "feat: add paid pilot readiness gate",
+            "paths": [
+                "docs/reference/PAID_PILOT_READINESS_GATE_226P_v0_1.md",
+                "app/paid_pilot_readiness_gate.py",
+                "app/runnable_telegram_robot_mvp.py",
+                "app/skill_manifest_runtime_gates.py",
+                "app/hermes_runtime_bootstrap.py",
+                "app/runtime_doctor.py",
+                "tests/test_paid_pilot_readiness_gate_226p.py",
+                "tests/test_runnable_telegram_robot_mvp_130p.py",
+                "tests/test_skill_manifest_runtime_gates_189p.py",
+                "tests/test_hermes_runtime_bootstrap_129p.py",
+                "tests/test_runtime_doctor_149p.py",
+                "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+                "tests/test_canonical_roadmap.py",
+                "tests/test_roadmap_continuation_authorization_gate.py",
+            ],
+        },
+        "implementation_authorized": False,
+        "next_action": "Use as the local Paid Pilot Readiness Gate baseline. 226P renders /paid_pilot_gate with READY_FOR_PAID_PILOT, READY_WITH_LIMITATIONS, or NOT_READY based on local activation, active-day, useful-output, draft approval, suggestion acceptance, memory correction, issue severity, safety, cost, manual support, and learning queue signals without enabling billing, creating payment links, creating external tickets, CRM writes, Gmail send/modify/archive/delete, Calendar writes, WhatsApp, destructive actions, external writes, connector activation, live data claims, deployment, push, merge, PR creation, or 227P behavior.",
+    }
+    for path in stages_by_id["226P"]["local_evidence"]["paths"]:
+        assert (REPO_ROOT / path).is_file()
+
+
+def test_100p_transition_records_later_101p_102p_103p_104p_105p_106p_107p_108p_authorization_and_keeps_109p_plus_blocked():
+    transition = load_json_block("stage-100p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "100P",
+        "stage_name": "Cost Governor / Model Routing Runtime v0",
+        "implementation_commit": "same_commit_as_100P_closeout",
+        "stage_101p_authorized_later": True,
+        "stage_102p_authorized_later": True,
+        "stage_102p_current_status": "CLOSED_COMMITTED",
+        "stage_103p_authorized_later": True,
+        "stage_103p_current_status": "CLOSED_COMMITTED",
+        "stage_104p_authorized_later": True,
+        "stage_104p_current_status": "CLOSED_COMMITTED",
+        "stage_105p_authorized_later": True,
+        "stage_105p_current_status": "CLOSED_COMMITTED",
+        "stage_106p_authorized_later": True,
+        "stage_106p_current_status": "CLOSED_COMMITTED",
+        "stage_107p_authorized_later": True,
+        "stage_107p_current_status": "CLOSED_COMMITTED",
+        "stage_108p_authorized_later": True,
+        "stage_108p_current_status": "CLOSED_COMMITTED",
+        "next_eligible_stage": "101P",
+        "action_packet_approval_loop_authorized": True,
+        "async_delegation_dispatch_authorized": False,
+        "live_telegram_sends_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "provider_calls_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["100P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["101P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["103P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["104P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["105P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["106P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["107P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["108P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_101p_transition_records_later_102p_103p_104p_105p_106p_107p_108p_authorization_and_keeps_109p_plus_blocked():
+    transition = load_json_block("stage-101p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "101P",
+        "stage_name": "Action Packet Approval Loop v0",
+        "implementation_commit": "f031777e12a7e53b4849f8eb7068b952551e2625",
+        "remediation_review_commit": "f031777e12a7e53b4849f8eb7068b952551e2625",
+        "stage_102p_authorized_later": True,
+        "stage_102p_current_status": "CLOSED_COMMITTED",
+        "stage_103p_authorized_later": True,
+        "stage_103p_current_status": "CLOSED_COMMITTED",
+        "stage_104p_authorized_later": True,
+        "stage_104p_current_status": "CLOSED_COMMITTED",
+        "stage_105p_authorized_later": True,
+        "stage_105p_current_status": "CLOSED_COMMITTED",
+        "stage_106p_authorized_later": True,
+        "stage_106p_current_status": "CLOSED_COMMITTED",
+        "stage_107p_authorized_later": True,
+        "stage_107p_current_status": "CLOSED_COMMITTED",
+        "stage_108p_authorized_later": True,
+        "stage_108p_current_status": "CLOSED_COMMITTED",
+        "next_eligible_stage": None,
+        "live_execution_authorized": False,
+        "async_delegation_dispatch_authorized": False,
+        "live_telegram_sends_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "provider_calls_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["101P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["102P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["103P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["104P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["105P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["106P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["107P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["108P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_103p_transition_records_later_104p_105p_106p_107p_108p_authorization_and_keeps_109p_plus_blocked():
+    transition = load_json_block("stage-103p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "103P",
+        "stage_name": "Async Delegation Completion Inbox v0",
+        "implementation_commit": "same_commit_as_103P_closeout",
+        "stage_104p_authorized_later": True,
+        "stage_104p_current_status": "CLOSED_COMMITTED",
+        "stage_105p_authorized_later": True,
+        "stage_105p_current_status": "CLOSED_COMMITTED",
+        "stage_106p_authorized_later": True,
+        "stage_106p_current_status": "CLOSED_COMMITTED",
+        "stage_107p_authorized_later": True,
+        "stage_107p_current_status": "CLOSED_COMMITTED",
+        "stage_108p_authorized_later": True,
+        "stage_108p_current_status": "CLOSED_COMMITTED",
+        "next_eligible_stage": None,
+        "async_workers_authorized": False,
+        "live_execution_authorized": False,
+        "async_delegation_dispatch_authorized": False,
+        "live_telegram_sends_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "provider_calls_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["103P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["104P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["105P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["106P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["107P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["108P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_104p_transition_records_later_105p_106p_107p_108p_authorization_and_keeps_109p_plus_blocked():
+    transition = load_json_block("stage-104p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "104P",
+        "stage_name": "Async Result User Surface v0",
+        "implementation_commit": "same_commit_as_104P_closeout",
+        "stage_105p_authorized_later": True,
+        "stage_105p_current_status": "CLOSED_COMMITTED",
+        "stage_106p_authorized_later": True,
+        "stage_106p_current_status": "CLOSED_COMMITTED",
+        "stage_107p_authorized_later": True,
+        "stage_107p_current_status": "CLOSED_COMMITTED",
+        "stage_108p_authorized_later": True,
+        "stage_108p_current_status": "CLOSED_COMMITTED",
+        "next_eligible_stage": None,
+        "telegram_delivery_authorized": False,
+        "live_execution_authorized": False,
+        "async_delegation_dispatch_authorized": False,
+        "live_telegram_sends_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "provider_calls_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "new_approvals_authorized": False,
+        "new_delegations_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["104P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["105P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["106P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["107P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["108P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_105p_transition_records_later_106p_107p_108p_authorization_and_keeps_109p_plus_blocked():
+    transition = load_json_block("stage-105p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "105P",
+        "stage_name": "Telegram Async Result Delivery v0",
+        "implementation_commit": "same_commit_as_105P_closeout",
+        "stage_106p_authorized_later": True,
+        "stage_106p_current_status": "CLOSED_COMMITTED",
+        "stage_107p_authorized_later": True,
+        "stage_107p_current_status": "CLOSED_COMMITTED",
+        "stage_108p_authorized_later": True,
+        "stage_108p_current_status": "CLOSED_COMMITTED",
+        "next_eligible_stage": None,
+        "telegram_callback_execution_authorized": False,
+        "live_execution_authorized": False,
+        "async_delegation_dispatch_authorized": False,
+        "live_telegram_api_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "provider_calls_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "new_approvals_authorized": False,
+        "new_delegations_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["105P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["106P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["107P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["108P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_106p_transition_records_later_107p_108p_authorization_and_keeps_109p_plus_blocked():
+    transition = load_json_block("stage-106p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "106P",
+        "stage_name": "Telegram Result Acknowledgement Binding v0",
+        "implementation_commit": "same_commit_as_106P_closeout",
+        "stage_107p_authorized_later": True,
+        "stage_107p_current_status": "CLOSED_COMMITTED",
+        "stage_108p_authorized_later": True,
+        "stage_108p_current_status": "CLOSED_COMMITTED",
+        "next_eligible_stage": None,
+        "telegram_callback_execution_authorized": False,
+        "live_execution_authorized": False,
+        "async_delegation_dispatch_authorized": False,
+        "live_telegram_api_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "provider_calls_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "new_approvals_authorized": False,
+        "new_delegations_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["106P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["108P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_107p_transition_records_108p_closeout_and_keeps_109p_plus_blocked():
+    transition = load_json_block("stage-107p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "107P",
+        "stage_name": "Follow-up Intent Review Queue v0",
+        "implementation_commit": "same_commit_as_107P_closeout",
+        "stage_108p_authorized_later": True,
+        "stage_108p_current_status": "CLOSED_COMMITTED",
+        "stage_109p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "followup_planning_authorized": False,
+        "live_execution_authorized": False,
+        "async_delegation_dispatch_authorized": False,
+        "live_telegram_api_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "new_approvals_authorized": False,
+        "new_action_packets_authorized": False,
+        "new_delegations_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["107P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["108P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_108p_transition_keeps_109p_plus_blocked():
+    transition = load_json_block("stage-108p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "108P",
+        "stage_name": "Follow-up Draft Planner v0",
+        "implementation_commit": "same_commit_as_108P_closeout",
+        "stage_109p_authorized_later": True,
+        "stage_109p_current_status": "CLOSED_COMMITTED",
+        "next_eligible_stage": None,
+        "telegram_display_authorized_later": True,
+        "followup_execution_authorized": False,
+        "async_delegation_dispatch_authorized": False,
+        "live_telegram_api_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "new_approvals_authorized": False,
+        "new_action_packets_authorized": False,
+        "new_delegations_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["108P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_109p_transition_records_later_110p_authorization_and_keeps_111p_plus_blocked():
+    transition = load_json_block("stage-109p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "109P",
+        "stage_name": "Telegram Follow-up Choice Surface v0",
+        "implementation_commit": "same_commit_as_109P_closeout",
+        "stage_110p_authorized_later": True,
+        "stage_110p_current_status": "CLOSED_COMMITTED",
+        "next_eligible_stage": None,
+        "telegram_choice_surface_authorized": True,
+        "injected_local_transport_authorized": True,
+        "option_selection_binding_authorized": False,
+        "followup_execution_authorized": False,
+        "async_delegation_dispatch_authorized": False,
+        "live_telegram_api_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "new_approvals_authorized": False,
+        "new_action_packets_authorized": False,
+        "new_delegations_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["109P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_110p_transition_records_later_111p_authorization_and_keeps_112p_plus_blocked():
+    transition = load_json_block("stage-110p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "110P",
+        "stage_name": "Telegram Follow-up Choice Selection Binding v0",
+        "implementation_commit": "same_commit_as_110P_closeout",
+        "stage_111p_authorized_later": True,
+        "stage_111p_current_status": "CLOSED_COMMITTED",
+        "stage_112p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "telegram_choice_surface_authorized": True,
+        "option_selection_binding_authorized": True,
+        "selection_record_authorized": True,
+        "selection_response_envelope_authorized": True,
+        "followup_execution_authorized": False,
+        "async_delegation_dispatch_authorized": False,
+        "live_telegram_api_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "new_approvals_authorized": False,
+        "new_action_packets_authorized": False,
+        "new_delegations_authorized": True,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["110P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["111P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_111p_transition_keeps_112p_plus_blocked():
+    transition = load_json_block("stage-111p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "111P",
+        "stage_name": "User-Approved Follow-up Delegation v0",
+        "implementation_commit": "same_commit_as_111P_closeout",
+        "stage_112p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "followup_delegation_registration_authorized": True,
+        "async_handle_registration_authorized": True,
+        "followup_execution_authorized": False,
+        "worker_dispatch_authorized": False,
+        "completion_events_authorized": False,
+        "live_telegram_api_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "new_approvals_authorized": False,
+        "new_action_packets_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["111P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_112p_transition_keeps_113p_plus_blocked():
+    transition = load_json_block("stage-112p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "112P",
+        "stage_name": "Controlled Follow-up Execution Skeleton v0",
+        "implementation_commit": "same_commit_as_112P_closeout",
+        "stage_113p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "followup_execution_authorized": True,
+        "local_event_candidate_creation_authorized": True,
+        "inbox_insertion_authorized": False,
+        "async_handle_transition_authorized": False,
+        "user_surface_authorized": False,
+        "telegram_delivery_authorized": False,
+        "worker_dispatch_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "live_telegram_api_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "new_approvals_authorized": False,
+        "new_action_packets_authorized": False,
+        "new_delegations_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["112P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_113p_transition_records_later_114p_authorization_and_keeps_115p_plus_blocked():
+    transition = load_json_block("stage-113p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "113P",
+        "stage_name": "Follow-up Completion Loop Integration v0",
+        "implementation_commit": "same_commit_as_113P_closeout",
+        "stage_114p_authorized_later": True,
+        "stage_114p_current_status": "CLOSED_COMMITTED",
+        "stage_115p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "followup_execution_authorized": False,
+        "local_event_candidate_routing_authorized": True,
+        "inbox_insertion_authorized": True,
+        "user_surface_authorized": True,
+        "telegram_delivery_authorized": True,
+        "acknowledgement_binding_authorized": False,
+        "memory_proposal_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "worker_dispatch_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "live_telegram_api_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "new_approvals_authorized": False,
+        "new_action_packets_authorized": False,
+        "new_delegations_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["113P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_114p_transition_records_later_115p_authorization_and_keeps_116p_plus_blocked():
+    transition = load_json_block("stage-114p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "114P",
+        "stage_name": "Follow-up Result Acknowledgement v0",
+        "implementation_commit": "same_commit_as_114P_closeout",
+        "stage_115p_authorized_later": True,
+        "stage_115p_current_status": "CLOSED_COMMITTED",
+        "stage_116p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "followup_execution_authorized": False,
+        "acknowledgement_binding_authorized": True,
+        "local_acknowledgement_record_authorized": True,
+        "lineage_summary_authorized": True,
+        "memory_proposal_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "new_followup_intent_authorized": False,
+        "new_draft_options_authorized": False,
+        "new_delegations_authorized": False,
+        "new_executions_authorized": False,
+        "new_routes_authorized": False,
+        "worker_dispatch_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "live_telegram_api_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "new_approvals_authorized": False,
+        "new_action_packets_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["114P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_115p_transition_records_later_116p_authorization_and_keeps_117p_plus_blocked():
+    transition = load_json_block("stage-115p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "115P",
+        "stage_name": "Memory Proposal from Follow-up Result v0",
+        "implementation_commit": "same_commit_as_115P_closeout",
+        "stage_116p_authorized_later": True,
+        "stage_116p_current_status": "CLOSED_COMMITTED",
+        "next_eligible_stage": None,
+        "followup_execution_authorized": False,
+        "memory_proposal_candidate_authorized": True,
+        "pending_user_review_authorized": True,
+        "telegram_approval_surface_authorized": True,
+        "memory_approval_binding_authorized": True,
+        "memory_center_writeback_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "new_followup_intent_authorized": False,
+        "new_draft_options_authorized": False,
+        "new_delegations_authorized": False,
+        "new_executions_authorized": False,
+        "new_routes_authorized": False,
+        "worker_dispatch_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "live_telegram_api_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "new_approvals_authorized": False,
+        "new_action_packets_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["115P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["116P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_116p_transition_records_later_117p_authorization_and_keeps_118p_plus_blocked():
+    transition = load_json_block("stage-116p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "116P",
+        "stage_name": "Telegram Memory Proposal Approval v0",
+        "implementation_commit": "same_commit_as_116P_closeout",
+        "stage_117p_authorized_later": True,
+        "stage_117p_current_status": "CLOSED_COMMITTED",
+        "next_eligible_stage": None,
+        "followup_execution_authorized": False,
+        "memory_proposal_candidate_authorized": True,
+        "telegram_approval_surface_authorized": True,
+        "memory_approval_binding_authorized": True,
+        "memory_center_writeback_authorized": True,
+        "memory_center_mutation_authorized": True,
+        "memory_item_creation_authorized": True,
+        "memory_item_update_authorized": False,
+        "new_followup_intent_authorized": False,
+        "new_draft_options_authorized": False,
+        "new_delegations_authorized": False,
+        "new_executions_authorized": False,
+        "new_routes_authorized": False,
+        "worker_dispatch_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "live_telegram_api_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "new_approvals_authorized": False,
+        "new_action_packets_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["116P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["117P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_117p_transition_records_118p_and_119p_authorization_and_keeps_120p_plus_blocked():
+    transition = load_json_block("stage-117p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "117P",
+        "stage_name": "Memory Center Writeback v0",
+        "implementation_commit": "same_commit_as_117P_closeout",
+        "stage_118p_authorized_later": True,
+        "stage_118p_current_status": "CLOSED_COMMITTED",
+        "stage_119p_authorized_later": True,
+        "stage_119p_current_status": "CLOSED_COMMITTED",
+        "stage_120p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "followup_execution_authorized": False,
+        "memory_proposal_candidate_authorized": True,
+        "telegram_approval_surface_authorized": True,
+        "memory_approval_binding_authorized": True,
+        "memory_center_writeback_authorized": True,
+        "memory_center_mutation_authorized": True,
+        "memory_item_creation_authorized": True,
+        "memory_item_update_authorized": False,
+        "context_scan_authorized": False,
+        "proactive_detection_authorized": False,
+        "proactive_suggestion_authorized": False,
+        "new_followup_intent_authorized": False,
+        "new_draft_options_authorized": False,
+        "new_delegations_authorized": False,
+        "new_executions_authorized": False,
+        "new_routes_authorized": False,
+        "worker_dispatch_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "live_telegram_api_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "new_approvals_authorized": False,
+        "new_action_packets_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["117P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["118P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["119P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_118p_transition_records_119p_authorization_and_keeps_120p_plus_blocked():
+    transition = load_json_block("stage-118p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "118P",
+        "stage_name": "Context Scan Candidate Source v0",
+        "implementation_commit": "same_commit_as_118P_closeout",
+        "stage_119p_authorized_later": True,
+        "stage_119p_current_status": "CLOSED_COMMITTED",
+        "stage_120p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "followup_execution_authorized": False,
+        "memory_proposal_candidate_authorized": True,
+        "telegram_approval_surface_authorized": True,
+        "memory_approval_binding_authorized": True,
+        "memory_center_writeback_authorized": True,
+        "memory_center_mutation_authorized": True,
+        "memory_item_creation_authorized": True,
+        "memory_item_update_authorized": False,
+        "context_scan_candidate_source_authorized": True,
+        "context_scan_metadata_registration_authorized": True,
+        "live_connector_read_authorized": False,
+        "scan_extraction_authorized": False,
+        "proactive_detection_authorized": True,
+        "proactive_opportunity_candidate_authorized": True,
+        "proactive_suggestion_authorized": False,
+        "memory_proposal_creation_authorized": False,
+        "new_followup_intent_authorized": False,
+        "new_draft_options_authorized": False,
+        "new_delegations_authorized": False,
+        "new_executions_authorized": False,
+        "new_routes_authorized": False,
+        "worker_dispatch_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "live_telegram_api_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "new_approvals_authorized": False,
+        "new_action_packets_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["118P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["119P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_119p_transition_records_120p_authorization_and_keeps_121p_plus_blocked():
+    transition = load_json_block("stage-119p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "119P",
+        "stage_name": "Proactive Opportunity Detection v0",
+        "implementation_commit": "same_commit_as_119P_closeout",
+        "stage_120p_authorized_later": True,
+        "stage_120p_current_status": "CLOSED_COMMITTED",
+        "stage_121p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "followup_execution_authorized": False,
+        "memory_proposal_candidate_authorized": True,
+        "telegram_approval_surface_authorized": True,
+        "memory_approval_binding_authorized": True,
+        "memory_center_writeback_authorized": True,
+        "memory_center_mutation_authorized": True,
+        "memory_item_creation_authorized": True,
+        "memory_item_update_authorized": False,
+        "context_scan_candidate_source_authorized": True,
+        "context_scan_metadata_registration_authorized": True,
+        "proactive_detection_authorized": True,
+        "proactive_opportunity_candidate_authorized": True,
+        "proactive_detection_run_authorized": True,
+        "proactive_suggestion_authorized": True,
+        "proactive_telegram_surface_authorized": True,
+        "proactive_telegram_delivery_authorized": True,
+        "callback_binding_authorized": False,
+        "telegram_suggestion_surface_authorized": False,
+        "followup_intent_authorized": False,
+        "async_delegation_authorized": False,
+        "worker_dispatch_authorized": False,
+        "execution_authorized": False,
+        "live_connector_read_authorized": False,
+        "memory_proposal_creation_authorized": False,
+        "new_followup_intent_authorized": False,
+        "new_draft_options_authorized": False,
+        "new_delegations_authorized": False,
+        "new_executions_authorized": False,
+        "new_routes_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "live_telegram_api_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "new_approvals_authorized": False,
+        "new_action_packets_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["119P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["120P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_120p_transition_records_later_121p_authorization_and_keeps_122p_plus_blocked():
+    transition = load_json_block("stage-120p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "120P",
+        "stage_name": "Proactive Telegram Suggestion v0",
+        "implementation_commit": "same_commit_as_120P_closeout",
+        "stage_121p_authorized_later": True,
+        "stage_121p_current_status": "CLOSED_COMMITTED",
+        "next_eligible_stage": "121P",
+        "followup_execution_authorized": False,
+        "memory_proposal_candidate_authorized": True,
+        "telegram_approval_surface_authorized": True,
+        "memory_approval_binding_authorized": True,
+        "memory_center_writeback_authorized": True,
+        "memory_center_mutation_authorized": True,
+        "memory_item_creation_authorized": True,
+        "memory_item_update_authorized": False,
+        "context_scan_candidate_source_authorized": True,
+        "context_scan_metadata_registration_authorized": True,
+        "proactive_detection_authorized": True,
+        "proactive_opportunity_candidate_authorized": True,
+        "proactive_detection_run_authorized": True,
+        "proactive_suggestion_authorized": True,
+        "proactive_telegram_surface_authorized": True,
+        "proactive_telegram_delivery_authorized": True,
+        "callback_binding_authorized": False,
+        "telegram_suggestion_surface_authorized": False,
+        "followup_intent_authorized": False,
+        "async_delegation_authorized": False,
+        "worker_dispatch_authorized": False,
+        "execution_authorized": False,
+        "live_connector_read_authorized": False,
+        "memory_proposal_creation_authorized": False,
+        "new_followup_intent_authorized": False,
+        "new_draft_options_authorized": False,
+        "new_delegations_authorized": False,
+        "new_executions_authorized": False,
+        "new_routes_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "live_telegram_api_authorized": False,
+        "live_hermes_gateway_start_authorized": False,
+        "live_cron_authorized": False,
+        "connector_activation_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "new_approvals_authorized": False,
+        "new_action_packets_authorized": False,
+        "billing_or_token_reconciliation_authorized": False,
+        "credential_checks_authorized": False,
+        "database_migrations_authorized": False,
+        "ui_or_endpoints_authorized": False,
+        "external_effects_authorized": False,
+        "medical_behavior_authorized": False,
+        "automatic_caregiver_alerts_authorized": False,
+    }
+    assert stages_by_id["120P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["121P"]["status"] == "CLOSED_COMMITTED"
+
+
+def test_121p_transition_records_122p_closeout_and_keeps_124p_plus_blocked():
+    transition = load_json_block("stage-121p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "121P",
+        "stage_name": "Proactive Suggestion Adapter to Follow-up Loop v0",
+        "implementation_commit": "same_commit_as_121P_closeout",
+        "stage_122p_authorized_later": True,
+        "stage_122p_current_status": "CLOSED_COMMITTED",
+        "stage_123p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "followup_intent_authorized": True,
+        "followup_intent_review_record_authorized": True,
+        "proactive_suggestion_adapter_authorized": True,
+        "explicit_owner_adapter_authorization_required": True,
+        "planner_execution_authorized": False,
+        "telegram_choice_surface_authorized": False,
+        "selection_binding_authorized": False,
+        "async_delegation_authorized": False,
+        "worker_dispatch_authorized": False,
+        "execution_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "memory_proposal_creation_authorized": False,
+        "telegram_delivery_authorized": False,
+        "live_connector_read_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "live_telegram_api_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "external_effects_authorized": False,
+    }
+    assert stages_by_id["121P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["122P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_122p_transition_records_123p_closeout_and_keeps_124p_plus_blocked():
+    transition = load_json_block("stage-122p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "122P",
+        "stage_name": "Proactive Delegation Adapter v0",
+        "implementation_commit": "same_commit_as_122P_closeout",
+        "stage_123p_authorized_later": True,
+        "stage_123p_current_status": "CLOSED_COMMITTED",
+        "stage_124p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "proactive_delegation_adapter_authorized": True,
+        "explicit_owner_delegation_authorization_required": True,
+        "existing_111p_authority_reused": True,
+        "governed_async_delegation_registration_authorized": True,
+        "delegation_packet_registration_authorized": True,
+        "delegation_handle_registration_authorized": True,
+        "planner_execution_authorized": False,
+        "telegram_choice_surface_authorized": False,
+        "selection_binding_authorized": False,
+        "execution_authorized": False,
+        "worker_dispatch_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "memory_proposal_creation_authorized": False,
+        "telegram_delivery_authorized": False,
+        "live_connector_read_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "live_telegram_api_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "external_effects_authorized": False,
+    }
+    assert stages_by_id["122P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["123P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_123p_transition_records_later_124p_through_129p_closeout_and_keeps_130p_plus_blocked():
+    transition = load_json_block("stage-123p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "123P",
+        "stage_name": "Controlled Proactive Execution Skeleton v0",
+        "implementation_commit": "same_commit_as_123P_closeout",
+        "stage_124p_authorized_later": True,
+        "stage_124p_current_status": "CLOSED_COMMITTED",
+        "stage_125p_authorized_later": True,
+        "stage_125p_current_status": "CLOSED_COMMITTED",
+        "stage_126p_authorized_later": True,
+        "stage_126p_current_status": "CLOSED_COMMITTED",
+        "stage_127p_authorized_later": True,
+        "stage_127p_current_status": "CLOSED_COMMITTED",
+        "stage_128p_authorized_later": True,
+        "stage_128p_current_status": "CLOSED_COMMITTED",
+        "stage_129p_authorized_later": True,
+        "stage_129p_current_status": "CLOSED_COMMITTED",
+        "next_eligible_stage": None,
+        "proactive_execution_authorized": True,
+        "local_completion_failure_candidate_creation_authorized": True,
+        "existing_122p_delegation_lineage_required": True,
+        "daily_brief_snapshot_authorized": True,
+        "read_only_daily_brief_rendering_authorized": True,
+        "inbox_insertion_authorized": False,
+        "result_surface_authorized": False,
+        "telegram_delivery_authorized": False,
+        "worker_dispatch_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "live_connector_read_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "memory_proposal_creation_authorized": False,
+        "new_action_packets_authorized": False,
+        "new_delegations_authorized": False,
+        "live_telegram_api_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "external_effects_authorized": False,
+    }
+    assert stages_by_id["123P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["124P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["125P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["126P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["127P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["128P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["129P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_124p_transition_records_later_125p_through_129p_closeout_and_keeps_130p_plus_blocked():
+    transition = load_json_block("stage-124p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "124P",
+        "stage_name": "What Did I Miss? Daily Brief v0",
+        "implementation_commit": "same_commit_as_124P_closeout",
+        "stage_125p_authorized_later": True,
+        "stage_125p_current_status": "CLOSED_COMMITTED",
+        "stage_126p_authorized_later": True,
+        "stage_126p_current_status": "CLOSED_COMMITTED",
+        "stage_127p_authorized_later": True,
+        "stage_127p_current_status": "CLOSED_COMMITTED",
+        "stage_128p_authorized_later": True,
+        "stage_128p_current_status": "CLOSED_COMMITTED",
+        "stage_129p_authorized_later": True,
+        "stage_129p_current_status": "CLOSED_COMMITTED",
+        "next_eligible_stage": None,
+        "daily_brief_snapshot_authorized": True,
+        "renderable_local_brief_text_authorized": True,
+        "read_only_local_aggregation_authorized": True,
+        "existing_103p_through_123p_local_records_required": True,
+        "skill_pack_activation_surface_authorized": True,
+        "telegram_delivery_authorized": False,
+        "callback_binding_authorized": False,
+        "followup_intent_creation_authorized": False,
+        "async_delegation_authorized": False,
+        "execution_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "memory_proposal_creation_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "live_connector_read_authorized": False,
+        "external_write_authorized": False,
+        "worker_dispatch_authorized": False,
+        "live_telegram_api_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "external_effects_authorized": False,
+    }
+    assert stages_by_id["124P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["125P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["126P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["127P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["128P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["129P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_125p_transition_records_later_126p_through_129p_closeout_and_keeps_130p_plus_blocked():
+    transition = load_json_block("stage-125p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "125P",
+        "stage_name": "Skill Pack Activation Surface v0",
+        "implementation_commit": "same_commit_as_125P_closeout",
+        "stage_126p_authorized_later": True,
+        "stage_126p_current_status": "CLOSED_COMMITTED",
+        "stage_127p_authorized_later": True,
+        "stage_127p_current_status": "CLOSED_COMMITTED",
+        "stage_128p_authorized_later": True,
+        "stage_128p_current_status": "CLOSED_COMMITTED",
+        "stage_129p_authorized_later": True,
+        "stage_129p_current_status": "CLOSED_COMMITTED",
+        "next_eligible_stage": None,
+        "skill_pack_activation_surface_authorized": True,
+        "read_only_skill_pack_classification_authorized": True,
+        "renderable_local_skill_pack_surface_authorized": True,
+        "existing_103p_through_124p_local_records_required": True,
+        "billing_authorized": False,
+        "entitlement_enforcement_authorized": False,
+        "package_activation_authorized": False,
+        "upgrade_prompt_authorized": False,
+        "telegram_delivery_authorized": False,
+        "callback_binding_authorized": False,
+        "followup_intent_creation_authorized": False,
+        "async_delegation_authorized": False,
+        "execution_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "memory_proposal_creation_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "live_connector_read_authorized": False,
+        "external_write_authorized": False,
+        "worker_dispatch_authorized": False,
+        "live_telegram_api_authorized": False,
+        "callbacks_or_webhooks_authorized": False,
+        "external_effects_authorized": False,
+    }
+    assert stages_by_id["125P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["126P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["127P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["128P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["129P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_129p_transition_records_130p_closeout_and_keeps_131p_plus_blocked():
+    transition = load_json_block("stage-129p-implementation-transition")
+    stages_by_id = {stage["stage_id"]: stage for stage in load_stage_registry()}
+
+    assert transition == {
+        "implementation_status": "CLOSED_COMMITTED",
+        "stage": "129P",
+        "stage_name": "Hermes Runtime Bootstrap v0",
+        "implementation_commit": "same_commit_as_129P_closeout",
+        "stage_130p_authorized_later": True,
+        "stage_130p_current_status": "CLOSED_COMMITTED",
+        "stage_131p_and_later_authorized": False,
+        "next_eligible_stage": None,
+        "runtime_bootstrap_authorized": True,
+        "manual_local_run_authorized": True,
+        "deterministic_local_config_required": True,
+        "robot_identity_validation_required": True,
+        "owner_identity_validation_required": True,
+        "module_availability_check_authorized": True,
+        "runtime_health_report_authorized": True,
+        "telegram_startup_authorized": False,
+        "live_connector_read_authorized": False,
+        "provider_calls_authorized": False,
+        "model_calls_authorized": False,
+        "tool_calls_authorized": False,
+        "worker_dispatch_authorized": False,
+        "memory_center_mutation_authorized": False,
+        "billing_authorized": False,
+        "entitlement_enforcement_authorized": False,
+        "external_write_authorized": False,
+        "external_effects_authorized": False,
+    }
+    assert stages_by_id["129P"]["status"] == "CLOSED_COMMITTED"
+    assert stages_by_id["130P"]["status"] == "CLOSED_COMMITTED"
+    assert [stage for stage in stages_by_id.values() if stage["status"] == "NEXT_ELIGIBLE"] == []
+
+
+def test_sequencing_rules_preserve_story_spec_build_and_validation_gates():
+    rules = load_json_block("roadmap-sequencing-rules")
+
+    assert set(rules) == REQUIRED_SEQUENCE_RULES
+
+
+def test_deferred_candidates_are_unimplemented_and_use_approved_classifications():
+    candidates = load_json_block("deferred-candidate-registry")
+    candidate_ids = [candidate["candidate_id"] for candidate in candidates]
+
+    assert set(candidate_ids) == REQUIRED_DEFERRED_IDS
+    assert len(candidate_ids) == len(set(candidate_ids))
+    assert all(
+        candidate["classification"] in ALLOWED_DEFERRED_CLASSIFICATIONS
+        for candidate in candidates
+    )
+    assert all(candidate["authority_source"] == "explicit_maintainer_direction" for candidate in candidates)
+    assert all(candidate["reopen_requirements"] for candidate in candidates)
+    assert all(candidate["implementation_authorized"] is False for candidate in candidates)
+
+
+def test_blocked_v0_registry_is_complete_and_never_authorized():
+    blocked = load_json_block("canonical-blocked-v0-registry")
+    blocked_ids = [item["blocked_id"] for item in blocked]
+
+    assert set(blocked_ids) == REQUIRED_BLOCKED_IDS
+    assert len(blocked_ids) == len(set(blocked_ids))
+    assert all(item["behavior"] for item in blocked)
+    assert all(item["reason"] for item in blocked)
+    assert all(item["reopen_requirements"] for item in blocked)
+    assert all(item["implementation_authorized"] is False for item in blocked)

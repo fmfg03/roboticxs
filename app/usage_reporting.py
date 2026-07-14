@@ -36,7 +36,7 @@ def is_spend_command(text: str) -> bool:
 
 
 def is_token_usage_command(text: str) -> bool:
-    return text.strip().lower() == TOKEN_USAGE_COMMAND
+    return text.strip().lower() in {TOKEN_USAGE_COMMAND, "/usage", "usage", "show usage"}
 
 
 def build_usage_summary(*, session: Session, user_id: str, robot_id: str) -> UsageSummary:

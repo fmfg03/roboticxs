@@ -1,0 +1,21 @@
+{
+  "schema_version": "context_gate_receipt_v0",
+  "created_at": "2026-06-14T17:46:03+00:00",
+  "session_id": "019ec732-efdf-7da1-9276-10c51b8b4c40",
+  "project": "roboticxs",
+  "policy_profile": "factory_default",
+  "estimated_tokens": 156002,
+  "budget_band": "RED",
+  "decision": "HANDOFF_REQUIRED",
+  "reason_codes": [
+    "RED_BAND_REQUIRES_HANDOFF",
+    "TOOL_CALL_VOLUME_HIGH",
+    "FILE_REFERENCE_VOLUME_HIGH",
+    "HANDOFF_PRESENT_AND_VALID"
+  ],
+  "handoff_required": true,
+  "handoff_path": "/root/roboticxs/artifacts/context_budget/HANDOFF_019ec732-efdf-7da1-9276-10c51b8b4c40.md",
+  "session_summary_path": "/root/roboticxs/artifacts/context_budget/session_019ec732-efdf-7da1-9276-10c51b8b4c40.summary.json",
+  "operator_override": false,
+  "receipt_hash": "18a44761ac6737636536636d8bf34d23a23e057d075c0ace09128b6f5129f216"
+}

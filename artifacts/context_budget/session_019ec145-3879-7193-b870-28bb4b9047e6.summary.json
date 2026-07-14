@@ -1,0 +1,233 @@
+{
+  "schema_version": "session_summary_v0",
+  "session_id": "019ec145-3879-7193-b870-28bb4b9047e6",
+  "project": "roboticxs",
+  "repo": "/root/roboticxs",
+  "branch": "dirty/reference-before-runtime-promotion-20260601",
+  "latest_commit": "1e99b02b5cb79f37587322eabc317979abf77c25",
+  "budget_band": "HARD_LIMIT",
+  "estimated_tokens": 216734,
+  "handoff_path": "artifacts/context_budget/HANDOFF_019ec145-3879-7193-b870-28bb4b9047e6.md",
+  "next_action": "Read this handoff, verify repo state, and continue from the latest approved scope.",
+  "files_touched": [
+    ".../HERMES_RUNTIME_FOUNDATION_BOOTSTRAP_v0_1.md",
+    ".../TELEGRAM_BOT_RUNTIME_BOOTSTRAP_v0_1.md",
+    "./deploy-production.sh",
+    "./scripts/ci/pcs-container-smoke-gate.sh",
+    "./scripts/ci/pcs-ephemeral-gate.sh",
+    "./scripts/ci/pcs-sbom-vuln-gate.sh",
+    "./scripts/ci/sal3-loop-gate.sh",
+    ".codex-plugin/plugin.json",
+    ".codex/config.toml",
+    ".git-local/index.lock",
+    ".github/workflows/ci.yml",
+    "/INSTRUCTIONS",
+    "/abs/path/My",
+    "/abs/path/app.py",
+    "/api/telegram/runtime/webhook",
+    "/api/telegram/webhook",
+    "/apps_instructions",
+    "/arxiv.org/abs",
+    "/auth",
+    "/autoreview",
+    "/bin/bash",
+    "/citation_entries",
+    "/collaboration_mode",
+    "/context-budget",
+    "/current_date"
+  ],
+  "commands_run": [
+    {
+      "command": "sed -n '1,220p' /root/.agents/skills/source-command-git-commit/SKILL.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' artifacts/context_budget/HANDOFF_019ebf86-c891-7182-884f-541ad8330847.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git status --short",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git --no-pager diff -- docs/reference/ROADMAP_CONTINUATION_AUTHORIZATION_GATE_v0_1.md tests/test_roadmap_continuation_authorization_gate.py docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md tests/test_canonical_roadmap.py tests/test_voxcpm_research_parking_lot.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git --no-pager diff --stat -- docs/reference/ROADMAP_CONTINUATION_AUTHORIZATION_GATE_v0_1.md tests/test_roadmap_continuation_authorization_gate.py docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md tests/test_canonical_roadmap.py tests/test_voxcpm_research_parking_lot.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git --no-pager log --oneline -5",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' docs/reference/ROADMAP_CONTINUATION_AUTHORIZATION_GATE_v0_1.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' tests/test_roadmap_continuation_authorization_gate.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "pytest -q tests/test_roadmap_continuation_authorization_gate.py tests/test_canonical_roadmap.py tests/test_voxcpm_research_parking_lot.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git add docs/reference/ROADMAP_CONTINUATION_AUTHORIZATION_GATE_v0_1.md tests/test_roadmap_continuation_authorization_gate.py docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md tests/test_canonical_roadmap.py tests/test_voxcpm_research_parking_lot.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git status --short",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git --no-pager diff --cached --stat",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git --no-pager diff --cached --name-only",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git commit -m \"docs: add roadmap continuation authorization gate\"",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git rev-parse HEAD",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git status --short",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git --no-pager log --oneline -5",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' /root/.codex/skills/codex-factory-context-budget/SKILL.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "git status --short",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "rg --files",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "python /root/tools/context-budget/context_budget.py status --session-id current --project roboticxs",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' app/orchestrator.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,240p' app/schemas.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,220p' tests/test_canonical_roadmap.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "python3 /root/tools/context-budget/context_budget.py status --session-id current --project roboticxs",
+      "result": "observed",
+      "notes": "Transcript command"
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "You are Codex, a coding agent based on GPT-5. You and the user share one workspace, and your job is to collaborate with them until their goal is genuinely handled.\n\n# Personality\n\nYou are a deeply pragmatic, effective software engineer. You",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "<skills_instructions>\n## Skills\nA skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the s",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "# AGENTS.md instructions for /root/roboticxs\n\n<INSTRUCTIONS>\n# Global Codex Operating Standard\n\nThis file defines how Codex should work across repos.\nRepo-specific truth belongs in repo-level `AGENTS.md` overlays, not here.\n\n## Operating Pr",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "Chunk ID: 0c1be4\nWall time: 0.0035 seconds\nProcess exited with code 0\nOriginal token count: 5751\nOutput:\n# Governed Session Handoff\n\n## 1. Session Identity\n- Project: roboticxs\n- Repo: /root/roboticxs\n- Branch: dirty/reference-before-runtim",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "Chunk ID: b57691\nWall time: 0.0000 seconds\nProcess exited with code 0\nOriginal token count: 1778\nOutput:\n# Roadmap Continuation Authorization Gate v0.1\n\n## Status\n\nStage 77P defines a docs-only roadmap governance gate.\n\nThis stage creates n",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    }
+  ],
+  "blockers": [
+    {
+      "blocker": "You are Codex, a coding agent based on GPT-5. You and the user share one workspace, and your job is to collaborate with them until their goal is genuinely handled.\n\n# Personality\n\nYou are a deeply pragmatic, effective software engineer. You",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "<skills_instructions>\n## Skills\nA skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the s",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "<plugins_instructions>\n## Plugins\nA plugin is a local bundle of skills, MCP servers, and apps. Below is the list of plugins that are enabled and available in this session.\n### Available plugins\n- `Canva`: Search, create, edit designs\n- `Git",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "Chunk ID: 0c1be4\nWall time: 0.0035 seconds\nProcess exited with code 0\nOriginal token count: 5751\nOutput:\n# Governed Session Handoff\n\n## 1. Session Identity\n- Project: roboticxs\n- Repo: /root/roboticxs\n- Branch: dirty/reference-before-runtim",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "Chunk ID: b57691\nWall time: 0.0000 seconds\nProcess exited with code 0\nOriginal token count: 1778\nOutput:\n# Roadmap Continuation Authorization Gate v0.1\n\n## Status\n\nStage 77P defines a docs-only roadmap governance gate.\n\nThis stage creates n",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    }
+  ],
+  "redaction": {
+    "secrets_detected": false,
+    "pii_detected": false,
+    "redaction_patterns_applied": [
+      "PHONE"
+    ]
+  },
+  "handoff_sha256": "9a0d0c1d1718069ff5bb0272d3d47e61a12b5aae18958b52e5a177d6f7b0130a"
+}

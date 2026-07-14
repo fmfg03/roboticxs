@@ -1,0 +1,23 @@
+{
+  "schema_version": "context_gate_receipt_v0",
+  "created_at": "2026-06-17T03:06:56Z",
+  "session_id": "019ed378-a053-75d0-83ac-38ca4a4cc9cd",
+  "project": "roboticxs",
+  "policy_profile": "factory_default",
+  "estimated_tokens": 172630,
+  "budget_band": "RED",
+  "decision": "HANDOFF_REQUIRED",
+  "reason_codes": [
+    "RED_BAND_REQUIRES_HANDOFF",
+    "TOOL_CALL_VOLUME_HIGH",
+    "FILE_REFERENCE_VOLUME_HIGH"
+  ],
+  "handoff_required": true,
+  "handoff_path": "artifacts/context_budget/HANDOFF_019ed378-a053-75d0-83ac-38ca4a4cc9cd.md",
+  "session_summary_path": "artifacts/context_budget/session_019ed378-a053-75d0-83ac-38ca4a4cc9cd.summary.json",
+  "operator_override": false,
+  "notes": [
+    "Official context_budget.py gate/handoff writes to /root/artifacts and failed in sandbox.",
+    "Equivalent governed handoff artifacts were written into repo-local artifacts/context_budget/."
+  ]
+}

@@ -1,10 +1,15 @@
 from __future__ import annotations
 
 from pathlib import Path
+import sys
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import func, select
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from app.main import create_app
 from app.models import (

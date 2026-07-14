@@ -1,0 +1,27 @@
+{
+  "schema_version": "context_gate_receipt_v0",
+  "created_at": "2026-06-20T15:24:18Z",
+  "session_id": "20260620T152418Z_117p",
+  "project": "roboticxs",
+  "policy_profile": "factory_default",
+  "estimated_tokens": null,
+  "budget_band": "RED",
+  "decision": "HANDOFF_REQUIRED",
+  "reason_codes": [
+    "MULTI_PHASE_IMPLEMENTATION_SESSION",
+    "FILE_REFERENCE_VOLUME_HIGH",
+    "VALIDATION_VOLUME_HIGH",
+    "HANDOFF_REQUIRED"
+  ],
+  "handoff_required": true,
+  "handoff_path": "artifacts/context_budget/HANDOFF_20260620T152418Z_117p.md",
+  "session_summary_path": "artifacts/context_budget/session_20260620T152418Z_117p.summary.json",
+  "operator_override": false,
+  "notes": [
+    "This governed handoff package is repo-local continuity metadata, not authority-bearing runtime state.",
+    "The official context-budget helper was not run for this session; estimated token count is unavailable in this sandboxed repo-local package.",
+    "117P is closed committed at 2e30960 with commit message feat: add memory center writeback.",
+    "116P remains closed committed at 4f80be5.",
+    "118P and later remain unauthorized."
+  ]
+}

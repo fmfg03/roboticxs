@@ -1,12 +1,12 @@
 # ROBOTICXS — ChatGPT Project Starter
 
-> **Project:** Roboticxs.com  
-> **Status:** Product planning / MVP definition  
-> **Purpose:** Use this document as the starting context for a separate ChatGPT Project dedicated only to Roboticxs.  
-> **Strategic parent:** Agentius  
-> **Future upgrade path:** Agentius governed workflows → Zaubern authority layer  
-> **Runtime base:** Hermes Agent  
-> **Primary market:** B2C / prosumer / small business  
+> **Project:** Roboticxs.com
+> **Status:** Product planning / MVP definition
+> **Purpose:** Use this document as the starting context for a separate ChatGPT Project dedicated only to Roboticxs.
+> **Strategic parent:** Agentius
+> **Future upgrade path:** Agentius governed workflows → Zaubern authority layer
+> **Runtime base:** Hermes Agent as runtime substrate, not consumer-facing product
+> **Primary market:** B2C / prosumer / small business
 > **Product category:** Personal AI robots with memory, skills, model routing, and safety boundaries
 
 ---
@@ -40,6 +40,8 @@ Agentius should feel operational and B2B.
 
 Zaubern should remain the deeper authority infrastructure layer.
 
+Hermes should be treated as operational runtime substrate, not as the Roboticxs product, consumer UX, safety layer, memory approval layer, or final authority boundary.
+
 ---
 
 ## 2. Product Thesis
@@ -53,6 +55,7 @@ They need a personal robot that:
 - detects opportunities,
 - activates skills when needed,
 - picks the cheapest adequate LLM for each task,
+- routes by policy first and model second,
 - tracks token usage and cost,
 - respects explicit boundaries,
 - asks before doing sensitive things,
@@ -66,9 +69,16 @@ The core contrast:
 
 > ChatGPT answers. Roboticxs remembers, routes, and works with you every day.
 
+Roboticxs should not be framed as a vault, PKM tool, graph UI, or autonomous agent UX. It should be framed as a simple approved-memory robot that turns authorized context into useful attention and prepared actions.
+
 ---
 
 ## 3. Product Positioning
+
+Important translation rule:
+
+- Do not position Roboticxs as an open-ended autonomous agent.
+- Position it as a bounded robot that prepares, organizes, reminds, and asks before acting.
 
 ### Spanish
 
@@ -76,7 +86,7 @@ The core contrast:
 
 Subheadline:
 
-> Elige tu robot, conecta tus herramientas y empieza a usar IA todos los días.
+> Elige tu robot, aprueba lo que recuerda y empieza con ayuda útil desde tu estado local hoy.
 
 Sharper version:
 
@@ -88,7 +98,7 @@ Sharper version:
 
 Subheadline:
 
-> Connect your tools, approve what your robot remembers, and let it help you every day.
+> Approve what your robot remembers, start from local state today, and expand its tools only when those capabilities are implemented.
 
 ---
 
@@ -134,11 +144,11 @@ Includes:
 
 - Memory Center,
 - Context Scan,
-- calendar / meeting prep,
-- inbox summary,
+- local-state meeting prep,
+- local-state attention summary,
 - task reminders,
-- basic document summary,
-- daily brief,
+- basic document review from user-supplied text,
+- local-state daily attention brief,
 - simple drafting.
 
 ### Pro Package
@@ -147,13 +157,13 @@ For users who want a real work operator.
 
 Includes Basic plus:
 
-- PDF/document review,
+- deeper document review planning,
 - sales follow-up,
 - marketing drafts,
 - recurring reports,
 - deeper memory,
-- more connectors,
-- stronger model routing options,
+- future connector options,
+- stronger routing policy options,
 - higher token/budget limits.
 
 ### Specialty Packages
@@ -166,7 +176,7 @@ Sold as add-ons.
 | Sales Pack | Prospect research, CRM summaries, follow-up drafts, pipeline reminders |
 | Finance/Admin Pack | Invoices, payment prep, accounts receivable reminders, expense summaries |
 | HR Pack | Candidate summaries, interview prep, internal policy Q&A, onboarding checklists |
-| Documents Pack | PDF review, form filling, annotation, meeting-ready document summaries |
+| Documents Pack | Document review planning, form-draft preparation, annotation, meeting-ready summaries from approved text |
 
 ### All-Inclusive Package
 
@@ -247,7 +257,7 @@ Minimum structure:
 
 Context Scan is the onboarding mechanism that makes the robot useful quickly.
 
-With explicit user authorization, the robot can inspect approved sources such as:
+With explicit user authorization, future versions of the robot may inspect approved sources such as:
 
 - email,
 - calendar,
@@ -255,6 +265,10 @@ With explicit user authorization, the robot can inspect approved sources such as
 - selected documents,
 - selected social/business channels,
 - CRM or task system where configured.
+
+Today, the committed runtime should be described as local-state-first. It can use persisted local records, approved memory, document-review records, file metadata, and local control surfaces. It must not imply live connector access unless that capability is explicitly implemented and authorized.
+
+Robbie only uses authorized sources. When connectors are not active, Robbie must say it is using local state only and must not imply it checked email, WhatsApp, calendar, web, files, or external systems live.
 
 The robot should not store raw data by default.
 
@@ -286,6 +300,8 @@ Spanish:
 Memory is the product center.
 
 Roboticxs should not behave like a generic chatbot. It should maintain a structured, editable profile for each user and robot.
+
+The robot may detect possible memories, but the user approves what becomes durable memory.
 
 ### Memory Types
 
@@ -344,6 +360,8 @@ Roboticxs should not behave like a generic chatbot. It should maintain a structu
 
 Create a visible **Memory Center**.
 
+This should remain a simple user-facing surface, not a vault, markdown graph, backlink system, or user-managed PKM workflow.
+
 Sections:
 
 - Who you are
@@ -370,23 +388,29 @@ Actions:
 
 The robot should not only wait for commands.
 
-It should detect useful opportunities from authorized context.
+It should detect useful opportunities from authorized context as those sources are implemented over time. Today, the first shipped attention loop is local-state-only.
 
 Examples:
 
-- upcoming meeting + related email + attached NDA,
-- lead wrote back + no follow-up scheduled,
-- invoice received + due date approaching,
+- upcoming meeting record + approved notes + pending NDA review,
+- local lead follow-up reminder with no next step scheduled,
+- local invoice reminder + due date approaching,
 - customer complaint + prior refund policy,
 - proposal sent + no response after 5 days,
-- calendar event tomorrow + missing briefing,
-- PDF received + likely needs review before meeting.
+- local calendar/task record tomorrow + missing briefing,
+- document metadata received + likely needs review before meeting.
 
 Example UX:
 
 > “Francisco, tomorrow you have a meeting with Victor at 11:00. I saw he sent an NDA. Do you want me to review it, give you comments, and prepare a version for signature if you approve it?”
 
+That example is future-facing product behavior. Current runtime truth is narrower: local-state summaries, text-simulated document review, and approval-gated preparation without live connector checks or file-content parsing.
+
 Important: the robot should propose, not execute sensitive actions silently.
+
+Scheduled or background work should remain bounded, auditable, and approval-based at sensitive boundaries. Roboticxs should not use open-ended autonomy language for consumer-facing behavior.
+
+Stage 27P should be understood as the first local-state-only attention loop. It summarizes what may need attention using only persisted local state and must not imply live email, WhatsApp, calendar, web, or connector monitoring.
 
 ---
 
@@ -414,13 +438,13 @@ The Documents Pack is one of the strongest initial premium packs.
 
 Capabilities:
 
-- receive PDFs through Telegram or web,
-- summarize PDFs,
-- highlight important sections,
-- annotate risks,
-- fill simple forms,
+- receive file metadata through Telegram today, with richer document flows planned later,
+- summarize user-supplied text today, with PDF-content review planned for a future approved stage,
+- highlight important sections from approved text,
+- annotate risks in user-supplied text,
+- prepare simple form drafts in planning scope,
 - prepare document review notes,
-- prepare meeting briefings from document context,
+- prepare meeting briefings from approved text or persisted local context,
 - place visual signature/initials only after confirmation.
 
 Important boundary:
@@ -437,6 +461,10 @@ Never claim:
 Correct positioning:
 
 > Roboticxs can help you review, summarize, mark, and prepare documents. It does not replace legal, tax, financial, or professional advice.
+
+Current runtime note:
+
+> Today, Roboticxs supports text-simulated document review and file metadata handling. It does not yet parse PDFs, OCR files, or review attachment bytes directly.
 
 ---
 
@@ -481,7 +509,9 @@ Ask confirmation by default:
 - schedule with third party,
 - publish content,
 - modify CRM field,
-- create customer-facing document.
+- create customer-facing document,
+- submit forms,
+- download documents from external systems.
 
 Blocked by default:
 
@@ -493,7 +523,8 @@ Blocked by default:
 - legal acceptance,
 - tax, financial, legal, medical, or employment decision,
 - production deployment,
-- destructive action.
+- destructive action,
+- contract approval.
 
 ### UX Language
 
@@ -519,9 +550,19 @@ Avoid consumer-facing terms:
 
 Roboticxs should not use the most expensive LLM for every task.
 
-The platform needs a model router that selects the cheapest model that can safely complete the task at the required quality level.
+The platform needs a routing layer that selects the cheapest adequate model path that can safely complete the task at the required quality level.
 
-Supported providers should include:
+Core routing rule:
+
+> Route by policy first, model second.
+
+The model does not decide whether it has authority to pay, publish, send, delete, accept legal terms, change credentials, or modify external systems. Those are policy decisions.
+
+Low-latency principle:
+
+> Acknowledge quickly, route cheaply, stream when useful, and move long work to bounded background execution.
+
+Target provider strategy should eventually include:
 
 - OpenAI,
 - Anthropic,
@@ -531,7 +572,9 @@ Supported providers should include:
 - NVIDIA NIM,
 - local/open-source endpoints where feasible.
 
-Provider support should be abstracted behind a common interface.
+In the committed runtime today, routing and cost behavior should be described as local scaffolding and policy logic, not as a broad live multi-provider execution surface.
+
+Provider support should be abstracted behind a common interface as the runtime expands.
 
 ### Task Classes
 
@@ -553,6 +596,8 @@ Provider support should be abstracted behind a common interface.
 - Balanced Mode
 - Premium Mode
 - BYOK Mode
+
+Realtime and background work should be treated as distinct execution lanes. Long-running document or web-admin preparation belongs in bounded async/background execution with user-visible progress and approval gates where sensitive actions would begin.
 
 ---
 
@@ -621,8 +666,8 @@ A robot should not get unlimited model-spend authority just because it can call 
 - 1 robot
 - limited memory
 - limited usage
-- no sensitive connectors
-- model routing enabled
+- no sensitive connectors in the initial planned offer
+- model routing visibility enabled
 - token dashboard visible
 
 ### Starter
@@ -633,10 +678,10 @@ Includes:
 
 - 1 robot,
 - memory profile,
-- Telegram/web,
+- Telegram first, with web expansion planned,
 - general tasks,
 - Basic Package,
-- 1–2 connectors,
+- planned connector options once implemented,
 - token counter,
 - economy/balanced routing,
 - BYOK option.
@@ -651,7 +696,7 @@ Includes:
 - Pro Package,
 - more memory,
 - recurring tasks,
-- more connectors,
+- additional planned connector options once implemented,
 - weekly reports,
 - model routing modes,
 - budget controls,
@@ -679,7 +724,7 @@ Includes:
 - higher token/budget limits,
 - advanced memory,
 - priority routing,
-- more connectors,
+- future connector expansion where implemented,
 - premium support tier.
 
 ### Optional Done-for-You Setup
@@ -690,7 +735,7 @@ Includes:
 
 - robot setup,
 - memory interview,
-- connector setup,
+- future connector setup where implemented,
 - initial task setup,
 - usage tutorial.
 
@@ -740,7 +785,7 @@ Agentius offers:
 - token counter
 - cost dashboard
 - budget governor
-- basic connector system
+- future connector system
 - Telegram interface
 - lightweight Zaubern safety layer
 
@@ -802,7 +847,7 @@ Minimum entities:
 - memory profile completion,
 - context scan completion,
 - recurring task creation,
-- connector activation,
+- future connector activation after implementation,
 - tasks per active user,
 - proactive suggestions accepted,
 - user-reported usefulness.
@@ -837,7 +882,7 @@ Minimum entities:
 
 ### Subheadline
 
-> Conecta tu correo, calendario y documentos. Roboticxs aprende tu contexto con tu permiso, recuerda lo importante y te propone qué hacer antes de que se te pase algo.
+> Autoriza lo que Robbie puede usar, aprueba lo que recuerda y deja que te señale qué necesita atención antes de que se te pase algo.
 
 ### CTA
 
@@ -898,4 +943,17 @@ Final product statement:
 7. Create `TOKEN_COUNTER_SPEC_v0_1.md`.
 8. Create landing page copy.
 9. Create Hermes MVP technical plan.
-10. Define first demo: Telegram + Context Scan + Document Review + Meeting Briefing.
+10. Add planning addendum: `ROBOTICXS_BRIEF_ADDITIONS_HERMES_ROUTING_WEB_TASK_v0_1.md`.
+11. Create planned future specs:
+   - `HERMES_ADAPTER_SPEC_v0_1.md`
+   - `LATENCY_ROUTING_SPEC_v0_1.md`
+   - `WEB_TASK_WORKER_SPEC_v0_1.md`
+12. Add planning addendum: `ROBOTICXS_BRIEF_ADDITIONS_KNOWLEDGE_LOOP_POLICY_v0_1.md`.
+13. Add planned future docs/specs:
+   - `ROBOT_FOLDER_SPEC_v0_1.md`
+   - `APPROVED_MEMORY_POLICY_SPEC_v0_1.md`
+   - `ACTION_BOUNDARY_POLICY_SPEC_v0_1.md`
+   - `BACKGROUND_WORK_POLICY_SPEC_v0_1.md`
+   - `SOURCE_POLICY_SPEC_v0_1.md`
+14. Define first demo: Telegram + Memory Approval + Document Review + Meeting Briefing + Low-Latency Model Routing.
+15. Define second demo candidate: Telegram + Web Task Worker + Appointment Search + Human Confirmation.

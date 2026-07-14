@@ -65,6 +65,30 @@ def get_latest_pending_proposal(*, session: Session, user_id: str, robot_id: str
     )
 
 
+def list_pending_proposals(*, session: Session, user_id: str, robot_id: str) -> list[ProposedMemory]:
+    return session.scalars(
+        select(ProposedMemory)
+        .where(
+            ProposedMemory.user_id == user_id,
+            ProposedMemory.robot_id == robot_id,
+            ProposedMemory.status == "PENDING",
+        )
+        .order_by(desc(ProposedMemory.created_at))
+    ).all()
+
+
+def get_proposal_by_id(*, session: Session, user_id: str, robot_id: str, proposal_id: str) -> ProposedMemory | None:
+    return session.scalar(
+        select(ProposedMemory)
+        .where(
+            ProposedMemory.id == proposal_id,
+            ProposedMemory.user_id == user_id,
+            ProposedMemory.robot_id == robot_id,
+        )
+        .limit(1)
+    )
+
+
 def approve_proposal(*, session: Session, proposal: ProposedMemory) -> MemoryItem:
     proposal.status = "APPROVED"
     proposal.decided_at = now_utc()
@@ -94,5 +118,17 @@ def display_label_for_memory_type(memory_type: str) -> str:
         "BOUNDARY_MEMORY": "Boundary",
         "USER_PROFILE": "Profile",
         "BUSINESS_CONTEXT": "Business context",
+        "UPGRADE_INTEREST": "Interés local",
         "TASK_MEMORY": "Memory",
     }.get(memory_type, "Memory")
+
+
+def pending_display_label_for_memory_type(memory_type: str) -> str:
+    return {
+        "WORK_PREFERENCE": "Preferencia de trabajo pendiente",
+        "BOUNDARY_MEMORY": "Límite del robot pendiente",
+        "USER_PROFILE": "Perfil pendiente",
+        "BUSINESS_CONTEXT": "Contexto de negocio pendiente",
+        "UPGRADE_INTEREST": "Interés local pendiente",
+        "TASK_MEMORY": "Memoria pendiente",
+    }.get(memory_type, "Memoria pendiente")

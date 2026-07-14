@@ -8,6 +8,11 @@ TRIGGERS = [
     "i usually ",
     "never ",
     "ask before ",
+    "guarda esto para agentius",
+    "guarda esto como algo que quiero revisar para agentius",
+    "quiero revisar esto para agentius",
+    "guarda este interés de agentius",
+    "guarda este interes de agentius",
 ]
 
 PROFILE_PATTERNS = [
@@ -35,6 +40,16 @@ def extract_proposed_memory(text: str) -> dict[str, str] | None:
     stripped = text.strip()
     normalized = stripped.lower()
 
+    if normalized.startswith("guarda esto para agentius"):
+        return build_upgrade_interest_memory(detail=stripped)
+    if normalized.startswith("guarda esto como algo que quiero revisar para agentius"):
+        return build_upgrade_interest_memory(detail=stripped)
+    if normalized.startswith("quiero revisar esto para agentius"):
+        return build_upgrade_interest_memory(detail=stripped)
+    if normalized.startswith("guarda este interés de agentius"):
+        return build_upgrade_interest_memory(detail=stripped)
+    if normalized.startswith("guarda este interes de agentius"):
+        return build_upgrade_interest_memory(detail=stripped)
     if normalized.startswith("remember that "):
         content = stripped[len("remember that ") :].strip()
         return classify_memory_content(content)
@@ -121,6 +136,39 @@ def build_profile_memory(*, pattern: str, detail: str) -> dict[str, str]:
         "memory_type": "WORK_PREFERENCE",
         "label": "Preference",
         "content": f"Your preferred {detail}.",
+        "importance": "normal",
+    }
+
+
+def build_upgrade_interest_memory(*, detail: str) -> dict[str, str]:
+    normalized = detail.strip().rstrip(".")
+    lowered = normalized.lower()
+    prefixes = (
+        "guarda esto para agentius después",
+        "guarda esto para agentius despues",
+        "guarda esto para agentius",
+        "guarda esto como algo que quiero revisar para agentius después",
+        "guarda esto como algo que quiero revisar para agentius despues",
+        "guarda esto como algo que quiero revisar para agentius",
+        "quiero revisar esto para agentius después",
+        "quiero revisar esto para agentius despues",
+        "quiero revisar esto para agentius",
+        "guarda este interés de agentius",
+        "guarda este interes de agentius",
+    )
+    extracted = ""
+    for prefix in prefixes:
+        if lowered.startswith(prefix):
+            extracted = normalized[len(prefix) :].strip(" .:-")
+            break
+    if extracted:
+        content = f"Interés local para revisar después con Agentius: {extracted.rstrip('.')}."
+    else:
+        content = "Interés local para revisar después con Agentius."
+    return {
+        "memory_type": "UPGRADE_INTEREST",
+        "label": "Interés local",
+        "content": content,
         "importance": "normal",
     }
 

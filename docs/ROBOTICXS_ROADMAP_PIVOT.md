@@ -49,12 +49,34 @@ This means:
 ### Stage 31P — Web Workflow Preflight Framework
 - bounded web-admin preparation pattern
 - Robbie prepares, user confirms
+- experimental browser-task path only after sandbox-first validation
 
 ### Stage 32P — Skill Activation + Pricing Metadata
 - pain-based skill activation and setup metadata
 
 ### Stage 33P — Opportunity Log / Agentius Lead Handoff
 - register unmet high-value requests as product and sales signals
+
+## Planned documentation/spec backlog
+
+The following documents are planned and should not be read as implemented runtime:
+- `docs/HERMES_ADAPTER_SPEC_v0_1.md`
+- `docs/LATENCY_ROUTING_SPEC_v0_1.md`
+- `docs/WEB_TASK_WORKER_SPEC_v0_1.md`
+- `docs/ROBOTICXS_MIRIX_MEMORY_EVALUATION_v0_1.md`
+- `ROBOT_FOLDER_SPEC_v0_1.md`
+- `APPROVED_MEMORY_POLICY_SPEC_v0_1.md`
+- `ACTION_BOUNDARY_POLICY_SPEC_v0_1.md`
+- `BACKGROUND_WORK_POLICY_SPEC_v0_1.md`
+- `SOURCE_POLICY_SPEC_v0_1.md`
+
+These docs should formalize:
+- Hermes as runtime substrate, not product
+- policy-first low-latency routing
+- Web Task Worker / Webwright as experimental sandbox-first infrastructure
+- MIRIX as a future internal memory-plane adapter candidate only after MVP
+- Robot Folder / Mi informacion importante as a future user-facing surface
+- approved memory, source policy, background work policy, and action boundary policy
 
 ## Product principle behind the pivot
 

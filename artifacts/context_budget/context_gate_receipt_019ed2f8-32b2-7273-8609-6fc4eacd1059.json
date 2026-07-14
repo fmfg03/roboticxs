@@ -1,0 +1,20 @@
+{
+  "schema_version": "context_gate_receipt_v0",
+  "created_at": "2026-06-17T00:42:06+00:00",
+  "session_id": "019ed2f8-32b2-7273-8609-6fc4eacd1059",
+  "project": "roboticxs",
+  "policy_profile": "factory_default",
+  "estimated_tokens": 151222,
+  "budget_band": "RED",
+  "decision": "HANDOFF_REQUIRED",
+  "reason_codes": [
+    "RED_BAND_REQUIRES_HANDOFF",
+    "TOOL_CALL_VOLUME_HIGH",
+    "FILE_REFERENCE_VOLUME_HIGH"
+  ],
+  "handoff_required": true,
+  "handoff_path": null,
+  "session_summary_path": null,
+  "operator_override": false,
+  "receipt_hash": "12d22f215efc608e627d23660759dfaafdb0195fe6cf2153abc1c20afc5575b5"
+}

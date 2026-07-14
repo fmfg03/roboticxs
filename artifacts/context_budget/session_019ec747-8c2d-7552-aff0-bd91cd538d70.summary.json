@@ -1,0 +1,231 @@
+{
+  "schema_version": "session_summary_v0",
+  "session_id": "019ec747-8c2d-7552-aff0-bd91cd538d70",
+  "project": "roboticxs",
+  "repo": "/root/roboticxs",
+  "branch": "dirty/reference-before-runtime-promotion-20260601",
+  "latest_commit": "65ac8c03fc3305548627ca3162fb71191fcdcbb7",
+  "budget_band": "RED",
+  "estimated_tokens": 132024,
+  "handoff_path": "/root/artifacts/context_budget/HANDOFF_019ec747-8c2d-7552-aff0-bd91cd538d70.md",
+  "next_action": "Read this handoff, verify repo state, and continue from the latest approved scope.",
+  "files_touched": [
+    ".../ROBOTICXS_ACTION_PACKET_CONTRACT_v0_1.md",
+    ".../ROBOTICXS_AUTOMATION_BLUEPRINTS_v0_1.md",
+    ".../ROBOTICXS_COMMAND_SURFACE_POLICY_v0_1.md",
+    ".../ROBOTICXS_CONSUMER_COMMAND_ALIASES_v0_1.md",
+    ".../ROBOTICXS_HERMES_RAW_COMMAND_BLOCKLIST_v0_1.md",
+    ".../ROBOTICXS_HERMES_TOOL_AUTHORITY_GUARD_v0_1.md",
+    ".../ROBOTICXS_MEMORY_CENTER_BRIDGE_v0_1.md",
+    ".../ROBOTICXS_MEMORY_PROJECTION_POLICY_v0_1.md",
+    ".../ROBOTICXS_MEMORY_WRITEBACK_BOUNDARY_v0_1.md",
+    ".../ROBOTICXS_ROUTINE_COST_POLICY_v0_1.md",
+    ".../ROBOTICXS_SCRIPT_ONLY_ROUTINES_v0_1.md",
+    ".../ROBOTICXS_SKILL_ACTIVATION_SCOPE_GUARD_v0_1.md",
+    ".../ROBOTICXS_SKILL_SCOPE_DECISIONS_v0_1.md",
+    ".../ROBOTICXS_TOOL_ACTION_CLASSIFICATION_v0_1.md",
+    ".../ROBOTICXS_TOOL_AUTHORITY_DECISIONS_v0_1.md",
+    ".../hermes/scripts/examples/external_flag_gate.py",
+    ".../hermes/scripts/examples/file_change_gate.py",
+    ".../hermes/skills/roboticxs-daily-brief/SKILL.md",
+    ".../skills/roboticxs-caregiver-routine/SKILL.md",
+    ".../skills/roboticxs-research-radar/SKILL.md",
+    ".../test_roboticxs_blueprint_no_silent_schedule.py",
+    "../.codex-beto/.tmp/plugins/plugins/build-web-apps/skills/react-best-practices/AGENTS.md",
+    "../.codex-beto/.tmp/plugins/plugins/build-web-apps/skills/supabase-best-practices/AGENTS.md",
+    "../.codex-beto/.tmp/plugins/plugins/zoom/AGENTS.md",
+    "../.codex/.tmp/plugins/plugins/build-web-apps/skills/react-best-practices/AGENTS.md"
+  ],
+  "commands_run": [
+    {
+      "command": "sed -n '1,240p' /root/.codex/skills/codex-factory-context-budget/SKILL.md && find artifacts/context_budget -maxdepth 1 -type f -printf '%T@ %p\\n' 2>/dev/null | sort -nr | head -5 && git status --short",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,240p' artifacts/context_budget/HANDOFF_019ec732-efdf-7da1-9276-10c51b8b4c40.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,240p' artifacts/context_budget/session_019ec732-efdf-7da1-9276-10c51b8b4c40.summary.json",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,240p' artifacts/context_budget/context_gate_receipt_019ec732-efdf-7da1-9276-10c51b8b4c40.json",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,240p' AGENTS.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "python3 /root/tools/context-budget/context_budget.py status --session-id current --project roboticxs",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "python3 /root/tools/context-budget/context_budget.py gate --session-id current --project roboticxs",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' /root/.agents/skills/feature-factory/SKILL.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,220p' /root/.agents/skills/build-with-tests/SKILL.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "python3 /root/tools/context-budget/context_budget.py gate --session-id current --project roboticxs",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "rg -n \"92P|93P|94P|IMPLEMENTED_PENDING_REVIEW|CLOSED_COMMITTED|not authorized|Next authorized\" docs tests",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "rg --files docs/reference docs/roadmap tests app runtime",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' tests/test_canonical_roadmap.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,260p' tests/test_roadmap_continuation_authorization_gate.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '560,700p' docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1360,1445p' tests/test_canonical_roadmap.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,180p' tests/test_hermes_tool_authority_guard.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,180p' tests/test_tool_action_classification.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,180p' tests/test_tool_authority_blocks_sensitive_actions.py",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '1,160p' docs/reference/ROBOTICXS_HERMES_TOOL_AUTHORITY_GUARD_v0_1.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "rg -n '\"stage_id\":\"93P\"|stage_93P|93P - Roboticxs Memory Center|stage_94p|stage_93p|93P\\+|no 93P|after_commit_next_eligible\":\"93P|stage_93P_is_next|do_not_implement_93P' tests docs/reference docs/roadmap",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "rg -n 'IMPLEMENTED_PENDING_REVIEW|pending_review|same_commit_as' docs/roadmap tests/test_canonical_roadmap.py | head -40",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '650,675p' docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md && sed -n '90,115p' docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    },
+    {
+      "command": "sed -n '668,690p' docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md",
+      "result": "observed",
+      "notes": "Transcript command"
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "You are Codex, a coding agent based on GPT-5. You and the user share one workspace, and your job is to collaborate with them until their goal is genuinely handled.\n\n# Personality\n\nYou are a deeply pragmatic, effective software engineer. You",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "<skills_instructions>\n## Skills\nA skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the s",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "# AGENTS.md instructions for /root/roboticxs\n\n<INSTRUCTIONS>\n# Global Codex Operating Standard\n\nThis file defines how Codex should work across repos.\nRepo-specific truth belongs in repo-level `AGENTS.md` overlays, not here.\n\n## Operating Pr",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "Use `codex-factory-context-budget`.\n\nStart from the latest handoff in `artifacts/context_budget/` if present.\n\nCurrent canonical status:\n\n* 84P through 92P are CLOSED_COMMITTED.\n* 92P \u2014 Hermes Tool Authority Guard v0 is CLOSED_COMMITTED.\n\n ",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    },
+    {
+      "decision": "Use `codex-factory-context-budget`.\n\nStart from the latest handoff in `artifacts/context_budget/` if present.\n\nCurrent canonical status:\n\n* 84P through 92P are CLOSED_COMMITTED.\n* 92P \u2014 Hermes Tool Authority Guard v0 is CLOSED_COMMITTED.\n\n ",
+      "basis": "Transcript text",
+      "files_affected": [],
+      "risk": "Unverified"
+    }
+  ],
+  "blockers": [
+    {
+      "blocker": "You are Codex, a coding agent based on GPT-5. You and the user share one workspace, and your job is to collaborate with them until their goal is genuinely handled.\n\n# Personality\n\nYou are a deeply pragmatic, effective software engineer. You",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "<skills_instructions>\n## Skills\nA skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the s",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "<plugins_instructions>\n## Plugins\nA plugin is a local bundle of skills, MCP servers, and apps. Below is the list of plugins that are enabled and available in this session.\n### Available plugins\n- `Canva`: Search, create, edit designs\n- `Git",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "Chunk ID: 8f1428\nWall time: 0.0187 seconds\nProcess exited with code 0\nOriginal token count: 5499\nOutput:\n# Governed Session Handoff\n\n## 1. Session Identity\n- Project: roboticxs\n- Repo: /root/roboticxs\n- Branch: dirty/reference-before-runtim",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    },
+    {
+      "blocker": "Chunk ID: 762439\nWall time: 0.0054 seconds\nProcess exited with code 0\nOriginal token count: 2645\nOutput:\n{\n  \"schema_version\": \"session_summary_v0\",\n  \"session_id\": \"019ec732-efdf-7da1-9276-10c51b8b4c40\",\n  \"project\": \"roboticxs\",\n  \"repo\":",
+      "impact": "Continuation risk present in prior transcript.",
+      "recommended_resolution": "Verify current repo state before acting on the blocker."
+    }
+  ],
+  "redaction": {
+    "secrets_detected": false,
+    "pii_detected": false,
+    "redaction_patterns_applied": []
+  },
+  "handoff_sha256": "8726b40436fb631f87c8d2158b08b8060ac04fa8c3318775514981174492dc06"
+}
