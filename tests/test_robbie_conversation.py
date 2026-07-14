@@ -223,6 +223,18 @@ def test_plain_multiline_conversation_is_not_mistaken_for_a_task_list():
     assert guard_robbie_conversation_request("I have ADHD\nI keep losing track of tasks") is None
 
 
+def test_action_patterns_do_not_match_across_unrelated_lines():
+    assert guard_robbie_conversation_request("Write a blog draft\nRemember my account details") is None
+
+
+def test_spanish_detection_recognizes_marker_at_text_boundary():
+    boundary = guard_robbie_conversation_request("La pregunta es: what can you do")
+
+    assert boundary is not None
+    assert boundary.decision == "ANSWER_ONLY"
+    assert "Puedo conversar contigo" in boundary.reply_text
+
+
 def test_bulleted_noun_phrases_are_recognized_as_a_task_list():
     boundary = guard_robbie_conversation_request("- Platform contracts\n- Vendor coordination\n- Invoices")
 

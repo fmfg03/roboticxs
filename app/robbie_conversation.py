@@ -286,7 +286,7 @@ def _safe_int(value: object) -> int:
 def _normalize_for_matching(text: str) -> str:
     decomposed = unicodedata.normalize("NFKD", text.lower())
     without_accents = "".join(character for character in decomposed if not unicodedata.combining(character))
-    return " ".join(without_accents.split())
+    return "\n".join(" ".join(line.split()) for line in without_accents.splitlines())
 
 
 def _looks_like_task_list(text: str) -> bool:
@@ -417,10 +417,12 @@ def _build_task_list_reply(text: str, *, spanish: bool) -> str:
 
 
 def _looks_spanish(text: str) -> bool:
+    padded = f" {text.replace(chr(10), ' ')} "
     return any(
-        marker in text
+        marker in padded
         for marker in (
-            " el ", " la ", " los ", " las ", " para ", " por ", " que ", "mi ", "me ",
-            " de ", "envia", "paga", "revisar", "elaborar", "acordar", "contrasena", "asesoria", "consejo medico",
+            " el ", " la ", " los ", " las ", " para ", " por ", " que ", " mi ", " me ",
+            " de ", " envia ", " paga ", " revisar ", " elaborar ", " acordar ", " contrasena ",
+            " asesoria ", " consejo medico ",
         )
     )
