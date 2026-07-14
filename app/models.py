@@ -204,6 +204,36 @@ class HelperDiscoverySession(Base):
     updated_at = Column(DateTime(timezone=True), default=now_utc, nullable=False)
 
 
+class HelperProcessingConsent(Base):
+    __tablename__ = "helper_processing_consents"
+    __table_args__ = (
+        UniqueConstraint("user_id", "robot_id", name="uq_helper_processing_consent_user_robot"),
+    )
+
+    id = Column(Text, primary_key=True, default=generate_id)
+    user_id = Column(Text, index=True, nullable=False)
+    robot_id = Column(Text, index=True, nullable=False)
+    provider = Column(Text, nullable=False)
+    status = Column(Text, nullable=False)
+    decided_at = Column(DateTime(timezone=True), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=now_utc, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=now_utc, nullable=False)
+
+
+class HelperContextInvite(Base):
+    __tablename__ = "helper_context_invites"
+
+    id = Column(Text, primary_key=True, default=generate_id)
+    source_user_id = Column(Text, index=True, nullable=False)
+    target_user_id = Column(Text, index=True, nullable=False)
+    context_text = Column(Text, nullable=False)
+    status = Column(Text, nullable=False, default="PENDING")
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    decided_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=now_utc, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=now_utc, nullable=False)
+
+
 class DocumentTask(Base):
     __tablename__ = "document_tasks"
 

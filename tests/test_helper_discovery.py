@@ -8,8 +8,21 @@ from sqlalchemy import func, select
 
 from app.config import Settings, get_settings
 from app.db import init_db
-from app.helper_discovery import HELPER_DISCOVERY_QUESTIONS, handle_helper_discovery
-from app.models import HelperDiscoverySession, MemoryItem, ProposedMemory, Robot, User
+from app.helper_discovery import (
+    HELPER_DISCOVERY_QUESTIONS,
+    create_helper_context_invite,
+    handle_helper_discovery,
+)
+from app.helper_interview import AdaptiveInterviewTurn
+from app.models import (
+    HelperContextInvite,
+    HelperDiscoverySession,
+    HelperProcessingConsent,
+    MemoryItem,
+    ProposedMemory,
+    Robot,
+    User,
+)
 
 
 MARIA_ID = 8891693168
@@ -42,6 +55,24 @@ def make_identity(session, *, telegram_user_id: int, name: str) -> tuple[User, R
     return user, robot
 
 
+def fake_adaptive_turn(**kwargs) -> AdaptiveInterviewTurn:
+    answers = kwargs["answers"]
+    step = len(answers)
+    ready = step >= len(HELPER_DISCOVERY_QUESTIONS)
+    question = "" if ready else HELPER_DISCOVERY_QUESTIONS[min(step, len(HELPER_DISCOVERY_QUESTIONS) - 1)][1]
+    return AdaptiveInterviewTurn(
+        acknowledgement="Entiendo; usaré lo que acabas de contarme.",
+        extracted_facts=tuple(),
+        missing_topics=tuple(),
+        next_question=question,
+        ready_to_summarize=ready,
+        support_ideas=tuple(),
+        risk_level="none",
+        provider="test",
+        model="test",
+    )
+
+
 def send(
     session,
     user: User,
@@ -59,6 +90,7 @@ def send(
         text=text,
         first_name="María",
         summary_generator=lambda **_: "Resumen seguro con tres apoyos concretos y límites humanos.",
+        turn_generator=fake_adaptive_turn,
         now=now,
     )
 
@@ -135,7 +167,8 @@ def test_interview_asks_one_question_at_a_time_and_creates_pending_profile_only(
         assert final_reply is not None
         if index < len(answers) - 1:
             assert final_reply.status == "ACTIVE"
-            assert HELPER_DISCOVERY_QUESTIONS[index + 1][1] in final_reply.reply_text
+            expected_question = HELPER_DISCOVERY_QUESTIONS[index + 1][1].split("?", 1)[0] + "?"
+            assert expected_question in final_reply.reply_text
 
     assert final_reply is not None
     assert final_reply.status == "READY_FOR_REVIEW"
@@ -222,6 +255,7 @@ def test_sessions_are_isolated_by_user_and_robot(session):
             telegram_user_id=telegram_id,
             text="sí",
             first_name=user.first_name,
+            turn_generator=fake_adaptive_turn,
         )
         handle_helper_discovery(
             session=session,
@@ -231,6 +265,7 @@ def test_sessions_are_isolated_by_user_and_robot(session):
             telegram_user_id=telegram_id,
             text=answer,
             first_name=user.first_name,
+            turn_generator=fake_adaptive_turn,
         )
 
     records = session.scalars(select(HelperDiscoverySession).order_by(HelperDiscoverySession.user_id)).all()
@@ -256,3 +291,154 @@ def test_owner_never_enters_friendly_user_discovery(session):
 
     assert reply is None
     assert session.scalar(select(func.count()).select_from(HelperDiscoverySession)) == 0
+
+
+def test_openai_processing_requires_explicit_consent_and_allows_local(session):
+    user, robot = make_identity(session, telegram_user_id=MARIA_ID, name="María")
+    configured = Settings(
+        telegram_owner_id=OWNER_ID,
+        telegram_allowed_user_ids=frozenset({MARIA_ID}),
+        helper_discovery_enabled=True,
+        helper_interview_provider="openai",
+        openai_api_key="test-key",
+    )
+
+    start = handle_helper_discovery(
+        session=session,
+        settings=configured,
+        user=user,
+        robot=robot,
+        telegram_user_id=MARIA_ID,
+        text="/start",
+        first_name="María",
+    )
+    local = handle_helper_discovery(
+        session=session,
+        settings=configured,
+        user=user,
+        robot=robot,
+        telegram_user_id=MARIA_ID,
+        text="local",
+        first_name="María",
+        turn_generator=fake_adaptive_turn,
+    )
+    consent = session.scalar(select(HelperProcessingConsent))
+
+    assert start is not None and "API de OpenAI" in start.reply_text
+    assert local is not None and local.status == "ACTIVE"
+    assert consent is not None and consent.status == "DECLINED"
+
+
+def test_shared_context_is_hidden_until_target_accepts(session):
+    owner, _ = make_identity(session, telegram_user_id=OWNER_ID, name="Francisco")
+    maria, robot = make_identity(session, telegram_user_id=MARIA_ID, name="María")
+    create_helper_context_invite(
+        session=session,
+        source_user_id=owner.id,
+        target_user_id=maria.id,
+        context_text="Hay pérdida de secuencia al preparar el pastillero semanal.",
+    )
+
+    send(session, maria, robot, "/start")
+    offer = send(session, maria, robot, "sí")
+
+    captured: dict[str, str] = {}
+
+    def contextual_turn(**kwargs) -> AdaptiveInterviewTurn:
+        captured["context"] = kwargs["shared_context"]
+        return AdaptiveInterviewTurn(
+            acknowledgement="Gracias; usaré esa nota solo como punto de partida.",
+            extracted_facts=tuple(),
+            missing_topics=("recurring_load",),
+            next_question="¿Qué parte de organizar el pastillero te preocupa más?",
+            ready_to_summarize=False,
+            support_ideas=tuple(),
+            risk_level="none",
+            provider="test",
+            model="test",
+        )
+
+    accepted = handle_helper_discovery(
+        session=session,
+        settings=settings(),
+        user=maria,
+        robot=robot,
+        telegram_user_id=MARIA_ID,
+        text="sí",
+        first_name="María",
+        turn_generator=contextual_turn,
+    )
+    invite = session.scalar(select(HelperContextInvite))
+
+    assert offer is not None and offer.status == "WAITING_CONTEXT_CONSENT"
+    assert "pastillero" not in offer.reply_text
+    assert accepted is not None and "organizar el pastillero" in accepted.reply_text
+    assert "pastillero semanal" in captured["context"]
+    assert invite is not None and invite.status == "ACCEPTED"
+
+
+def test_existing_active_session_pauses_for_new_openai_consent(session):
+    user, robot = make_identity(session, telegram_user_id=MARIA_ID, name="María")
+    send(session, user, robot, "/start")
+    send(session, user, robot, "sí")
+    send(session, user, robot, "Estoy pendiente de mi mamá")
+    before = session.scalar(select(HelperDiscoverySession))
+    before_answers = before.answers_json if before is not None else ""
+
+    configured = Settings(
+        telegram_owner_id=OWNER_ID,
+        telegram_allowed_user_ids=frozenset({MARIA_ID}),
+        helper_discovery_enabled=True,
+        helper_interview_provider="openai",
+        openai_api_key="test-key",
+    )
+    prompt = handle_helper_discovery(
+        session=session,
+        settings=configured,
+        user=user,
+        robot=robot,
+        telegram_user_id=MARIA_ID,
+        text="Quiero recordatorios",
+        first_name="María",
+        turn_generator=fake_adaptive_turn,
+    )
+    after = session.scalar(select(HelperDiscoverySession))
+
+    assert prompt is not None and prompt.status == "WAITING_PROCESSING_CONSENT"
+    assert "API de OpenAI" in prompt.reply_text
+    assert after is not None and after.answers_json == before_answers
+
+
+def test_adaptive_reply_references_the_latest_answer(session):
+    user, robot = make_identity(session, telegram_user_id=MARIA_ID, name="María")
+    send(session, user, robot, "/start")
+    send(session, user, robot, "sí")
+
+    def specific_turn(**_kwargs) -> AdaptiveInterviewTurn:
+        return AdaptiveInterviewTurn(
+            acknowledgement="Entonces hoy tú cargas sola con estar pendiente de tu mamá.",
+            extracted_facts=("La usuaria lleva sola la responsabilidad actual.",),
+            missing_topics=("desired_help",),
+            next_question="¿Qué te quitaría más peso: recordatorios, rutinas o seguimiento?",
+            ready_to_summarize=False,
+            support_ideas=tuple(),
+            risk_level="none",
+            provider="test",
+            model="test",
+        )
+
+    reply = handle_helper_discovery(
+        session=session,
+        settings=settings(),
+        user=user,
+        robot=robot,
+        telegram_user_id=MARIA_ID,
+        text="Solo yo",
+        first_name="María",
+        turn_generator=specific_turn,
+    )
+
+    assert reply is not None
+    assert "cargas sola" in reply.reply_text
+    assert "¿Qué te quitaría más peso" in reply.reply_text
+    assert reply.reply_text.count("?") == 1
