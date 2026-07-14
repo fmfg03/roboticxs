@@ -61,12 +61,12 @@ def test_detect_telegram_memory_forget_supports_authorized_phrases():
 
 async def create_approved_memory(client, *, user_id: int, text: str = "remember that I prefer short replies") -> str:
     proposal_response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update(text, user_id=user_id),
     )
     proposal_id = extract_proposal_id(proposal_response.json()["prepared_send"]["payload"]["text"])
     await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update(f"APPROVE memory {proposal_id}", user_id=user_id),
     )
     with client.app.state.db.session() as session:
@@ -88,7 +88,7 @@ async def create_approved_memory(client, *, user_id: int, text: str = "remember 
 async def test_spanish_memory_intent_creates_inert_proposed_memory(client, db_counts):
     before = db_counts()
     response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update("recuerda que prefiero respuestas cortas"),
     )
 
@@ -120,7 +120,7 @@ async def test_spanish_memory_intent_creates_inert_proposed_memory(client, db_co
 @pytest.mark.anyio
 async def test_english_memory_intent_creates_proposed_memory(client):
     response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update("remember that I prefer short replies", user_id=82003),
     )
 
@@ -138,7 +138,7 @@ async def test_english_memory_intent_creates_proposed_memory(client):
 @pytest.mark.anyio
 async def test_normal_text_does_not_create_proposed_memory_or_active_memory(client, db_counts):
     before = db_counts()
-    response = await client.post("/api/telegram/runtime/webhook", json=build_text_update("hola"))
+    response = await client.post("/api/telegram/runtime/diagnostic", json=build_text_update("hola"))
 
     assert response.status_code == 200
     body = response.json()
@@ -153,7 +153,7 @@ async def test_normal_text_does_not_create_proposed_memory_or_active_memory(clie
 async def test_spanish_memory_recall_empty_state_does_not_create_memory(client, db_counts):
     before = db_counts()
     response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update("¿qué recuerdas de mí?", user_id=83001),
     )
 
@@ -175,7 +175,7 @@ async def test_spanish_memory_recall_empty_state_does_not_create_memory(client, 
 async def test_english_memory_recall_empty_state_does_not_create_memory(client, db_counts):
     before = db_counts()
     response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update("what do you remember about me?", user_id=83002),
     )
 
@@ -194,26 +194,26 @@ async def test_english_memory_recall_empty_state_does_not_create_memory(client, 
 @pytest.mark.anyio
 async def test_memory_recall_lists_only_approved_active_memories_after_approval(client):
     first_proposal = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update("recuerda que prefiero respuestas cortas", user_id=83003),
     )
     first_id = extract_proposal_id(first_proposal.json()["prepared_send"]["payload"]["text"])
     await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update(f"APROBAR memoria {first_id}", user_id=83003),
     )
     second_proposal = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update("remember that I prefer direct answers", user_id=83003),
     )
     second_id = extract_proposal_id(second_proposal.json()["prepared_send"]["payload"]["text"])
     await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update(f"APPROVE memory {second_id}", user_id=83003),
     )
 
     response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update("show my memories", user_id=83003),
     )
 
@@ -228,11 +228,11 @@ async def test_memory_recall_lists_only_approved_active_memories_after_approval(
 @pytest.mark.anyio
 async def test_memory_recall_excludes_pending_proposals(client):
     await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update("remember that I prefer short replies", user_id=83004),
     )
     response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update("what do you remember", user_id=83004),
     )
 
@@ -245,17 +245,17 @@ async def test_memory_recall_excludes_pending_proposals(client):
 @pytest.mark.anyio
 async def test_memory_recall_excludes_rejected_proposals(client):
     proposal_response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update("remember that I prefer short replies", user_id=83005),
     )
     proposal_id = extract_proposal_id(proposal_response.json()["prepared_send"]["payload"]["text"])
     await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update(f"REJECT memory {proposal_id}", user_id=83005),
     )
 
     response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update("list my memories", user_id=83005),
     )
 
@@ -268,17 +268,17 @@ async def test_memory_recall_excludes_rejected_proposals(client):
 @pytest.mark.anyio
 async def test_memory_recall_isolated_by_telegram_user_and_robot(client):
     proposal_response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update("remember that I prefer short replies", user_id=83006),
     )
     proposal_id = extract_proposal_id(proposal_response.json()["prepared_send"]["payload"]["text"])
     await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update(f"APPROVE memory {proposal_id}", user_id=83006),
     )
 
     response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update("what do you know about me?", user_id=83007),
     )
 
@@ -297,11 +297,11 @@ async def test_spanish_forget_command_deactivates_active_memory(client):
     )
 
     forget_response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update(f"olvida memoria {memory_id}", user_id=84001),
     )
     recall_response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update("muéstrame mis memorias", user_id=84001),
     )
 
@@ -322,7 +322,7 @@ async def test_english_forget_command_deactivates_active_memory(client):
     memory_id = await create_approved_memory(client, user_id=84002)
 
     response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update(f"forget memory {memory_id}", user_id=84002),
     )
 
@@ -339,13 +339,13 @@ async def test_english_forget_command_deactivates_active_memory(client):
 @pytest.mark.anyio
 async def test_forget_pending_proposal_id_fails_without_changing_proposal(client):
     proposal_response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update("remember that I prefer direct answers", user_id=84003),
     )
     proposal_id = extract_proposal_id(proposal_response.json()["prepared_send"]["payload"]["text"])
 
     response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update(f"forget memory {proposal_id}", user_id=84003),
     )
 
@@ -363,17 +363,17 @@ async def test_forget_pending_proposal_id_fails_without_changing_proposal(client
 @pytest.mark.anyio
 async def test_forget_rejected_proposal_id_fails_without_changing_proposal(client):
     proposal_response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update("remember that I prefer short replies", user_id=84004),
     )
     proposal_id = extract_proposal_id(proposal_response.json()["prepared_send"]["payload"]["text"])
     await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update(f"REJECT memory {proposal_id}", user_id=84004),
     )
 
     response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update(f"forget memory {proposal_id}", user_id=84004),
     )
 
@@ -391,7 +391,7 @@ async def test_forget_other_users_active_memory_fails_without_leaking_or_changin
     memory_id = await create_approved_memory(client, user_id=84005)
 
     response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update(f"delete memory {memory_id}", user_id=84006),
     )
 
@@ -409,7 +409,7 @@ async def test_forget_other_users_active_memory_fails_without_leaking_or_changin
 @pytest.mark.anyio
 async def test_invalid_forget_id_returns_safe_failure(client):
     response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update("remove memory not-a-valid-id", user_id=84007),
     )
 
@@ -424,12 +424,12 @@ async def test_invalid_forget_id_returns_safe_failure(client):
 async def test_already_forgotten_memory_returns_same_safe_failure(client):
     memory_id = await create_approved_memory(client, user_id=84008)
     await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update(f"forget memory {memory_id}", user_id=84008),
     )
 
     response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update(f"forget memory {memory_id}", user_id=84008),
     )
 
@@ -443,14 +443,14 @@ async def test_already_forgotten_memory_returns_same_safe_failure(client):
 @pytest.mark.anyio
 async def test_approval_command_activates_memory(client, db_counts):
     proposal_response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update("recuerda que prefiero respuestas cortas", user_id=82004),
     )
     proposal_id = extract_proposal_id(proposal_response.json()["prepared_send"]["payload"]["text"])
     before_approval = db_counts()
 
     approval_response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update(f"APROBAR memoria {proposal_id}", user_id=82004),
     )
 
@@ -475,14 +475,14 @@ async def test_approval_command_activates_memory(client, db_counts):
 @pytest.mark.anyio
 async def test_rejection_command_rejects_memory_without_active_write(client, db_counts):
     proposal_response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update("recuerda que prefiero respuestas cortas", user_id=82005),
     )
     proposal_id = extract_proposal_id(proposal_response.json()["prepared_send"]["payload"]["text"])
     before_rejection = db_counts()
 
     rejection_response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update(f"RECHAZAR memoria {proposal_id}", user_id=82005),
     )
 
@@ -504,7 +504,7 @@ async def test_rejection_command_rejects_memory_without_active_write(client, db_
 async def test_invalid_proposal_id_fails_safely(client):
     invalid_id = "00000000-0000-0000-0000-000000000000"
     response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update(f"APROBAR memoria {invalid_id}"),
     )
 
@@ -518,19 +518,19 @@ async def test_invalid_proposal_id_fails_safely(client):
 @pytest.mark.anyio
 async def test_duplicate_approval_and_rejection_after_approval_are_safe(client, db_counts):
     proposal_response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update("recuerda que prefiero respuestas cortas", user_id=82006),
     )
     proposal_id = extract_proposal_id(proposal_response.json()["prepared_send"]["payload"]["text"])
-    await client.post("/api/telegram/runtime/webhook", json=build_text_update(f"APROBAR memoria {proposal_id}", user_id=82006))
+    await client.post("/api/telegram/runtime/diagnostic", json=build_text_update(f"APROBAR memoria {proposal_id}", user_id=82006))
     after_first_approval = db_counts()
 
     duplicate_approval = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update(f"APROBAR memoria {proposal_id}", user_id=82006),
     )
     rejection_after_approval = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json=build_text_update(f"RECHAZAR memoria {proposal_id}", user_id=82006),
     )
 

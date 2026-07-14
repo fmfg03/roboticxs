@@ -5,7 +5,9 @@ from pathlib import Path
 import pytest
 
 from app.config import Settings
+from app.db import init_db
 from app.hermes_runtime import HermesRuntimeRequest, HermesRuntimeResponse
+from app.robbie_conversation import RobbieConversationError, RobbieConversationReply
 from app.telegram_runtime import (
     TELEGRAM_CONVERSATION_REPLY,
     TELEGRAM_EMPTY_TEXT_REPLY,
@@ -32,6 +34,13 @@ def build_text_update(text: str = "hola") -> dict:
             "text": text,
         },
     }
+
+
+@pytest.fixture
+def runtime_session(tmp_path):
+    db = init_db(f"sqlite:///{tmp_path / 'runtime.db'}")
+    with db.session() as session:
+        yield session
 
 
 def test_valid_text_payload_returns_deterministic_telegram_reply():
@@ -134,6 +143,75 @@ def test_runtime_dispatch_error_returns_safe_fallback_without_stack_trace():
     assert "Traceback" not in str(body)
 
 
+def test_enabled_conversation_uses_local_model_reply_and_approved_memory(runtime_session):
+    calls: list[dict[str, object]] = []
+
+    def generate_reply(**kwargs) -> RobbieConversationReply:
+        calls.append(kwargs)
+        return RobbieConversationReply(
+            text="Hola. Soy Robbie. ¿Qué quieres resolver primero?",
+            provider="ollama_local",
+            model="test-model",
+            input_tokens=40,
+            output_tokens=12,
+        )
+
+    result = run_telegram_conversation_loop(
+        update=build_text_update("hola"),
+        settings=Settings(conversation_enabled=True),
+        session=runtime_session,
+        conversation_reply_generator=generate_reply,
+    )
+
+    assert len(calls) == 1
+    assert calls[0]["text"] == "hola"
+    assert calls[0]["approved_memories"] == []
+    assert result.ok is True
+    assert result.prepared_send is not None
+    assert result.prepared_send.payload["text"] == "Hola. Soy Robbie. ¿Qué quieres resolver primero?"
+    assert result.trace["dispatch"] == "robbie_local_model"
+    assert result.hermes_response is not None
+    assert result.hermes_response.metadata["conversation_provider"] == "ollama_local"
+
+
+def test_action_boundary_prevents_model_call(runtime_session):
+    def generate_reply(**_):
+        raise AssertionError("blocked action must not reach the model")
+
+    result = run_telegram_conversation_loop(
+        update=build_text_update("Envía un correo al cliente"),
+        settings=Settings(conversation_enabled=True),
+        session=runtime_session,
+        conversation_reply_generator=generate_reply,
+    )
+
+    assert result.ok is True
+    assert result.trace["dispatch"] == "robbie_action_boundary"
+    assert result.hermes_response is not None
+    assert result.hermes_response.safety_decision == "DRAFT_ONLY"
+    assert result.prepared_send is not None
+    assert "no puedo enviarlo" in str(result.prepared_send.payload["text"])
+
+
+def test_local_model_failure_returns_safe_user_fallback_without_internal_detail(runtime_session):
+    def generate_reply(**_):
+        raise RobbieConversationError("sensitive provider failure")
+
+    result = run_telegram_conversation_loop(
+        update=build_text_update("hola"),
+        settings=Settings(conversation_enabled=True),
+        session=runtime_session,
+        conversation_reply_generator=generate_reply,
+    )
+    body = build_telegram_conversation_webhook_response(result)
+
+    assert result.ok is False
+    assert result.error_code == "conversation_provider_unavailable"
+    assert result.prepared_send is not None
+    assert "sensitive provider failure" not in str(body)
+    assert result.trace["dispatch"] == "robbie_local_model_fallback"
+
+
 @pytest.mark.anyio
 async def test_runtime_webhook_route_uses_conversation_loop(client, db_counts):
     client.app.state.settings.telegram_owner_id = 3003
@@ -151,23 +229,33 @@ async def test_runtime_webhook_route_uses_conversation_loop(client, db_counts):
 
 
 @pytest.mark.anyio
-async def test_runtime_webhook_route_fails_closed_for_non_owner(client):
+async def test_runtime_webhook_route_fails_closed_for_non_owner(client, db_counts):
     client.app.state.settings.telegram_owner_id = 9999
+    before = db_counts()
 
-    response = await client.post("/api/telegram/runtime/webhook", json=build_text_update("hola"))
+    response = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update("recuerda que prefiero respuestas cortas"),
+    )
 
     assert response.status_code == 200
     assert response.json() == {}
+    assert db_counts() == before
 
 
 @pytest.mark.anyio
-async def test_runtime_webhook_route_fails_closed_without_owner_configuration(client):
+async def test_runtime_webhook_route_fails_closed_without_owner_configuration(client, db_counts):
     client.app.state.settings.telegram_owner_id = None
+    before = db_counts()
 
-    response = await client.post("/api/telegram/runtime/webhook", json=build_text_update("hola"))
+    response = await client.post(
+        "/api/telegram/runtime/webhook",
+        json=build_text_update("recuerda que prefiero respuestas cortas"),
+    )
 
     assert response.status_code == 200
     assert response.json() == {}
+    assert db_counts() == before
 
 
 def test_telegram_conversation_module_has_no_network_file_or_external_paths():

@@ -126,7 +126,7 @@ def test_telegram_runtime_module_has_no_real_api_network_file_or_external_path()
 @pytest.mark.anyio
 async def test_runtime_webhook_returns_prepared_send_without_persistence(client, db_counts):
     before = db_counts()
-    response = await client.post("/api/telegram/runtime/webhook", json=build_text_update("hello"))
+    response = await client.post("/api/telegram/runtime/diagnostic", json=build_text_update("hello"))
 
     assert response.status_code == 200
     body = response.json()
@@ -148,7 +148,7 @@ async def test_runtime_webhook_returns_prepared_send_without_persistence(client,
 @pytest.mark.anyio
 async def test_runtime_webhook_rejects_unsupported_payload_without_crashing(client):
     response = await client.post(
-        "/api/telegram/runtime/webhook",
+        "/api/telegram/runtime/diagnostic",
         json={"message": {"chat": {"id": 1}, "from": {"id": 2}, "message_id": 3, "document": {"file_id": "f"}}},
     )
 
