@@ -106,7 +106,7 @@ def test_149p_valid_oauth_shapes_report_ready_without_printing_secrets(tmp_path:
     assert "super-secret-access-token" not in report.rendered_text
     assert "super-secret-refresh-token" not in report.rendered_text
     assert "Runtime Doctor: local read-only" in report.rendered_text
-    assert "Stage: 149P" in report.rendered_text
+    assert "Stage: 226P" in report.rendered_text
 
 
 def test_149p_malformed_client_json_reports_blocked_reason(tmp_path: Path):
@@ -205,7 +205,7 @@ def test_149p_json_output_is_structured_and_secret_free(tmp_path: Path):
     )
     payload = json.loads(report.rendered_text)
 
-    assert payload["stage"] == "149P"
+    assert payload["stage"] == "226P"
     assert payload["roadmap_closed_through"] == "226P"
     assert payload["next_stage_authorized"] is False
     assert payload["next_stage"] == "227P"
@@ -226,7 +226,7 @@ def test_149p_main_prints_text_report_and_returns_zero(capsys: pytest.CaptureFix
 
     assert exit_code == 0
     assert "Runtime Doctor: local read-only" in captured.out
-    assert "Stage: 149P" in captured.out
+    assert "Stage: 226P" in captured.out
     assert captured.err == ""
 
 
@@ -256,3 +256,48 @@ def test_149p_runtime_doctor_has_no_network_subprocess_or_oauth_activation_impor
         "calendar/v3",
     ]:
         assert forbidden not in text
+
+
+def test_release_launch_readiness_lists_required_env_without_exposing_token():
+    status = build_runtime_doctor_status(env={})
+
+    assert status.stage == "226P"
+    assert status.launch_status == "blocked"
+    assert "missing_env:TELEGRAM_BOT_TOKEN" in status.launch_blockers
+    assert "missing_env:DATABASE_URL" in status.launch_blockers
+
+
+def test_release_launch_readiness_accepts_complete_core_configuration():
+    status = build_runtime_doctor_status(
+        env={
+            "DATABASE_URL": "sqlite:////var/lib/roboticxs/roboticxs.db",
+            "TELEGRAM_BOT_TOKEN": "never-render-this-token",
+            "TELEGRAM_PUBLIC_WEBHOOK_URL": "https://robot.example/api/telegram/runtime/webhook",
+            "ROBOTICXS_RUNTIME_MODE": "pilot",
+            "ROBOTICXS_ROBOT_ID": "robbie-pilot",
+            "ROBOTICXS_OWNER_ID": "owner-1",
+            "ROBOTICXS_LOCAL_STATE_DIR": "/var/lib/roboticxs",
+        }
+    )
+    report = render_runtime_doctor_report(status=status, output_format="json")
+
+    assert status.launch_status == "ready"
+    assert status.launch_blockers == ()
+    assert "never-render-this-token" not in report.rendered_text
+
+
+def test_release_launch_readiness_requires_https_webhook():
+    status = build_runtime_doctor_status(
+        env={
+            "DATABASE_URL": "sqlite:////var/lib/roboticxs/roboticxs.db",
+            "TELEGRAM_BOT_TOKEN": "token",
+            "TELEGRAM_PUBLIC_WEBHOOK_URL": "http://localhost/webhook",
+            "ROBOTICXS_RUNTIME_MODE": "pilot",
+            "ROBOTICXS_ROBOT_ID": "robbie-pilot",
+            "ROBOTICXS_OWNER_ID": "owner-1",
+            "ROBOTICXS_LOCAL_STATE_DIR": "/var/lib/roboticxs",
+        }
+    )
+
+    assert status.launch_status == "blocked"
+    assert "invalid_env:TELEGRAM_PUBLIC_WEBHOOK_URL_requires_https" in status.launch_blockers
