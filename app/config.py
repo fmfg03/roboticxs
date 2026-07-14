@@ -13,7 +13,7 @@ class Settings:
     telegram_public_webhook_url: str | None = None
     telegram_owner_id: int | None = None
     conversation_enabled: bool = False
-    conversation_model: str = "granite4:7b-a1b-h"
+    conversation_model: str = "qwen3:8b"
     conversation_base_url: str = "http://127.0.0.1:11434"
     conversation_timeout_seconds: float = 8.0
     conversation_history_enabled: bool = False
@@ -80,7 +80,7 @@ def get_settings() -> Settings:
         telegram_public_webhook_url=os.getenv("TELEGRAM_PUBLIC_WEBHOOK_URL") or None,
         telegram_owner_id=_read_optional_int_env("ROBOTICXS_OWNER_ID"),
         conversation_enabled=_read_bool_env("ROBOTICXS_CONVERSATION_ENABLED", False),
-        conversation_model=os.getenv("ROBOTICXS_CONVERSATION_MODEL", "granite4:7b-a1b-h"),
+        conversation_model=os.getenv("ROBOTICXS_CONVERSATION_MODEL", "qwen3:8b"),
         conversation_base_url=os.getenv("ROBOTICXS_CONVERSATION_BASE_URL", "http://127.0.0.1:11434"),
         conversation_timeout_seconds=_read_positive_float_env("ROBOTICXS_CONVERSATION_TIMEOUT_SECONDS", 8.0),
         conversation_history_enabled=_read_bool_env("ROBOTICXS_CONVERSATION_HISTORY_ENABLED", False),
