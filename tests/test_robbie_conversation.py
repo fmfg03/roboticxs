@@ -34,6 +34,7 @@ def test_local_conversation_builds_bounded_prompt_with_approved_memory():
     payload = captured["payload"]
     assert isinstance(payload, dict)
     assert payload["stream"] is False
+    assert payload["think"] is False
     assert payload["keep_alive"] == -1
     messages = payload["messages"]
     assert isinstance(messages, list)
@@ -77,6 +78,29 @@ def test_recent_turns_are_inserted_as_bounded_session_context():
         {"role": "user", "content": "Which one should I do first?"},
     ]
     assert "short-lived session context, not approved memory" in ROBBIE_SYSTEM_PROMPT
+
+
+def test_recent_turn_text_is_truncated_to_preserve_model_context():
+    captured: dict[str, object] = {}
+
+    def transport(endpoint: str, payload: dict[str, object], timeout: float) -> dict[str, object]:
+        captured["payload"] = payload
+        return {"message": {"content": "Useful reply."}}
+
+    generate_robbie_reply(
+        text="What next?",
+        approved_memories=[],
+        recent_turns=[("u" * 1200, "a" * 1200)],
+        settings=Settings(),
+        transport=transport,
+    )
+
+    payload = captured["payload"]
+    assert isinstance(payload, dict)
+    messages = payload["messages"]
+    assert isinstance(messages, list)
+    assert len(messages[-3]["content"]) == 800
+    assert len(messages[-2]["content"]) == 800
 
 
 @pytest.mark.parametrize(
@@ -134,6 +158,89 @@ def test_bilingual_action_boundary_stops_sensitive_requests_before_model(text: s
 
 def test_safe_drafting_request_remains_available_to_conversation_model():
     assert guard_robbie_conversation_request("Ayúdame a redactar un correo; no lo envíes") is None
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Acordar pago de mantenimiento con GOAT",
+        "Help me plan the payment terms with the vendor",
+        "Elaborar facturas",
+        "Help me understand my ADHD",
+        "What might this pattern mean?",
+    ],
+)
+def test_discussion_planning_and_task_mentions_are_not_mistaken_for_execution(text: str):
+    assert guard_robbie_conversation_request(text) is None
+
+
+def test_task_list_gets_a_concrete_safe_plan_in_stable_order():
+    boundary = guard_robbie_conversation_request(
+        "Revisar contratos de plataforma\n"
+        "Acordar pago de mantenimiento con GOAT\n"
+        "Elaborar facturas"
+    )
+
+    assert boundary is not None
+    assert boundary.decision == "ANSWER_ONLY"
+    assert boundary.reply_text.index("Elaborar facturas") < boundary.reply_text.index("Acordar pago")
+    assert boundary.reply_text.index("Acordar pago") < boundary.reply_text.index("Revisar contratos")
+    assert "todavía no lo envíes" in boundary.reply_text
+    assert "fecha límite" in boundary.reply_text
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Pay the invoice now",
+        "Make the payment for me",
+        "Refund the customer",
+        "Can you refund me for that charge?",
+        "Paga la factura ahora",
+        "¿Puedes pagar la factura ahora?",
+        "Haz el pago",
+        "Reembolsa al cliente",
+        "Delete my account",
+        "Change my password",
+        "Accept the contract for me",
+    ],
+)
+def test_explicit_sensitive_execution_requests_remain_blocked(text: str):
+    boundary = guard_robbie_conversation_request(text)
+
+    assert boundary is not None
+    assert boundary.decision == "BLOCK"
+
+
+def test_prompt_requires_specific_adhd_support_and_provisional_task_planning():
+    assert "generic definition or treatment list" in ROBBIE_SYSTEM_PROMPT
+    assert "first physical action under 10 minutes" in ROBBIE_SYSTEM_PROMPT
+    assert "never invent deadlines or urgency" in ROBBIE_SYSTEM_PROMPT
+    assert 'Spanish "acordar pago"' in ROBBIE_SYSTEM_PROMPT
+
+
+def test_plain_multiline_conversation_is_not_mistaken_for_a_task_list():
+    assert guard_robbie_conversation_request("I have ADHD\nI keep losing track of tasks") is None
+
+
+def test_action_patterns_do_not_match_across_unrelated_lines():
+    assert guard_robbie_conversation_request("Write a blog draft\nRemember my account details") is None
+
+
+def test_spanish_detection_recognizes_marker_at_text_boundary():
+    boundary = guard_robbie_conversation_request("La pregunta es: what can you do")
+
+    assert boundary is not None
+    assert boundary.decision == "ANSWER_ONLY"
+    assert "Puedo conversar contigo" in boundary.reply_text
+
+
+def test_bulleted_noun_phrases_are_recognized_as_a_task_list():
+    boundary = guard_robbie_conversation_request("- Platform contracts\n- Vendor coordination\n- Invoices")
+
+    assert boundary is not None
+    assert boundary.decision == "ANSWER_ONLY"
+    assert "Platform contracts" in boundary.reply_text
 
 
 def test_capability_disclosure_is_deterministic_and_does_not_overclaim():
