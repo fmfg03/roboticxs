@@ -19,7 +19,6 @@ from app.schemas import HealthResponse, TelegramWebhookResponse
 from app.skills import seed_skill_manifest
 from app.telegram_adapter import normalize_telegram_update
 from app.telegram_runtime import (
-    build_telegram_conversation_webhook_response,
     run_telegram_conversation_loop,
 )
 from app.telegram_policy_chain import (
@@ -52,7 +51,17 @@ def create_app() -> FastAPI:
     async def telegram_runtime_webhook(update: dict) -> dict:
         with app.state.db.session() as session:
             result = run_telegram_conversation_loop(update=update, settings=app.state.settings, session=session)
-        return build_telegram_conversation_webhook_response(result)
+        if (
+            app.state.settings.telegram_owner_id is None
+            or result.message is None
+            or result.message.user_id != app.state.settings.telegram_owner_id
+            or result.prepared_send is None
+        ):
+            return {}
+        return {
+            "method": result.prepared_send.method,
+            **result.prepared_send.payload,
+        }
 
     @app.post("/api/telegram/policy-chain/webhook")
     async def telegram_policy_chain_webhook(update: dict) -> dict:

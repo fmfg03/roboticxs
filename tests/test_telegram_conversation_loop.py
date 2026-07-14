@@ -136,17 +136,38 @@ def test_runtime_dispatch_error_returns_safe_fallback_without_stack_trace():
 
 @pytest.mark.anyio
 async def test_runtime_webhook_route_uses_conversation_loop(client, db_counts):
+    client.app.state.settings.telegram_owner_id = 3003
     before = db_counts()
     response = await client.post("/api/telegram/runtime/webhook", json=build_text_update("hola"))
 
     assert response.status_code == 200
     body = response.json()
-    assert body["ok"] is True
-    assert body["chat_id"] == 4004
-    assert body["prepared_send"]["payload"] == {"chat_id": 4004, "text": TELEGRAM_CONVERSATION_REPLY}
-    assert body["hermes_response"]["metadata"]["telegram_conversation_loop"] == "active"
-    assert body["trace"]["persistence"] == "deferred"
+    assert body == {
+        "method": "sendMessage",
+        "chat_id": 4004,
+        "text": TELEGRAM_CONVERSATION_REPLY,
+    }
     assert db_counts() == before
+
+
+@pytest.mark.anyio
+async def test_runtime_webhook_route_fails_closed_for_non_owner(client):
+    client.app.state.settings.telegram_owner_id = 9999
+
+    response = await client.post("/api/telegram/runtime/webhook", json=build_text_update("hola"))
+
+    assert response.status_code == 200
+    assert response.json() == {}
+
+
+@pytest.mark.anyio
+async def test_runtime_webhook_route_fails_closed_without_owner_configuration(client):
+    client.app.state.settings.telegram_owner_id = None
+
+    response = await client.post("/api/telegram/runtime/webhook", json=build_text_update("hola"))
+
+    assert response.status_code == 200
+    assert response.json() == {}
 
 
 def test_telegram_conversation_module_has_no_network_file_or_external_paths():
