@@ -112,6 +112,17 @@ def reject_proposal(*, session: Session, proposal: ProposedMemory) -> None:
     proposal.decided_at = now_utc()
 
 
+def update_pending_proposal(*, session: Session, proposal: ProposedMemory, content: str) -> ProposedMemory:
+    if proposal.status != "PENDING":
+        raise ValueError("only pending memory proposals can be edited")
+    normalized = " ".join(content.split())[:2500]
+    if not normalized:
+        raise ValueError("memory proposal content cannot be empty")
+    proposal.proposed_content = normalized
+    session.flush()
+    return proposal
+
+
 def display_label_for_memory_type(memory_type: str) -> str:
     return {
         "WORK_PREFERENCE": "Preference",

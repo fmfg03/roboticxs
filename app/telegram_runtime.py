@@ -22,7 +22,9 @@ from app.memory_service import (
     approve_proposal,
     create_proposed_memory,
     get_proposal_by_id,
+    list_pending_proposals,
     reject_proposal,
+    update_pending_proposal,
 )
 from app.memory_control import list_active_memories
 from app.memory_control import forget_active_memory
@@ -52,6 +54,43 @@ TELEGRAM_MEMORY_REJECT_PATTERN = re.compile(
     r"^(?:rechazar|reject)\s+(?:memoria|memory)\s+([0-9a-f-]{36})$",
     re.IGNORECASE,
 )
+TELEGRAM_MEMORY_EDIT_REPLY_PATTERN = re.compile(
+    r"memoria \(([0-9a-f-]{36})\)",
+    re.IGNORECASE,
+)
+TELEGRAM_MEMORY_APPROVE_LATEST_PHRASES = {
+    "aprobar",
+    "aprobar memoria",
+    "aprobar la memoria",
+    "aprobar esta memoria",
+    "aprobar la memoria propuesta",
+    "approve",
+    "approve memory",
+    "approve this memory",
+    "approve the proposed memory",
+}
+TELEGRAM_MEMORY_REJECT_LATEST_PHRASES = {
+    "rechazar",
+    "rechazar memoria",
+    "rechazar la memoria",
+    "rechazar esta memoria",
+    "rechazar la memoria propuesta",
+    "reject",
+    "reject memory",
+    "reject this memory",
+    "reject the proposed memory",
+}
+TELEGRAM_MEMORY_MODIFY_LATEST_PHRASES = {
+    "modificar",
+    "modificar memoria",
+    "modificar la memoria",
+    "modificar esta memoria",
+    "modificar la memoria propuesta",
+    "edit",
+    "edit memory",
+    "edit this memory",
+    "edit the proposed memory",
+}
 TELEGRAM_MEMORY_INTENT_PREFIXES = (
     "recuerda que ",
     "acuérdate que ",
@@ -114,13 +153,14 @@ class TelegramRuntimeMessage:
     text: str
     username: str | None = None
     first_name: str | None = None
+    reply_to_text: str | None = None
     metadata: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)
 class TelegramPreparedSend:
     method: str
-    payload: dict[str, int | str]
+    payload: dict[str, object]
     token_configured: bool
 
 
@@ -223,6 +263,8 @@ def parse_telegram_text_update(update: dict) -> TelegramRuntimeMessage:
 
     username = sender.get("username")
     first_name = sender.get("first_name")
+    reply_to_message = message.get("reply_to_message")
+    reply_to_text = reply_to_message.get("text") if isinstance(reply_to_message, dict) else None
 
     return TelegramRuntimeMessage(
         chat_id=chat_id,
@@ -231,6 +273,7 @@ def parse_telegram_text_update(update: dict) -> TelegramRuntimeMessage:
         text=text.strip(),
         username=username if isinstance(username, str) and username.strip() else None,
         first_name=first_name if isinstance(first_name, str) and first_name.strip() else None,
+        reply_to_text=reply_to_text if isinstance(reply_to_text, str) and reply_to_text.strip() else None,
         metadata={
             "update_id": str(update.get("update_id", "")),
             "chat_type": str(chat.get("type", "")),
@@ -259,10 +302,14 @@ def prepare_telegram_text_send(
     chat_id: int,
     text: str,
     config: TelegramBotRuntimeConfig,
+    reply_markup: dict[str, object] | None = None,
 ) -> TelegramPreparedSend:
+    payload: dict[str, object] = {"chat_id": chat_id, "text": text}
+    if reply_markup is not None:
+        payload["reply_markup"] = reply_markup
     return TelegramPreparedSend(
         method="sendMessage",
-        payload={"chat_id": chat_id, "text": text},
+        payload=payload,
         token_configured=config.token_configured,
     )
 
@@ -576,7 +623,12 @@ def _build_helper_discovery_result(
         message=message,
         hermes_request=hermes_request,
         hermes_response=hermes_response,
-        prepared_send=prepare_telegram_text_send(chat_id=message.chat_id, text=reply_text, config=config),
+        prepared_send=prepare_telegram_text_send(
+            chat_id=message.chat_id,
+            text=reply_text,
+            config=config,
+            reply_markup=_memory_decision_keyboard() if proposal_id is not None else None,
+        ),
         trace={**trace, "stage": "HELPER_DISCOVERY_v0_1", "dispatch": "helper_discovery"},
     )
 
@@ -636,6 +688,9 @@ def _handle_telegram_memory_proposal_loop(
 ) -> TelegramConversationLoopResult | None:
     approval_match = TELEGRAM_MEMORY_APPROVE_PATTERN.match(message.text.strip())
     rejection_match = TELEGRAM_MEMORY_REJECT_PATTERN.match(message.text.strip())
+    latest_decision = _detect_latest_memory_decision(message.text)
+    malformed_decision = _detect_malformed_memory_decision(message.text)
+    edit_reply_proposal_id = _extract_memory_edit_reply_proposal_id(message.reply_to_text)
     proposal_payload = _extract_telegram_memory_proposal(message.text)
     forget_payload = _detect_telegram_memory_forget(message.text)
     recall_language = _detect_telegram_memory_recall(message.text)
@@ -643,6 +698,9 @@ def _handle_telegram_memory_proposal_loop(
     if (
         approval_match is None
         and rejection_match is None
+        and latest_decision is None
+        and malformed_decision is None
+        and edit_reply_proposal_id is None
         and proposal_payload is None
         and forget_payload is None
         and recall_language is None
@@ -650,6 +708,110 @@ def _handle_telegram_memory_proposal_loop(
         return None
 
     user, robot = _resolve_runtime_user_and_robot(session=session, message=message)
+
+    if edit_reply_proposal_id is not None:
+        proposal = get_proposal_by_id(
+            session=session,
+            user_id=user.id,
+            robot_id=robot.id,
+            proposal_id=edit_reply_proposal_id,
+        )
+        if proposal is None or proposal.status != "PENDING":
+            return _build_memory_loop_result(
+                message=message,
+                config=config,
+                trace={**trace, "stage": "82P", "memory_proposal_loop": "edit_unavailable"},
+                reply_text="Esa propuesta ya no está disponible para modificar.",
+                ok=False,
+                error_code="memory_proposal_edit_unavailable",
+                reply_markup=_remove_keyboard(),
+            )
+        update_pending_proposal(session=session, proposal=proposal, content=message.text)
+        return _build_memory_loop_result(
+            message=message,
+            config=config,
+            trace={**trace, "stage": "82P", "memory_proposal_loop": "edited"},
+            reply_text=_compose_telegram_memory_proposal_reply(
+                content=proposal.proposed_content,
+                proposal_id=proposal.id,
+                edited=True,
+            ),
+            ok=True,
+            reply_markup=_memory_decision_keyboard(),
+        )
+
+    if latest_decision is not None or malformed_decision is not None:
+        pending = list_pending_proposals(session=session, user_id=user.id, robot_id=robot.id)
+        if not pending:
+            return _build_memory_loop_result(
+                message=message,
+                config=config,
+                trace={**trace, "stage": "82P", "memory_proposal_loop": "no_pending"},
+                reply_text="No tienes ninguna propuesta de memoria pendiente.",
+                ok=False,
+                error_code="memory_proposal_no_pending",
+                reply_markup=_remove_keyboard(),
+            )
+        if len(pending) > 1:
+            commands = "\n".join(
+                f"APROBAR memoria {proposal.id}" for proposal in pending[:5]
+            )
+            return _build_memory_loop_result(
+                message=message,
+                config=config,
+                trace={**trace, "stage": "82P", "memory_proposal_loop": "ambiguous"},
+                reply_text="Hay varias propuestas pendientes. Elige una usando su ID:\n\n" + commands,
+                ok=False,
+                error_code="memory_proposal_ambiguous",
+                reply_markup=_remove_keyboard(),
+            )
+
+        proposal = pending[0]
+        if malformed_decision is not None:
+            return _build_memory_loop_result(
+                message=message,
+                config=config,
+                trace={**trace, "stage": "82P", "memory_proposal_loop": "malformed_id"},
+                reply_text=(
+                    "No pude leer el ID que escribiste, pero tu propuesta sigue pendiente. "
+                    "Usa uno de los botones para decidir."
+                ),
+                ok=False,
+                error_code="memory_proposal_malformed_id",
+                reply_markup=_memory_decision_keyboard(),
+            )
+        if latest_decision == "approve":
+            approve_proposal(session=session, proposal=proposal)
+            return _build_memory_loop_result(
+                message=message,
+                config=config,
+                trace={**trace, "stage": "82P", "memory_proposal_loop": "approved"},
+                reply_text="Listo. Guardé esa memoria local.",
+                ok=True,
+                reply_markup=_remove_keyboard(),
+            )
+        if latest_decision == "reject":
+            reject_proposal(session=session, proposal=proposal)
+            return _build_memory_loop_result(
+                message=message,
+                config=config,
+                trace={**trace, "stage": "82P", "memory_proposal_loop": "rejected"},
+                reply_text="Listo. No guardaré esa memoria.",
+                ok=True,
+                reply_markup=_remove_keyboard(),
+            )
+        return _build_memory_loop_result(
+            message=message,
+            config=config,
+            trace={**trace, "stage": "82P", "memory_proposal_loop": "waiting_edit"},
+            reply_text=(
+                "Escribe la versión corregida para esta memoria "
+                f"({proposal.id}). Solo actualizaré la propuesta; todavía no quedará guardada."
+            ),
+            ok=True,
+            reply_markup=_memory_edit_force_reply(),
+        )
+
     if approval_match is not None or rejection_match is not None:
         proposal_id = (approval_match or rejection_match).group(1)
         proposal = get_proposal_by_id(
@@ -684,6 +846,7 @@ def _handle_telegram_memory_proposal_loop(
             reply_text=reply_text,
             ok=ok,
             error_code=None if ok else f"memory_proposal_{status}",
+            reply_markup=_remove_keyboard() if ok else None,
         )
 
     if forget_payload is not None:
@@ -760,6 +923,7 @@ def _handle_telegram_memory_proposal_loop(
         trace={**trace, "stage": "82P", "memory_proposal_loop": "proposal_created"},
         reply_text=reply_text,
         ok=True,
+        reply_markup=_memory_decision_keyboard(),
     )
 
 
@@ -771,6 +935,7 @@ def _build_memory_loop_result(
     reply_text: str,
     ok: bool,
     error_code: str | None = None,
+    reply_markup: dict[str, object] | None = None,
 ) -> TelegramConversationLoopResult:
     hermes_request = build_hermes_request_from_telegram(message)
     hermes_response = HermesRuntimeResponse(
@@ -789,7 +954,12 @@ def _build_memory_loop_result(
         message=message,
         hermes_request=hermes_request,
         hermes_response=hermes_response,
-        prepared_send=prepare_telegram_text_send(chat_id=message.chat_id, text=reply_text, config=config),
+        prepared_send=prepare_telegram_text_send(
+            chat_id=message.chat_id,
+            text=reply_text,
+            config=config,
+            reply_markup=reply_markup,
+        ),
         trace=trace,
         error_code=error_code,
     )
@@ -850,6 +1020,66 @@ def _normalize_telegram_recall_text(text: str) -> str:
     return " ".join(normalized.split())
 
 
+def _normalize_memory_decision_text(text: str) -> str:
+    normalized = " ".join(text.strip().lower().split())
+    return re.sub(r"^[^\w]+", "", normalized, count=1).strip()
+
+
+def _detect_latest_memory_decision(text: str) -> str | None:
+    normalized = _normalize_memory_decision_text(text)
+    if normalized in TELEGRAM_MEMORY_APPROVE_LATEST_PHRASES:
+        return "approve"
+    if normalized in TELEGRAM_MEMORY_REJECT_LATEST_PHRASES:
+        return "reject"
+    if normalized in TELEGRAM_MEMORY_MODIFY_LATEST_PHRASES:
+        return "modify"
+    return None
+
+
+def _detect_malformed_memory_decision(text: str) -> str | None:
+    stripped = text.strip()
+    if TELEGRAM_MEMORY_APPROVE_PATTERN.match(stripped) or TELEGRAM_MEMORY_REJECT_PATTERN.match(stripped):
+        return None
+
+    normalized = _normalize_memory_decision_text(text)
+    if normalized.startswith(("aprobar memoria ", "approve memory ")):
+        return "approve"
+    if normalized.startswith(("rechazar memoria ", "reject memory ")):
+        return "reject"
+    return None
+
+
+def _extract_memory_edit_reply_proposal_id(reply_to_text: str | None) -> str | None:
+    if not reply_to_text:
+        return None
+    match = TELEGRAM_MEMORY_EDIT_REPLY_PATTERN.search(reply_to_text)
+    return match.group(1) if match is not None else None
+
+
+def _memory_decision_keyboard() -> dict[str, object]:
+    return {
+        "keyboard": [
+            [{"text": "✅ Aprobar"}, {"text": "❌ Rechazar"}],
+            [{"text": "✏️ Modificar"}],
+        ],
+        "resize_keyboard": True,
+        "one_time_keyboard": True,
+        "input_field_placeholder": "Elige qué hacer con la memoria",
+    }
+
+
+def _remove_keyboard() -> dict[str, object]:
+    return {"remove_keyboard": True}
+
+
+def _memory_edit_force_reply() -> dict[str, object]:
+    return {
+        "force_reply": True,
+        "selective": True,
+        "input_field_placeholder": "Escribe el texto corregido",
+    }
+
+
 def _compose_telegram_active_memory_recall_reply(*, language: str, memories: list[tuple[str, str]]) -> str:
     if not memories:
         if language == "en":
@@ -900,11 +1130,18 @@ def _classify_telegram_memory_content(raw_content: str) -> dict[str, str]:
     }
 
 
-def _compose_telegram_memory_proposal_reply(*, content: str, proposal_id: str) -> str:
+def _compose_telegram_memory_proposal_reply(
+    *,
+    content: str,
+    proposal_id: str,
+    edited: bool = False,
+) -> str:
+    heading = "Actualicé esta propuesta de memoria:" if edited else "Preparé esta propuesta de memoria:"
     return (
-        "Puedo recordar esto:\n\n"
+        f"{heading}\n\n"
         f"\"{content}\"\n\n"
-        "Responde:\n"
+        "Todavía no está activa. Elige Aprobar, Rechazar o Modificar.\n\n"
+        "También puedes responder:\n"
         f"APROBAR memoria {proposal_id}\n"
         f"RECHAZAR memoria {proposal_id}"
     )

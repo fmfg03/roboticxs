@@ -17,8 +17,13 @@ ROADMAP_PATH = REPO_ROOT / "docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_1.md"
 RUNTIME_PATH = REPO_ROOT / "app/telegram_runtime.py"
 
 
-def build_text_update(text: str = "hola", user_id: int = 82001) -> dict:
-    return {
+def build_text_update(
+    text: str = "hola",
+    user_id: int = 82001,
+    *,
+    reply_to_text: str | None = None,
+) -> dict:
+    update = {
         "update_id": 82001,
         "message": {
             "message_id": 82002,
@@ -27,6 +32,9 @@ def build_text_update(text: str = "hola", user_id: int = 82001) -> dict:
             "text": text,
         },
     }
+    if reply_to_text is not None:
+        update["message"]["reply_to_message"] = {"text": reply_to_text}
+    return update
 
 
 def extract_proposal_id(reply: str) -> str:
@@ -100,10 +108,17 @@ async def test_spanish_memory_intent_creates_inert_proposed_memory(client, db_co
     assert body["ok"] is True
     assert body["trace"]["stage"] == "82P"
     assert body["trace"]["memory_proposal_loop"] == "proposal_created"
-    assert "Puedo recordar esto:" in reply
+    assert "Preparé esta propuesta de memoria:" in reply
     assert '"Prefieres respuestas cortas."' in reply
     assert f"APROBAR memoria {proposal_id}" in reply
     assert f"RECHAZAR memoria {proposal_id}" in reply
+    keyboard = body["prepared_send"]["payload"]["reply_markup"]
+    assert keyboard["keyboard"] == [
+        [{"text": "✅ Aprobar"}, {"text": "❌ Rechazar"}],
+        [{"text": "✏️ Modificar"}],
+    ]
+    assert keyboard["resize_keyboard"] is True
+    assert keyboard["one_time_keyboard"] is True
     after = db_counts()
     assert after["proposals"] == before["proposals"] + 1
     assert after["memories"] == before["memories"]
@@ -470,6 +485,121 @@ async def test_approval_command_activates_memory(client, db_counts):
         assert proposal.status == "APPROVED"
         assert memory.content == "Prefieres respuestas cortas."
         assert memory.status == "ACTIVE"
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("approval_text", ["✅ Aprobar", "Aprobar la memoria propuesta"])
+async def test_plain_approval_activates_the_only_pending_memory(client, approval_text):
+    user_id = 82041 if approval_text.startswith("✅") else 82042
+    proposal_response = await client.post(
+        "/api/telegram/runtime/diagnostic",
+        json=build_text_update("recuerda que prefiero respuestas directas", user_id=user_id),
+    )
+    proposal_id = extract_proposal_id(proposal_response.json()["prepared_send"]["payload"]["text"])
+
+    response = await client.post(
+        "/api/telegram/runtime/diagnostic",
+        json=build_text_update(approval_text, user_id=user_id),
+    )
+
+    body = response.json()
+    assert body["ok"] is True
+    assert body["trace"]["memory_proposal_loop"] == "approved"
+    assert body["prepared_send"]["payload"]["reply_markup"] == {"remove_keyboard": True}
+    with client.app.state.db.session() as session:
+        proposal = session.scalar(select(ProposedMemory).where(ProposedMemory.id == proposal_id))
+        memory = session.scalar(select(MemoryItem).where(MemoryItem.content == proposal.proposed_content))
+        assert proposal.status == "APPROVED"
+        assert memory is not None
+        assert memory.status == "ACTIVE"
+
+
+@pytest.mark.anyio
+async def test_modify_button_guides_edit_and_requires_approval_afterward(client):
+    user_id = 82043
+    proposal_response = await client.post(
+        "/api/telegram/runtime/diagnostic",
+        json=build_text_update("recuerda que prefiero respuestas cortas", user_id=user_id),
+    )
+    proposal_id = extract_proposal_id(proposal_response.json()["prepared_send"]["payload"]["text"])
+
+    modify_response = await client.post(
+        "/api/telegram/runtime/diagnostic",
+        json=build_text_update("✏️ Modificar", user_id=user_id),
+    )
+    modify_body = modify_response.json()
+    edit_prompt = modify_body["prepared_send"]["payload"]["text"]
+    assert modify_body["ok"] is True
+    assert modify_body["trace"]["memory_proposal_loop"] == "waiting_edit"
+    assert proposal_id in edit_prompt
+    assert modify_body["prepared_send"]["payload"]["reply_markup"]["force_reply"] is True
+
+    edited_response = await client.post(
+        "/api/telegram/runtime/diagnostic",
+        json=build_text_update(
+            "Prefiero respuestas breves y directas.",
+            user_id=user_id,
+            reply_to_text=edit_prompt,
+        ),
+    )
+    edited_body = edited_response.json()
+    assert edited_body["ok"] is True
+    assert edited_body["trace"]["memory_proposal_loop"] == "edited"
+    assert "Actualicé esta propuesta de memoria:" in edited_body["prepared_send"]["payload"]["text"]
+    assert edited_body["prepared_send"]["payload"]["reply_markup"]["keyboard"][0][0]["text"] == "✅ Aprobar"
+    with client.app.state.db.session() as session:
+        proposal = session.scalar(select(ProposedMemory).where(ProposedMemory.id == proposal_id))
+        assert proposal.status == "PENDING"
+        assert proposal.proposed_content == "Prefiero respuestas breves y directas."
+        assert session.scalar(select(MemoryItem).where(MemoryItem.content == proposal.proposed_content)) is None
+
+    approval_response = await client.post(
+        "/api/telegram/runtime/diagnostic",
+        json=build_text_update("✅ Aprobar", user_id=user_id),
+    )
+    assert approval_response.json()["trace"]["memory_proposal_loop"] == "approved"
+    with client.app.state.db.session() as session:
+        memory = session.scalar(select(MemoryItem).where(MemoryItem.content == "Prefiero respuestas breves y directas."))
+        assert memory is not None
+        assert memory.status == "ACTIVE"
+
+
+@pytest.mark.anyio
+async def test_malformed_proposal_id_keeps_pending_memory_and_restores_buttons(client):
+    user_id = 82044
+    proposal_response = await client.post(
+        "/api/telegram/runtime/diagnostic",
+        json=build_text_update("recuerda que prefiero respuestas cortas", user_id=user_id),
+    )
+    proposal_id = extract_proposal_id(proposal_response.json()["prepared_send"]["payload"]["text"])
+
+    response = await client.post(
+        "/api/telegram/runtime/diagnostic",
+        json=build_text_update("APROBAR memoria dbOc30b2-6838-4c1 e-a48b-8997f192aba0", user_id=user_id),
+    )
+
+    body = response.json()
+    assert body["ok"] is False
+    assert body["error_code"] == "memory_proposal_malformed_id"
+    assert body["trace"]["memory_proposal_loop"] == "malformed_id"
+    assert body["prepared_send"]["payload"]["reply_markup"]["keyboard"][0][0]["text"] == "✅ Aprobar"
+    with client.app.state.db.session() as session:
+        proposal = session.scalar(select(ProposedMemory).where(ProposedMemory.id == proposal_id))
+        assert proposal.status == "PENDING"
+
+
+@pytest.mark.anyio
+async def test_plain_approval_without_pending_memory_does_not_reach_generic_chat(client):
+    response = await client.post(
+        "/api/telegram/runtime/diagnostic",
+        json=build_text_update("Aprobar", user_id=82045),
+    )
+
+    body = response.json()
+    assert body["ok"] is False
+    assert body["error_code"] == "memory_proposal_no_pending"
+    assert body["trace"]["memory_proposal_loop"] == "no_pending"
+    assert body["prepared_send"]["payload"]["reply_markup"] == {"remove_keyboard": True}
 
 
 @pytest.mark.anyio
