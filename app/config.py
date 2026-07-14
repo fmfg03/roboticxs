@@ -21,6 +21,10 @@ class Settings:
     conversation_history_max_turns: int = 6
     conversation_history_ttl_minutes: int = 120
     helper_discovery_enabled: bool = False
+    helper_interview_provider: str = "local"
+    helper_interview_model: str = "gpt-5.6-luna"
+    helper_interview_timeout_seconds: float = 12.0
+    openai_api_key: str | None = None
 
     def __post_init__(self) -> None:
         self.telegram_allowed_user_ids = frozenset(
@@ -30,6 +34,9 @@ class Settings:
         )
         self.conversation_history_max_turns = max(1, min(self.conversation_history_max_turns, 6))
         self.conversation_history_ttl_minutes = max(1, min(self.conversation_history_ttl_minutes, 1440))
+        self.helper_interview_provider = (
+            "openai" if self.helper_interview_provider.strip().lower() == "openai" else "local"
+        )
 
     def is_telegram_user_allowed(self, user_id: int) -> bool:
         if self.telegram_owner_id is None:
@@ -116,4 +123,10 @@ def get_settings() -> Settings:
         conversation_history_max_turns=_read_positive_int_env("ROBOTICXS_CONVERSATION_HISTORY_MAX_TURNS", 6),
         conversation_history_ttl_minutes=_read_positive_int_env("ROBOTICXS_CONVERSATION_HISTORY_TTL_MINUTES", 120),
         helper_discovery_enabled=_read_bool_env("ROBOTICXS_HELPER_DISCOVERY_ENABLED", False),
+        helper_interview_provider=os.getenv("ROBOTICXS_HELPER_INTERVIEW_PROVIDER", "local"),
+        helper_interview_model=os.getenv("ROBOTICXS_HELPER_INTERVIEW_MODEL", "gpt-5.6-luna"),
+        helper_interview_timeout_seconds=_read_positive_float_env(
+            "ROBOTICXS_HELPER_INTERVIEW_TIMEOUT_SECONDS", 12.0
+        ),
+        openai_api_key=os.getenv("OPENAI_API_KEY") or None,
     )
