@@ -11,6 +11,7 @@ class Settings:
     file_retrieval_enabled: bool = False
     telegram_bot_token: str | None = None
     telegram_public_webhook_url: str | None = None
+    telegram_owner_id: int | None = None
 
 
 def _read_bool_env(name: str, default: bool) -> bool:
@@ -25,6 +26,16 @@ def _read_bool_env(name: str, default: bool) -> bool:
     return default
 
 
+def _read_optional_int_env(name: str) -> int | None:
+    raw_value = os.getenv(name)
+    if raw_value is None or not raw_value.strip():
+        return None
+    try:
+        return int(raw_value.strip())
+    except ValueError:
+        return None
+
+
 def get_settings() -> Settings:
     return Settings(
         database_url=os.getenv("DATABASE_URL", "sqlite:////tmp/roboticxs.db"),
@@ -34,4 +45,5 @@ def get_settings() -> Settings:
         file_retrieval_enabled=_read_bool_env("FILE_RETRIEVAL_ENABLED", False),
         telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN") or None,
         telegram_public_webhook_url=os.getenv("TELEGRAM_PUBLIC_WEBHOOK_URL") or None,
+        telegram_owner_id=_read_optional_int_env("ROBOTICXS_OWNER_ID"),
     )
