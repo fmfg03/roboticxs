@@ -129,4 +129,5 @@ Read these next:
 - [Product Pivot](docs/ROBOTICXS_PRODUCT_PIVOT_2026_05_30.md)
 - [Runtime Status](docs/ROBOTICXS_RUNTIME_STATUS.md)
 - [Roadmap Pivot](docs/ROBOTICXS_ROADMAP_PIVOT.md)
+- [Canonical Roadmap v0.2](docs/roadmap/ROBOTICXS_CANONICAL_ROADMAP_v0_2.md)
 - [Codex Session Product Boundary Preamble](docs/reference/CODEX_SESSION_PRODUCT_BOUNDARY_PREAMBLE_v0_1.md)
