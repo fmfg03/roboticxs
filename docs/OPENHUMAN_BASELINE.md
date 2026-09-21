@@ -89,3 +89,13 @@ No product modification is authorized by this document.  The executable
 baseline gate is now satisfied; focused upstream approval/workflow tests are
 recorded above. Each focused test emitted five pre-existing upstream unused
 import warnings; none failed and no upstream source was changed.
+
+## Day 2 status: BLOCKED_UPSTREAM
+
+`repro/openhuman-embed-policy` independently reproduced a public embedding
+failure at the pinned SHA. The pure embed path with both `Access::readonly()`
+and `Access::full()`, and the public `openhuman_tinyhumans::RuntimeBuilder`
+path, each reject `Agent.turn("say pong").send()` before the local provider
+receives a request. Each case has zero tools and zero provider calls.
+
+Issue: https://github.com/tinyhumansai/openhuman/issues/6404
