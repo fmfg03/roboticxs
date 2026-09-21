@@ -1,0 +1,34 @@
+[package]
+name = "openhuman-embed-policy-repro"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+openhuman-embed = { path = "../../upstream/openhuman/crates/openhuman-embed" }
+openhuman-tinyhumans = { path = "../../upstream/openhuman/crates/openhuman-tinyhumans" }
+serde_json = "1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+tempfile = "3"
+wiremock = "0.6"
+
+[patch."https://github.com/tinyhumansai/tinymemory"]
+tinymemory-api = { path = "../../upstream/openhuman/vendor/tinymemory/crates/tinymemory-api" }
+
+[patch."https://github.com/tinyhumansai/tinyinference"]
+tinyinference-core = { path = "../../upstream/openhuman/vendor/tinyagents/vendor/tinyinference/crates/tinyinference-core" }
+tinyinference-embeddings = { path = "../../upstream/openhuman/vendor/tinyagents/vendor/tinyinference/crates/tinyinference-embeddings" }
+tinyinference-llm = { path = "../../upstream/openhuman/vendor/tinyagents/vendor/tinyinference/crates/tinyinference-llm" }
+tinyinference-local = { path = "../../upstream/openhuman/vendor/tinyagents/vendor/tinyinference/crates/tinyinference-local" }
+tinyinference-providers = { path = "../../upstream/openhuman/vendor/tinyagents/vendor/tinyinference/crates/tinyinference-providers" }
+tinyinference-voice = { path = "../../upstream/openhuman/vendor/tinyagents/vendor/tinyinference/crates/tinyinference-voice" }
+
+[patch.crates-io]
+tinyinference-core = { path = "../../upstream/openhuman/vendor/tinyagents/vendor/tinyinference/crates/tinyinference-core" }
+tinyinference-embeddings = { path = "../../upstream/openhuman/vendor/tinyagents/vendor/tinyinference/crates/tinyinference-embeddings" }
+tinyinference-llm = { path = "../../upstream/openhuman/vendor/tinyagents/vendor/tinyinference/crates/tinyinference-llm" }
+tinyinference-local = { path = "../../upstream/openhuman/vendor/tinyagents/vendor/tinyinference/crates/tinyinference-local" }
+tinyinference-providers = { path = "../../upstream/openhuman/vendor/tinyagents/vendor/tinyinference/crates/tinyinference-providers" }
+tinyinference-voice = { path = "../../upstream/openhuman/vendor/tinyagents/vendor/tinyinference/crates/tinyinference-voice" }
+tinyflows = { path = "../../upstream/openhuman/vendor/tinyflows/crates/tinyflows" }
+tinychannels = { path = "../../upstream/openhuman/vendor/tinychannels" }

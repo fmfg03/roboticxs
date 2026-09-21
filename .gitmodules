@@ -1,0 +1,3 @@
+[submodule "upstream/openhuman"]
+	path = upstream/openhuman
+	url = https://github.com/tinyhumansai/openhuman.git
